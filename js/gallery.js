@@ -10,8 +10,6 @@ let currentIndex = 0;
 export function renderGallery(cameras) {
   galleryContainer.innerHTML = '';
 
-  
-
   // Route overview map
   if (window.selectedRoute && window.selectedRoute !== 'All') {
     const overviewCell = document.createElement('div');
