@@ -127,27 +127,20 @@ export function renderGallery(cameras) {
       ).addTo(miniMap);
 
 
-// Before adding any new markers:
-miniMap.eachLayer(layer => {
-  // Remove everything except the tile layer (the basemap)
-  if (!(layer instanceof L.TileLayer)) {
-    miniMap.removeLayer(layer);
-  }
-});
 
 // Now add your new markers, and they will appear with the current JS style:
 coords.forEach(([lat, lng]) => {
   L.circleMarker([lat, lng], {
-    radius:      6,             
-    fillColor:   '#2186f6',
-    color:       '#2186f6',
-    weight:      1,
+    radius:      3,            
+    fillColor:   '#ff7800',
+    color:       '#ffffff',
+    weight:      .75,
     opacity:     1,
     fillOpacity: 1
   }).addTo(miniMap);
 });
 
-// (add user location, etc...)
+
 
 
       // For nearest cameras, add user location as blue dot
@@ -155,10 +148,10 @@ coords.forEach(([lat, lng]) => {
         L.circleMarker([filterCtx.nearest.lat, filterCtx.nearest.lng], {
           radius:      6,
           fillColor:   '#2186f6',
-          color:       '#2186f6',
-          weight:      3,
+          color:       '#ffffff',
+          weight:      2,
           opacity:     1,
-          fillOpacity: 0.95
+          fillOpacity: 1
         }).addTo(miniMap);
       }
 
