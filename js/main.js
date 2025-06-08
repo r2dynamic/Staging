@@ -144,4 +144,34 @@ document.addEventListener('DOMContentLoaded', async () => {
       const el = document.getElementById(id);
       if (el) bootstrap.Collapse.getOrCreateInstance(el, { toggle: false }).hide();
     });
+
+
+// Smart sticky header: hide on scroll down, show on scroll up
+let lastScrollY = window.scrollY;
+const header = document.querySelector('.header-controls');
+const filters = document.querySelector('.selected-filters');
+let ticking = false;
+
+function updateHeaderOnScroll() {
+  const currentScrollY = window.scrollY;
+  if (currentScrollY > lastScrollY && currentScrollY > 100) {
+    // Hide on scroll down (and only after scrolling 100px down)
+    if (header) header.classList.add('hide-header');
+    if (filters) filters.classList.add('hide-header');
+  } else if (currentScrollY < lastScrollY) {
+    // Show on scroll up
+    if (header) header.classList.remove('hide-header');
+    if (filters) filters.classList.remove('hide-header');
+  }
+  lastScrollY = currentScrollY;
+  ticking = false;
+}
+
+window.addEventListener('scroll', () => {
+  if (!ticking) {
+    window.requestAnimationFrame(updateHeaderOnScroll);
+    ticking = true;
+  }
+});
+
 });

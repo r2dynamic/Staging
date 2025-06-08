@@ -109,6 +109,10 @@ html, body {
 
 /* Selected Filters Container */
 .selected-filters {
+  position: sticky;
+  z-index: 999;
+  transition: transform 0.2s cubic-bezier(.6,.04,.98,.335);
+  will-change: transform;
   background-color: #04AA6D;
   color: white;
   padding: 6px 10px;
@@ -125,6 +129,8 @@ html, body {
   margin: 5px auto;
   box-sizing: border-box;
 }
+
+
 
 /* Filter Items and Action Buttons */
 .selected-filters .badges {
@@ -164,6 +170,7 @@ html, body {
   background-color: #3e8e41;
 }
 
+
 /* Header Controls */
 .header-controls {
   position: sticky;
@@ -181,9 +188,11 @@ html, body {
   box-sizing: border-box;
   transform: translateZ(0);
 }
+
+
 @media (max-width: 600px) {
   .header-controls .button {
-    flex: 1;
+    flex: 0 0 auto !important;
     margin: 0 2px;
     max-width: auto;
     height: 30px;
@@ -251,7 +260,7 @@ html, body {
   top: 100%;
   left: 0;
   z-index: 2000;
-  background: rgba(255, 255, 255, 0.1) !important;
+  background: rgba(255, 255, 255, 0.048) !important;
   backdrop-filter: blur(12px);
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 12px;
@@ -270,7 +279,7 @@ html, body {
 }
 .dropdown-menu select,
 .dropdown-menu input {
-  background: rgba(255, 255, 255, 0.2) !important;
+  background: rgba(255, 255, 255, 0.114) !important;
   color: white !important;
   border: none;
   padding: 6px;
@@ -416,8 +425,8 @@ html, body {
   border-radius: 6px;
   transition: transform 0.2s ease-in-out;
 }
-.aspect-ratio-box:hover img { transform: scale(1.05); }
-.aspect-ratio-box:active img { transform: scale(1.02); }
+.aspect-ratio-box:hover img { transform: scale(1.18); }
+.aspect-ratio-box:active img { transform: scale(2.8); }
 
 /* Modal Styles */
 .modal-dialog-centered {
@@ -454,7 +463,7 @@ html, body {
 }
 #modalImageContainer, #modalMapContainer {
   flex: 1;
-  transition: width 0.3s ease;
+  transition: width 0.1s ease;
 }
 #modalImage {
   max-width: 100%;
@@ -638,3 +647,12 @@ html, body {
 
 
 
+/* === Smart Sticky Header/Filters === */
+.header-controls,
+.selected-filters {
+  transition: transform 0.2s cubic-bezier(.6,.04,.98,.335);
+  will-change: transform;
+}
+.hide-header {
+  transform: translateY(-100%);
+}

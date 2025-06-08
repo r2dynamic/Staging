@@ -1,28 +1,12 @@
 // sw.js - Service Worker
 
-const CACHE_VERSION = 'v4.1';
+const CACHE_VERSION = 'v4.9';
 const PRECACHE_NAME = `wpa-precache-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `wpa-runtime-${CACHE_VERSION}`;
 
 // List of resources to precache
 const PRECACHE_URLS = [
   '/', 
-  '/index.html',
-  '/manifest.json',
-  '/stylev4.css',
-  '/routes.json',
-  '/cameras.json',
-  '/cameraData.js',
-  '/js/main.js',
-  '/js/utils.js',
-  '/js/dataLoader.js',
-  '/js/filters.js',
-  '/js/dropdowns.js',
-  '/js/gallery.js',
-  '/js/modal.js',
-  '/js/geolocation.js',
-  '/js/events.js',
-  '/js/ui.js',
   '/images/mobileSplash.webp',
   '/Icongridbackground3.png',
   '/desktop-splash.mp4'
