@@ -138,10 +138,10 @@ miniMap.eachLayer(layer => {
 // Now add your new markers, and they will appear with the current JS style:
 coords.forEach(([lat, lng]) => {
   L.circleMarker([lat, lng], {
-    radius:      2,             // Style now works!
-    fillColor:   '#ff7800',
-    color:       '#ffffff',
-    weight:      0.5,
+    radius:      6,             
+    fillColor:   '#2186f6',
+    color:       '#2186f6',
+    weight:      1,
     opacity:     1,
     fillOpacity: 1
   }).addTo(miniMap);
@@ -155,7 +155,7 @@ coords.forEach(([lat, lng]) => {
         L.circleMarker([filterCtx.nearest.lat, filterCtx.nearest.lng], {
           radius:      6,
           fillColor:   '#2186f6',
-          color:       '#ffffff',
+          color:       '#2186f6',
           weight:      3,
           opacity:     1,
           fillOpacity: 0.95
