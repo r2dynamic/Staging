@@ -31,13 +31,19 @@ export function fadeOutSplash() {
  * Updates the URL parameters based on global selected filters.
  */
 export function updateURLParameters() {
-  const params = new URLSearchParams();
+  const existing = new URLSearchParams(window.location.search).get('multiRoute');
+  const params   = new URLSearchParams();
+
   if (window.selectedRegion)             params.set('region', window.selectedRegion);
   if (window.selectedCounty)             params.set('county', window.selectedCounty);
   if (window.selectedCity)               params.set('city', window.selectedCity);
   if (window.selectedRoute && window.selectedRoute !== 'All')    params.set('route', window.selectedRoute);
   if (window.searchQuery)                params.set('search', window.searchQuery);
   if (window.selectedMaintenanceStation) params.set('maintenance', window.selectedMaintenanceStation);
+  if (existing) {
+    params.set('multiRoute', existing);
+  }
+
   window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
 }
 

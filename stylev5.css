@@ -636,5 +636,10 @@ html, body {
   box-shadow: 0 0 8px #1257aa55;
 }
 
+/* Let our custom route modal’s body behave normally */
+#customRouteModal .modal-body {
+  display: block !important;
+}
+
 
 
