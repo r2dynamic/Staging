@@ -15,6 +15,8 @@ import {
   updateRouteOptions
 } from './dropdowns.js';
 
+import { renderGallery } from './gallery.js';
+
 import {
   setupModalMapToggle,
   setupModalCleanup,
@@ -56,14 +58,13 @@ window.curatedRoutes = [];
 window.visibleCameras = [];
 window.currentIndex = 0;
 
-// Expose core functions on window (for console/debug)
+// Expose core functions on window
 window.filterImages = filterImages;
 window.updateRegionDropdown = updateRegionDropdown;
 window.updateCountyDropdown = updateCountyDropdown;
 window.updateCityDropdown = updateCityDropdown;
 window.updateMaintenanceStationDropdown = updateMaintenanceStationDropdown;
 window.updateRouteOptions = updateRouteOptions;
-window.copyURLToClipboard = copyURLToClipboard;
 
 window.revealMainContent = revealMainContent;
 window.fadeOutSplash = fadeOutSplash;
@@ -71,6 +72,7 @@ window.updateURLParameters = updateURLParameters;
 window.updateSelectedFilters = updateSelectedFilters;
 window.resetFilters = resetFilters;
 window.applyFiltersFromURL = applyFiltersFromURL;
+window.copyURLToClipboard = copyURLToClipboard;
 
 /**
  * Initializes cameras and routes, then sets up the app UI.
@@ -87,28 +89,37 @@ async function initializeApp() {
   updateMaintenanceStationDropdown();
   updateRouteOptions();
 
-  // 3. If there's no multiRoute=… param, run the normal filter flow
+   // 3. Apply URL filters before rendering
   const params = new URLSearchParams(window.location.search);
-  if (!params.has('multiRoute')) {
-    applyFiltersFromURL();
+  const hasMulti = params.has('multiRoute');
+
+  applyFiltersFromURL();
+
+  // 4. If not using multiRoute, do normal filterImages()
+  if (!hasMulti) {
     filterImages();
   }
+
+  // 5. Make sure badges are in sync
+  updateSelectedFilters();
+
+
 }
 
 // Kick off the app when DOM is ready
 document.addEventListener('DOMContentLoaded', async () => {
   await initializeApp();
 
-  // Nearest camera button
   setupNearestCameraButton();
 
-  // Only auto-sort by location if the user did NOT supply any URL filters
-  const initialParams = new URLSearchParams(window.location.search);
-  if ([...initialParams.keys()].length === 0) {
+  // Only auto‑sort by location if the user did NOT supply any URL filters:
+  const params = new URLSearchParams(window.location.search);
+  if ([...params.keys()].length === 0) {
     autoSortByLocation();
   }
 
-  // Core UI controls
+
+  // UI Controls
   setupRefreshButton();
   setupSearchListener();
   setupDropdownHide();
@@ -119,17 +130,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupModalCleanup();
   setupOverviewModal();
   setupCopyUrlButton();
-
-  // Custom Route Builder
   setupCustomRouteBuilder();
-
+  
   // Splash screen logic with fallback timers
   const splash = document.getElementById('splashScreen');
   if (splash) {
     const dv = document.getElementById('desktopVideo');
     if (dv) {
-      dv.addEventListener('playing',  () => setTimeout(fadeOutSplash, 2300));
-      dv.addEventListener('error',    () => setTimeout(fadeOutSplash, 2000));
+      dv.addEventListener('playing', () => setTimeout(fadeOutSplash, 2300));
+      dv.addEventListener('error',   () => setTimeout(fadeOutSplash, 2000));
     }
     // Always hide splash after 3 seconds
     setTimeout(fadeOutSplash, 3000);

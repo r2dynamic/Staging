@@ -1,260 +1,241 @@
 // js/customRoute.js
-// Module for building multi-segment custom routes via a URL-driven form and preview map
+// Module to build and apply multi-segment custom route filters
 
 import { refreshGallery } from './ui.js';
-import { copyURLToClipboard } from './utils.js';
+import { copyToClipboard } from './utils.js';
 
-// ===== Utility Functions =====
+// Leaflet (L) is loaded globally
+let mapInstance = null;
+let segmentMarkers = [];
+
+/** Normalize user input to digits only. */
 function normalizeRouteInput(input) {
-  return (input || '').toString().replace(/\D+/g, '');
-}
-function normalizeCameraRoute(route) {
-  return (route || '').toString().replace(/P$/i, '').replace(/\D+/g, '');
+  return (input || '').replace(/\D/g, '');
 }
 
-function isCameraOnSegment(camera, segment) {
-  const target = segment.name;
-  const r1 = normalizeCameraRoute(camera.RoadwayOption1);
-  if (r1 === target) {
-    const mp = camera.MilepostOption1;
-    if ((segment.mpMin != null && mp < segment.mpMin) ||
-        (segment.mpMax != null && mp > segment.mpMax)) return false;
-    return true;
+/** Test if a camera lies on a given segment. */
+function isCameraOnSegment(cam, { name, mpMin, mpMax }) {
+  let mp = null;
+  if (cam.RoadwayOption1 === name) mp = cam.MilepostOption1;
+  else if (cam.RoadwayOption2 === name) mp = cam.MilepostOption2;
+  if (mp == null || isNaN(mp)) return false;
+  if (mpMin != null && mp < mpMin) return false;
+  if (mpMax != null && mp > mpMax) return false;
+  return true;
+}
+
+/** Serialize segments into a multiRoute query string. */
+export function serializeSegments(segs) {
+  return segs.map(s => `${s.name}:${s.mpMin}-${s.mpMax}`).join(',');
+}
+
+/** Parse multiRoute parameter into window.customRouteFormData. */
+function parseMultiRouteFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const raw = params.get('multiRoute');
+  if (!raw) {
+    window.customRouteFormData = [];
+    return;
   }
-  const r2 = normalizeCameraRoute(camera.RoadwayOption2);
-  if (r2 === target) {
-    const mp = camera.MilepostOption2;
-    if ((segment.mpMin != null && mp < segment.mpMin) ||
-        (segment.mpMax != null && mp > segment.mpMax)) return false;
-    return true;
-  }
-  return false;
-}
-
-function computeCustomRouteCameras(segments) {
-  const cams = (window.camerasList || []).filter(cam => cam.Views?.[0]?.Status !== 'Disabled');
-  const seen = new Set();
-  const result = [];
-  segments.forEach(seg => {
-    const name = seg.name;
-    const asc  = seg.mpMin <= seg.mpMax;
-    const matches = cams.filter(cam => isCameraOnSegment(cam, seg));
-    matches.sort((a, b) => {
-      const mpA = normalizeCameraRoute(a.RoadwayOption1) === name
-        ? a.MilepostOption1 : a.MilepostOption2;
-      const mpB = normalizeCameraRoute(b.RoadwayOption1) === name
-        ? b.MilepostOption1 : b.MilepostOption2;
-      return asc ? mpA - mpB : mpB - mpA;
-    });
-    matches.forEach(cam => {
-      if (!seen.has(cam.Id)) {
-        seen.add(cam.Id);
-        result.push(cam);
-      }
-    });
-  });
-  return result;
-}
-
-function serializeSegments(segments) {
-  return segments.map(seg => `${seg.name}:${seg.mpMin}-${seg.mpMax}`).join(',');
-}
-
-function parseSegmentsParam(param) {
-  if (!param) return [];
-  return param.split(',').map(chunk => {
-    const [rawName, range] = chunk.split(':');
-    const [minS, maxS] = (range || '').split('-');
+  window.customRouteFormData = raw.split(',').map(chunk => {
+    const [r, range] = chunk.split(':');
+    const code = (r || '').toUpperCase();
+    const name = code.endsWith('P') ? code : code + 'P';
+    const [minRaw, maxRaw] = (range || '').split('-');
+    const mpMin = parseFloat(minRaw);
+    const mpMax = parseFloat(maxRaw);
     return {
-      name: normalizeRouteInput(rawName),
-      mpMin: parseFloat(minS),
-      mpMax: parseFloat(maxS)
+      name,
+      mpMin: isNaN(mpMin) ? null : mpMin,
+      mpMax: isNaN(mpMax) ? null : mpMax
     };
-  }).filter(s => s.name && !isNaN(s.mpMin) && !isNaN(s.mpMax));
+  });
 }
 
-// ===== State =====
-const state = { segments: [] };
-let mapInstance;
-
-// ===== Form Row Management =====
-function addSegmentRow(data = { name: '', mpMin: '', mpMax: '' }) {
-  const container = document.getElementById('customRouteFields');
-  const index = container.children.length;
-  const row = document.createElement('div');
-  row.className = 'd-flex gap-2 align-items-center';
-
-  const routeIn = document.createElement('input');
-  routeIn.type = 'text';
-  routeIn.placeholder = 'e.g. SR 209';
-  routeIn.value = data.name;
-  routeIn.className = 'form-control glass-dropdown-input flex-fill';
-
-  const mpMinIn = document.createElement('input');
-  mpMinIn.type = 'number';
-  mpMinIn.placeholder = 'MP start';
-  mpMinIn.value = data.mpMin;
-  mpMinIn.className = 'form-control glass-dropdown-input';
-
-  const mpMaxIn = document.createElement('input');
-  mpMaxIn.type = 'number';
-  mpMaxIn.placeholder = 'MP end';
-  mpMaxIn.value = data.mpMax;
-  mpMaxIn.className = 'form-control glass-dropdown-input';
-
-  const removeBtn = document.createElement('button');
-  removeBtn.type = 'button';
-  removeBtn.className = 'btn-close btn-close-white';
-
-  row.append(routeIn, mpMinIn, mpMaxIn, removeBtn);
-  container.append(row);
-
-  state.segments.splice(index, 0, { name: data.name, mpMin: data.mpMin, mpMax: data.mpMax });
-
-  function updateState() {
-    state.segments[index] = {
-      name: normalizeRouteInput(routeIn.value),
-      mpMin: parseFloat(mpMinIn.value),
-      mpMax: parseFloat(mpMaxIn.value)
-    };
-    renderPreviewMap();
-    updateApplyState();
+/** Ensure at least one segment exists in the form data. */
+function ensureSegmentData() {
+  if (!Array.isArray(window.customRouteFormData)) window.customRouteFormData = [];
+  if (window.customRouteFormData.length === 0) {
+    window.customRouteFormData.push({ name: '', mpMin: null, mpMax: null });
   }
-
-  [routeIn, mpMinIn, mpMaxIn].forEach(input => {
-    input.addEventListener('input', updateState);
-  });
-
-  removeBtn.addEventListener('click', () => {
-    state.segments.splice(index, 1);
-    row.remove();
-    renderPreviewMap();
-    updateApplyState();
-  });
 }
 
-function populateForm() {
-  const container = document.getElementById('customRouteFields');
+/** Enable or disable the Apply button based on form validity. */
+function updateApplyButtonState() {
+  const btn = document.getElementById('customRouteApply');
+  if (!btn) return;
+  const ok = Array.isArray(window.customRouteFormData) &&
+             window.customRouteFormData.every(s => s.name && s.mpMin != null && s.mpMax != null);
+  btn.disabled = !ok;
+}
+
+/** Render the custom route form rows. */
+function renderForm() {
+  const container = document.getElementById('customRouteFormContainer');
+  if (!container) return;
   container.innerHTML = '';
-  if (!state.segments.length) state.segments = [{ name: '', mpMin: '', mpMax: '' }];
-  state.segments.forEach(seg => addSegmentRow(seg));
-}
 
-function resetForm() {
-  state.segments = [];
-  populateForm();
-  renderPreviewMap();
-  updateApplyState();
-}
+  ensureSegmentData();
+  const segs = window.customRouteFormData;
 
-function updateApplyState() {
-  const btn = document.getElementById('applyRouteButton');
-  const valid = state.segments.every(s => s.name && !isNaN(s.mpMin) && !isNaN(s.mpMax));
-  btn.disabled = !valid;
-}
+  segs.forEach((seg, idx) => {
+    const row = document.createElement('div');
+    row.className = 'd-flex flex-wrap align-items-center gap-2 mb-2';
 
-// ===== Preview Map =====
-function renderPreviewMap() {
-  if (mapInstance) mapInstance.remove();
-  const div = document.getElementById('customRouteMap');
-  mapInstance = L.map(div, { zoomControl: false, attributionControl: false });
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance);
-  const cams = computeCustomRouteCameras(state.segments);
-  if (cams.length) {
-    const coords = cams.map(c => [c.Latitude, c.Longitude]);
-    const bounds = L.latLngBounds(coords);
-    cams.forEach(c => L.circleMarker([c.Latitude, c.Longitude], { radius:4 }).addTo(mapInstance));
-    mapInstance.fitBounds(bounds, { padding: [10,10], maxZoom: 14 });
-  }
-}
+    // Up button
+    const up = document.createElement('button');
+    up.type = 'button'; up.className = 'btn btn-sm btn-outline-light'; up.textContent = '⬆️';
+    up.disabled = idx === 0;
+    up.onclick = () => { [segs[idx-1], segs[idx]] = [segs[idx], segs[idx-1]]; renderForm(); renderMap(); };
+    row.append(up);
 
-// ===== Apply & URL =====
-function applyCustomRoute() {
-  const cams = computeCustomRouteCameras(state.segments);
-  refreshGallery(cams);
-  // append custom badges
-  const sel = document.querySelector('#selectedFilters .badges');
-  state.segments.forEach(s => {
-    const badge = document.createElement('div');
-    badge.className = 'filter-item custom-route-badge';
-    badge.textContent = `📍 ${s.name}: ${s.mpMin}–${s.mpMax}`;
-    sel.append(badge);
+    // Down button
+    const down = document.createElement('button');
+    down.type = 'button'; down.className = 'btn btn-sm btn-outline-light'; down.textContent = '⬇️';
+    down.disabled = idx === segs.length - 1;
+    down.onclick = () => { [segs[idx], segs[idx+1]] = [segs[idx+1], segs[idx]]; renderForm(); renderMap(); };
+    row.append(down);
+
+    // Route input
+    const routeIn = document.createElement('input');
+    routeIn.type = 'text'; routeIn.placeholder = 'Route #';
+    routeIn.value = seg.name.replace(/P$/, '');
+    routeIn.className = 'form-control glass-dropdown-input'; routeIn.style.width = '80px';
+    routeIn.oninput = () => {
+      const n = normalizeRouteInput(routeIn.value);
+      seg.name = n ? n + 'P' : '';
+      updateApplyButtonState(); renderMap();
+    };
+    row.append(routeIn);
+
+    // From MP
+    const minIn = document.createElement('input');
+    minIn.type = 'number'; minIn.placeholder = 'From';
+    minIn.value = seg.mpMin != null ? seg.mpMin : '';
+    minIn.className = 'form-control glass-dropdown-input'; minIn.style.width = '80px';
+    minIn.oninput = () => {
+      const v = parseFloat(minIn.value);
+      seg.mpMin = isNaN(v) ? null : v;
+      updateApplyButtonState(); renderMap();
+    };
+    row.append(minIn);
+
+    // Swap button
+    const swap = document.createElement('button');
+    swap.type = 'button'; swap.className = 'btn btn-sm btn-outline-light'; swap.textContent = '🔁';
+    swap.onclick = () => { [seg.mpMin, seg.mpMax] = [seg.mpMax, seg.mpMin]; renderForm(); renderMap(); };
+    row.append(swap);
+
+    // To MP
+    const maxIn = document.createElement('input');
+    maxIn.type = 'number'; maxIn.placeholder = 'To';
+    maxIn.value = seg.mpMax != null ? seg.mpMax : '';
+    maxIn.className = 'form-control glass-dropdown-input'; maxIn.style.width = '80px';
+    maxIn.oninput = () => {
+      const v = parseFloat(maxIn.value);
+      seg.mpMax = isNaN(v) ? null : v;
+      updateApplyButtonState(); renderMap();
+    };
+    row.append(maxIn);
+
+    // Remove button
+    const rem = document.createElement('button');
+    rem.type = 'button'; rem.className = 'btn btn-sm btn-outline-danger'; rem.textContent = '❌';
+    rem.disabled = segs.length === 1;
+    rem.onclick = () => { segs.splice(idx, 1); renderForm(); renderMap(); };
+    row.append(rem);
+
+    container.append(row);
   });
-  // update URL
+
+  // Add Segment
+  const addBtn = document.createElement('button');
+  addBtn.type = 'button'; addBtn.className = 'btn btn-sm button'; addBtn.textContent = '+ Add Segment';
+  addBtn.onclick = ()=> { window.customRouteFormData.push({ name: '', mpMin: null, mpMax: null }); renderForm(); renderMap(); };
+  container.append(addBtn);
+
+  updateApplyButtonState();
+}
+
+/** Render the mini overview map. */
+function renderMap() {
+  const mapDiv = document.getElementById('customRouteMap'); if (!mapDiv) return;
+  if (mapInstance) { mapInstance.remove(); mapInstance = null; }
+  mapInstance = L.map(mapDiv, { zoomControl: false, attributionControl: false });
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(mapInstance);
+  L.tileLayer('http://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}').addTo(mapInstance);
+
+  segmentMarkers.forEach(m=>m.remove()); segmentMarkers=[];
+  const cams = window.camerasList || [];
+  window.customRouteFormData.forEach(seg=>{
+    cams.filter(cam=>isCameraOnSegment(cam, seg))
+        .sort((a,b)=>{
+          const ma = a.RoadwayOption1===seg.name ? a.MilepostOption1 : a.MilepostOption2;
+          const mb = b.RoadwayOption1===seg.name ? b.MilepostOption1 : b.MilepostOption2;
+          return seg.mpMin < seg.mpMax ? ma - mb : mb - ma;
+        })
+        .forEach(cam=>{
+          const m = L.marker([cam.Latitude, cam.Longitude]).addTo(mapInstance);
+          m.bindTooltip(
+            `<div class='glass-popup-content'><img src='${cam.Views[0].Url}'/><br/><strong>${cam.Location}</strong></div>`,
+            { direction: 'top', offset: [0, -8], className: 'glass-popup' }
+          );
+          segmentMarkers.push(m);
+        });
+  });
+
+  const pts = segmentMarkers.map(m=>m.getLatLng());
+  if (pts.length) mapInstance.fitBounds(pts, { padding:[8,8], maxZoom:14 });
+  else mapInstance.setView([39.5, -111.5], 6);
+}
+
+/** Apply custom route to gallery filtering. */
+function applyCustomRouteFilter() {
+  const ms = serializeSegments(window.customRouteFormData);
   const params = new URLSearchParams(window.location.search);
-  params.set('multiRoute', serializeSegments(state.segments));
+  params.set('multiRoute', ms);
   window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
+
+  let result = [];
+  window.customRouteFormData.forEach(seg=>{
+    const subset = window.camerasList.filter(cam=>isCameraOnSegment(cam, seg));
+    subset.sort((a,b)=>{
+      const ma = a.RoadwayOption1===seg.name ? a.MilepostOption1 : a.MilepostOption2;
+      const mb = b.RoadwayOption1===seg.name ? b.MilepostOption1 : b.MilepostOption2;
+      return seg.mpMin < seg.mpMax ? ma - mb : mb - ma;
+    });
+    result = result.concat(subset);
+  });
+  refreshGallery(Array.from(new Set(result)));
 }
 
-// ===== Initialization =====
+/** Initialize and wire up the Custom Route Builder UI. */
 export function setupCustomRouteBuilder() {
-  // inject menu
-  const menu = document.getElementById('routeFilterMenu');
-  const item = document.createElement('li');
-  item.innerHTML = `<a id="launchCustomRouteButton" class="dropdown-item" href="#">🛠 Build Custom Route...</a>`;
-  menu.prepend(item);
+  parseMultiRouteFromURL();
+  const buildBtn = document.getElementById('buildCustomRoute');
+  const modalEl  = document.getElementById('customRouteModal');
+  const resetBtn = document.getElementById('customRouteReset');
+  const copyBtn  = document.getElementById('customRouteCopyUrl');
+  const applyBtn = document.getElementById('customRouteApply');
 
-  // inject modal
-  document.body.insertAdjacentHTML('beforeend', `
-<div class="modal fade" id="customRouteModal" tabindex="-1">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content glass-modal">
-      <div class="modal-header"><h5 class="modal-title">Build Custom Route</h5></div>
-      <div class="modal-body">
-        <div class="d-flex flex-column flex-md-row">
-          <div class="p-2 flex-fill">
-            <div id="customRouteFields" class="d-flex flex-column gap-2"></div>
-            <button id="addSegmentButton" type="button" class="button mt-2"><i class="fas fa-plus"></i> Add</button>
-          </div>
-          <div class="p-2 flex-fill">
-            <div id="customRouteMap" style="width:100%;height:300px;"></div>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button id="resetRouteFormButton" type="button" class="reset-button me-auto">Reset</button>
-        <button id="copyRouteUrlButton" type="button" class="button me-2"><i class="fas fa-link"></i>Copy URL</button>
-        <button id="applyRouteButton" type="button" class="button" disabled>Apply</button>
-        <button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="modal"></button>
-      </div>
-    </div>
-  </div>
-</div>`);
+  if (!buildBtn || !modalEl || !resetBtn || !copyBtn || !applyBtn) return;
+  const modal = new bootstrap.Modal(modalEl);
 
-  const launch = document.getElementById('launchCustomRouteButton');
-  const addBtn = document.getElementById('addSegmentButton');
-  const resetBtn = document.getElementById('resetRouteFormButton');
-  const copyBtn = document.getElementById('copyRouteUrlButton');
-  const applyBtn = document.getElementById('applyRouteButton');
-  const modalEl = document.getElementById('customRouteModal');
-  const bsModal = new bootstrap.Modal(modalEl);
+  buildBtn.onclick = e => { e.preventDefault(); renderForm(); renderMap(); modal.show(); };
+  modalEl.addEventListener('hidden.bs.modal', () => { if (mapInstance) mapInstance.remove(); mapInstance = null; });
 
-  launch.addEventListener('click', e => { e.preventDefault(); bsModal.show(); });
-  modalEl.addEventListener('shown.bs.modal', () => {
-    populateForm();
-    renderPreviewMap();
-    updateApplyState();
-  });
-  modalEl.addEventListener('hidden.bs.modal', () => {
-    if (mapInstance) { mapInstance.remove(); mapInstance = null; }
-  });
+  resetBtn.onclick = () => { window.customRouteFormData = []; renderForm(); renderMap(); };
 
-  addBtn.addEventListener('click', () => { addSegmentRow(); updateApplyState(); });
-  resetBtn.addEventListener('click', () => resetForm());
-  copyBtn.addEventListener('click', () => {
-    applyCustomRoute();
-    copyURLToClipboard();
-  });
-  applyBtn.addEventListener('click', () => {
-    applyCustomRoute();
-    bsModal.hide();
-  });
+  copyBtn.onclick = e => {
+    e.preventDefault();
+    const ms = serializeSegments(window.customRouteFormData);
+    const params = new URLSearchParams(window.location.search);
+    params.set('multiRoute', ms);
+    window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
+    copyToClipboard(window.location.href);
+  };
 
-  // apply on load if provided
-  const params = new URLSearchParams(window.location.search);
-  if (params.has('multiRoute')) {
-    state.segments = parseSegmentsParam(params.get('multiRoute'));
-    resetForm();
-    applyCustomRoute();
-  }
+  applyBtn.onclick = e => { e.preventDefault(); applyCustomRouteFilter(); modal.hide(); };
 }
+// after your existing setupCustomRouteBuilder()
+export { parseMultiRouteFromURL, applyCustomRouteFilter };

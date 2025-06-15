@@ -251,32 +251,43 @@ export function updateRouteOptions() {
   if (!menu) return;
   menu.innerHTML = '';
 
-  // All Routes
-  const li0 = document.createElement('li');
-  const a0  = document.createElement('a');
-  a0.classList.add('dropdown-item');
-  a0.href = '#';
-  a0.dataset.value = 'All';
-  a0.textContent = 'All Routes';
-  a0.addEventListener('click', e => {
+  // — All Routes —
+  const liAll = document.createElement('li');
+  const aAll  = document.createElement('a');
+  aAll.classList.add('dropdown-item');
+  aAll.href          = '#';
+  aAll.dataset.value = 'All';
+  aAll.textContent   = 'All Routes';
+  aAll.addEventListener('click', e => {
     e.preventDefault();
     clearNearestCamerasMode();
     window.selectedRoute = 'All';
     filterImages();
     updateURLParameters();
   });
-  li0.append(a0);
-  menu.append(li0);
+  liAll.append(aAll);
+  menu.append(liAll);
 
-  // One per curated route
+  // — Build Custom Route trigger —
+  const liCustom = document.createElement('li');
+  const aCustom  = document.createElement('a');
+  aCustom.classList.add('dropdown-item', 'text-info', 'fw-bold');
+  aCustom.href      = '#';
+  aCustom.id        = 'buildCustomRoute';
+  aCustom.textContent = '🛠 Build Custom Route…';
+  // the click handler itself is wired up in customRoute.js → setupCustomRouteBuilder()
+  liCustom.append(aCustom);
+  menu.append(liCustom);
+
+  // — Curated routes —
   window.curatedRoutes.forEach(route => {
-    const li = document.createElement('li');
-    const a  = document.createElement('a');
-    a.classList.add('dropdown-item');
-    a.href = '#';
+    const li    = document.createElement('li');
+    const a     = document.createElement('a');
     const label = route.displayName || route.name;
+    a.classList.add('dropdown-item');
+    a.href          = '#';
     a.dataset.value = label;
-    a.textContent = label;
+    a.textContent   = label;
     a.addEventListener('click', e => {
       e.preventDefault();
       clearNearestCamerasMode();

@@ -1,6 +1,8 @@
-// ui.js - UI helper functions moved out of main.js
+// js/ui.js
+// UI helper functions with integrated custom route support
 
 import { renderGallery, updateCameraCount } from './gallery.js';
+import { serializeSegments, parseMultiRouteFromURL, applyCustomRouteFilter } from './customRoute.js';
 
 /**
  * Reveals the main content by applying fade-in styles.
@@ -28,27 +30,29 @@ export function fadeOutSplash() {
 }
 
 /**
- * Updates the URL parameters based on global selected filters.
+ * Updates the URL parameters based on current filter state, including custom routes.
  */
 export function updateURLParameters() {
-  const existing = new URLSearchParams(window.location.search).get('multiRoute');
-  const params   = new URLSearchParams();
-
+  const params = new URLSearchParams();
+  // Custom multi-segment route takes precedence
+  if (window.customRouteFormData?.length) {
+    params.set('multiRoute', serializeSegments(window.customRouteFormData));
+    window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
+    return;
+  }
+  // Standard filters
   if (window.selectedRegion)             params.set('region', window.selectedRegion);
   if (window.selectedCounty)             params.set('county', window.selectedCounty);
   if (window.selectedCity)               params.set('city', window.selectedCity);
   if (window.selectedRoute && window.selectedRoute !== 'All')    params.set('route', window.selectedRoute);
   if (window.searchQuery)                params.set('search', window.searchQuery);
   if (window.selectedMaintenanceStation) params.set('maintenance', window.selectedMaintenanceStation);
-  if (existing) {
-    params.set('multiRoute', existing);
-  }
 
   window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
 }
 
 /**
- * Updates the selected filters badge area.
+ * Updates the selected filters badge area, including custom route segments.
  */
 export function updateSelectedFilters() {
   const cont   = document.getElementById('selectedFilters');
@@ -72,6 +76,40 @@ export function updateSelectedFilters() {
     return d;
   }
 
+  // Custom route badges
+  if (window.customRouteFormData?.length) {
+    badges.append(createBadge('fas fa-road', 'Custom Route:'));
+    window.customRouteFormData.forEach(seg => {
+      const routeNum = seg.name.replace(/P$/, '');
+      const label = `${routeNum}: ${seg.mpMin}–${seg.mpMax}`;
+      badges.append(createBadge('fas fa-map-marker-alt', label));
+    });
+    cont.append(badges);
+
+    // Action buttons (reset and copy)
+    const actions = document.createElement('div');
+    actions.className = 'action-buttons';
+
+    const rb = document.createElement('button');
+    rb.className = 'reset-button';
+    rb.title = 'Reset Filters';
+    rb.innerHTML = '<i class="fas fa-undo"></i>';
+    rb.addEventListener('click', () => window.resetFilters());
+    actions.append(rb);
+
+    const cb = document.createElement('button');
+    cb.className = 'reset-button';
+    cb.title = 'Copy Link';
+    cb.innerHTML = '<i class="fas fa-link"></i>';
+    cb.addEventListener('click', () => window.copyURLToClipboard().then(() => alert('URL copied!')));
+    actions.append(cb);
+
+    cont.append(actions);
+    cont.style.display = 'flex';
+    return;
+  }
+
+  // Standard filter badges
   if (window.selectedRegion)             badges.append(createBadge('fas fa-map',    `Region: ${window.selectedRegion}`));
   if (window.selectedCounty)             badges.append(createBadge('fas fa-building', `County: ${window.selectedCounty}`));
   if (window.selectedCity)               badges.append(createBadge('fas fa-city',   `City: ${window.selectedCity}`));
@@ -95,7 +133,6 @@ export function updateSelectedFilters() {
     const actions = document.createElement('div');
     actions.className = 'action-buttons';
 
-    // Reset Filters Button
     const rb = document.createElement('button');
     rb.className = 'reset-button';
     rb.title = 'Reset Filters';
@@ -103,7 +140,6 @@ export function updateSelectedFilters() {
     rb.addEventListener('click', () => window.resetFilters());
     actions.append(rb);
 
-    // Copy Link Button
     const cb = document.createElement('button');
     cb.className = 'reset-button';
     cb.title = 'Copy Link';
@@ -119,7 +155,7 @@ export function updateSelectedFilters() {
 }
 
 /**
- * Resets all global filters to their default values.
+ * Resets all global filters and custom routes to default.
  */
 export function resetFilters() {
   window.selectedRegion = '';
@@ -129,8 +165,11 @@ export function resetFilters() {
   window.selectedMaintenanceStation = '';
   window.selectedOtherFilter = '';
   window.searchQuery = '';
+  window.customRouteFormData = [];
+
   const searchInput = document.getElementById('searchInput');
   if (searchInput) searchInput.value = '';
+
   window.updateRegionDropdown();
   window.updateCountyDropdown();
   window.updateCityDropdown();
@@ -141,10 +180,18 @@ export function resetFilters() {
 }
 
 /**
- * Applies URL parameters (if present) to the global filter state.
+ * Apply URL parameters (excluding multiRoute) to filters.
  */
 export function applyFiltersFromURL() {
   const params = new URLSearchParams(window.location.search);
+
+  // 1) If we have a multiRoute param, use it and bail out
+  if (params.has('multiRoute')) {
+    parseMultiRouteFromURL();
+    applyCustomRouteFilter();   // this will refreshGallery() with your segments
+    return;
+  }
+  // Only parse standard filters here (multiRoute handled in setupCustomRouteBuilder)
   if (params.has('region'))      window.selectedRegion             = params.get('region');
   if (params.has('county'))      window.selectedCounty             = params.get('county');
   if (params.has('city'))        window.selectedCity               = params.get('city');
@@ -158,10 +205,7 @@ export function applyFiltersFromURL() {
 }
 
 /**
- * Refreshes the gallery based on the provided cameras array:
- * - updates global state
- * - resets index
- * - re-renders count, gallery, badges, and URL
+ * Refresh gallery and UI state.
  */
 export function refreshGallery(cameras) {
   window.visibleCameras = cameras;
@@ -173,9 +217,7 @@ export function refreshGallery(cameras) {
 }
 
 /**
- * Copies the current window.location.href into the clipboard,
- * using the async Clipboard API if available, or a textarea + execCommand fallback.
- * @returns {Promise<void>}
+ * Copy current URL to clipboard.
  */
 export function copyURLToClipboard() {
   const url = window.location.href;
