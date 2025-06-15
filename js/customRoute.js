@@ -210,32 +210,70 @@ function applyCustomRouteFilter() {
 }
 
 /** Initialize and wire up the Custom Route Builder UI. */
-export function setupCustomRouteBuilder() {
-  parseMultiRouteFromURL();
-  const buildBtn = document.getElementById('buildCustomRoute');
-  const modalEl  = document.getElementById('customRouteModal');
-  const resetBtn = document.getElementById('customRouteReset');
-  const copyBtn  = document.getElementById('customRouteCopyUrl');
-  const applyBtn = document.getElementById('customRouteApply');
 
+export function setupCustomRouteBuilder() {
+  // 1. Parse any existing multiRoute from the URL
+  parseMultiRouteFromURL();
+
+  // 2. Grab all the DOM elements we need
+  const buildBtn  = document.getElementById('buildCustomRoute');
+  const modalEl   = document.getElementById('customRouteModal');
+  const resetBtn  = document.getElementById('customRouteReset');
+  const copyBtn   = document.getElementById('customRouteCopyUrl');
+  const applyBtn  = document.getElementById('customRouteApply');
+
+  // If any of those are missing, bail out
   if (!buildBtn || !modalEl || !resetBtn || !copyBtn || !applyBtn) return;
+
+  // Create a Bootstrap modal instance
   const modal = new bootstrap.Modal(modalEl);
 
-  buildBtn.onclick = e => { e.preventDefault(); renderForm(); renderMap(); modal.show(); };
-  modalEl.addEventListener('hidden.bs.modal', () => { if (mapInstance) mapInstance.remove(); mapInstance = null; });
-
-  resetBtn.onclick = () => { window.customRouteFormData = []; renderForm(); renderMap(); };
-
-  copyBtn.onclick = e => {
+  // 3. Only open the modal here; defer form/map rendering until it's visible
+  buildBtn.addEventListener('click', e => {
     e.preventDefault();
-    const ms = serializeSegments(window.customRouteFormData);
+    modal.show();
+  });
+
+  // 4. When the modal is fully shown, render the form rows + map
+  modalEl.addEventListener('shown.bs.modal', () => {
+    renderForm();
+    renderMap();
+    // make sure Leaflet knows the container size
+    if (mapInstance) mapInstance.invalidateSize();
+  });
+
+  // 5. Clean up the map instance when the modal hides
+  modalEl.addEventListener('hidden.bs.modal', () => {
+    if (mapInstance) {
+      mapInstance.remove();
+      mapInstance = null;
+    }
+  });
+
+  // 6. Reset button: clear segments and re-render
+  resetBtn.addEventListener('click', () => {
+    window.customRouteFormData = [];
+    renderForm();
+    renderMap();
+  });
+
+  // 7. Copy URL button: update multiRoute param & copy to clipboard
+  copyBtn.addEventListener('click', e => {
+    e.preventDefault();
+    const ms     = serializeSegments(window.customRouteFormData);
     const params = new URLSearchParams(window.location.search);
     params.set('multiRoute', ms);
     window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
     copyToClipboard(window.location.href);
-  };
+  });
 
-  applyBtn.onclick = e => { e.preventDefault(); applyCustomRouteFilter(); modal.hide(); };
+  // 8. Apply button: apply filter, then close modal
+  applyBtn.addEventListener('click', e => {
+    e.preventDefault();
+    applyCustomRouteFilter();
+    modal.hide();
+  });
 }
+
 // after your existing setupCustomRouteBuilder()
 export { parseMultiRouteFromURL, applyCustomRouteFilter };

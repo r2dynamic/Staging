@@ -637,4 +637,66 @@ html, body {
 }
 
 
+/* ────────────── Custom Route Modal Styling ────────────── */
 
+/* 1) Make the dialog wider on desktop & still fullscreen on small */
+#customRouteModal .modal-dialog {
+  max-width: 1400px;            /* wider than default modal-xl */
+  width: 99vw;                  /* up to 90% of viewport width */
+}
+
+/* 2) Constrain modal-content height */
+#customRouteModal .modal-content {
+  max-height: 90vh;
+  overflow: hidden;
+}
+
+/* 3) Body: flex row, taller split */
+#customRouteModal .modal-body {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  height: 90vh;                 /* taller than before */
+  box-sizing: border-box;
+}
+
+/* 4) Form area: scroll if it grows */
+#customRouteFormContainer {
+  flex: 1 1 320px;
+  overflow-y: auto;
+}
+
+/* 5) Map area: bigger flex, min-height */
+#customRouteMap {
+  flex: 3 1 600px;              /* grow weight 3 vs form’s 1 */
+  width: 80%;
+  height: 100%;
+  min-height: 400px;            /* never too squat */
+}
+
+/* 6) Stack vertically on mobile (<768px) */
+@media (max-width: 767.98px) {
+  #customRouteModal .modal-body {
+    flex-direction: column;
+    height: auto;
+  }
+  #customRouteFormContainer {
+    max-height: none;
+  }
+  #customRouteMap {
+    height: 250px;              /* fixed mobile map height */
+    min-height: auto;
+  }
+}
+
+/* ───────────── Wider Route # input ───────────── */
+#customRouteFormContainer input[placeholder="Route #"] {
+  min-width: 120px;
+  width: 120px;
+}
+
+/* ───────────── Pull the map back a notch ───────────── */
+/* (reduce its flex-grow so the form takes a bit more room) */
+#customRouteMap {
+  flex: 2 1 500px;  /* was 3 1 600px; now 2:1 ratio, base 500px */
+}
