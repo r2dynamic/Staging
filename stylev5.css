@@ -636,67 +636,98 @@ html, body {
   box-shadow: 0 0 8px #1257aa55;
 }
 
-
 /* ────────────── Custom Route Modal Styling ────────────── */
 
-/* 1) Make the dialog wider on desktop & still fullscreen on small */
+/* 1) Make the dialog extra-wide on desktop */
 #customRouteModal .modal-dialog {
-  max-width: 1400px;            /* wider than default modal-xl */
-  width: 99vw;                  /* up to 90% of viewport width */
+  max-width: 90vw;
+  width: 90vw;
 }
 
-/* 2) Constrain modal-content height */
+/* 2) Cap the overall height */
 #customRouteModal .modal-content {
   max-height: 90vh;
   overflow: hidden;
 }
 
-/* 3) Body: flex row, taller split */
+/* 3) Split form & map */
 #customRouteModal .modal-body {
   display: flex;
   gap: 1rem;
   padding: 1rem;
-  height: 90vh;                 /* taller than before */
+  height: 75vh;           /* total available */
   box-sizing: border-box;
 }
 
-/* 4) Form area: scroll if it grows */
+/* 4) Form column scrolls if it grows */
 #customRouteFormContainer {
-  flex: 1 1 320px;
+  flex: 1 1 300px;
   overflow-y: auto;
 }
 
-/* 5) Map area: bigger flex, min-height */
+/* 5) Map column fills remaining space */
 #customRouteMap {
-  flex: 3 1 600px;              /* grow weight 3 vs form’s 1 */
-  width: 80%;
+  flex: 2 1 600px;
+  width: 100%;
   height: 100%;
-  min-height: 400px;            /* never too squat */
+  border-radius: 0.75rem; /* rounded corners */
+  overflow: hidden;
 }
+  /* e) Shrink the “+ Add Segment” button */
+  #customRouteFormContainer .button {
+    font-size: 0.875rem;
+    padding: 0.3rem 0.5rem;
+    min-width: 0;
+    margin-bottom: 0.5rem;
+  }
 
-/* 6) Stack vertically on mobile (<768px) */
+/* ────────────── Mobile Overrides ────────────── */
 @media (max-width: 767.98px) {
+  /* a) Stack form above map */
   #customRouteModal .modal-body {
     flex-direction: column;
     height: auto;
   }
+
+  /* b) Form should size to its content and never wrap rows */
   #customRouteFormContainer {
-    max-height: none;
+    flex: 0 0 auto;
+    width: 100%;
   }
+  /* each row (using d-flex) stays on one line */
+  #customRouteFormContainer .d-flex {
+    flex-wrap: nowrap !important;
+  }
+
+  /* c) Shrink inputs & buttons for mobile comfort */
+  #customRouteFormContainer input,
+  #customRouteFormContainer button {
+    font-size: 0.875rem;
+    padding: 0.4rem 0.6rem;
+    min-width: 0;      /* allow them to shrink */
+  }
+
+  /* d) Let the map flex-fill remaining space, down to a min-height */
   #customRouteMap {
-    height: 250px;              /* fixed mobile map height */
-    min-height: auto;
+    flex: 1 1 auto;
+    min-height: 250px;
+    /* override any inline style="height:..." from JS */
+    height: auto !important;
+  }
+
+  /* e) Shrink the “+ Add Segment” button */
+  #customRouteFormContainer .button {
+    font-size: 0.875rem;
+    padding: 0.3rem 0.5rem;
+    min-width: 0;
+    margin-bottom: 0.5rem;
+  }
+
+  /* f) Shrink footer buttons (Reset, Copy URL, Apply) */
+  #customRouteModal .modal-footer .reset-button {
+    font-size: 0.875rem;
+    padding: 0.3rem 0.5rem;
+    margin: 0 0.25rem;
   }
 }
 
-/* ───────────── Wider Route # input ───────────── */
-#customRouteFormContainer input[placeholder="Route #"] {
-  min-width: 120px;
-  width: 120px;
-}
-
-/* ───────────── Pull the map back a notch ───────────── */
-/* (reduce its flex-grow so the form takes a bit more room) */
-#customRouteMap {
-  flex: 2 1 500px;  /* was 3 1 600px; now 2:1 ratio, base 500px */
-}

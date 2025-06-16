@@ -1,3 +1,4 @@
+// js/modal.js
 import { debounce } from './utils.js';
 
 // DOM references
