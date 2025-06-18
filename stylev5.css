@@ -636,98 +636,256 @@ html, body {
   box-shadow: 0 0 8px #1257aa55;
 }
 
-/* ────────────── Custom Route Modal Styling ────────────── */
+/* ─── Custom Route Modal Styling ─── */
 
-/* 1) Make the dialog extra-wide on desktop */
+/* 1) Dialog width & centering on all viewports */
 #customRouteModal .modal-dialog {
-  max-width: 90vw;
   width: 90vw;
+  max-width: 90vw;
+  margin: auto;              /* center horizontally */
 }
 
-/* 2) Cap the overall height */
+/* 2) Cap modal height */
 #customRouteModal .modal-content {
   max-height: 90vh;
   overflow: hidden;
 }
 
-/* 3) Split form & map */
+/* 3) Split body into form + map */
 #customRouteModal .modal-body {
   display: flex;
   gap: 1rem;
   padding: 1rem;
-  height: 75vh;           /* total available */
+  height: 75vh;
   box-sizing: border-box;
 }
 
-/* 4) Form column scrolls if it grows */
+/* 4) Form column scrolls */
 #customRouteFormContainer {
+  position: relative;        /* for header row */
   flex: 1 1 300px;
   overflow-y: auto;
+  padding-top: 2rem;         /* space for header labels */
+}
+/* ─── Custom Route Header Row ─── */
+#customRouteFormContainer .custom-route-headers {
+  display: flex;
+  flex-wrap: nowrap;           /* never wrap onto two lines */
+  align-items: center;         /* vertical-center each label */
+  gap: 0.25rem;                /* small gap between columns */
+  margin-bottom: 0.5rem;
 }
 
-/* 5) Map column fills remaining space */
+/* force each header span to line up exactly over your inputs/buttons */
+#customRouteFormContainer .hdr-handle { flex: 0 0 1.5rem; }  /* drag icon width */
+#customRouteFormContainer .hdr-route  { flex: 0 0 60px;  }   /* Route# input width */
+#customRouteFormContainer .hdr-from   { flex: 0 0 80px;  }   /* MP From input width (bumped) */
+#customRouteFormContainer .hdr-swap   { flex: 0 0 2.5rem;}   /* swap button */
+#customRouteFormContainer .hdr-to     { flex: 0 0 80px;  }   /* MP To input width (bumped) */
+#customRouteFormContainer .hdr-rem    { flex: 0 0 2.5rem;}   /* remove button */
+
+#customRouteFormContainer .form-header {
+  color: white;
+  font-weight: bold;
+  font-size: 0.85rem;          /* shrink if needed */
+  text-align: center;
+}
+
+
+/* 5) Map column styling */
 #customRouteMap {
   flex: 2 1 600px;
   width: 100%;
   height: 100%;
-  border-radius: 0.75rem; /* rounded corners */
+  border-radius: 0.75rem;
   overflow: hidden;
 }
-  /* e) Shrink the “+ Add Segment” button */
-  #customRouteFormContainer .button {
-    font-size: 0.875rem;
-    padding: 0.3rem 0.5rem;
-    min-width: 0;
-    margin-bottom: 0.5rem;
-  }
 
-/* ────────────── Mobile Overrides ────────────── */
+/* 6) “+ Add Segment” button matches header buttons */
+#customRouteFormContainer .button {
+  padding: 6px 10px;
+  font-size: 14px;
+  text-align: center;
+  cursor: pointer;
+  outline: none;
+  color: #fff;
+  background-color: #04AA6D;
+  border: 3px solid white;
+  border-radius: 8px;
+  box-shadow: 0 6px #999;
+  transition: background-color 0.3s, box-shadow 0.3s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+#customRouteFormContainer .button:hover { background-color: #3e8e41; }
+#customRouteFormContainer .button:active {
+  background-color: #3e8e41;
+  box-shadow: 0 5px #666;
+  transform: translateY(4px);
+}
+
+/* 7) Drag handle cursor */
+.drag-handle {
+  cursor: grab;
+  user-select: none;
+}
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+/* 8) Remove spinner arrows on number inputs */
+#customRouteFormContainer input[type=number]::-webkit-inner-spin-button,
+#customRouteFormContainer input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+#customRouteFormContainer input[type=number] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* 9) Route # text input sizing & placeholder */
+#customRouteFormContainer input[type=text] {
+  min-width: 120px;
+}
+#customRouteFormContainer input[type=text]::placeholder {
+  color: #ccc;
+  font-style: italic;
+}
+
+/* 10) Shrink swap & remove buttons */
+#customRouteFormContainer .swapBtn,
+#customRouteFormContainer .remBtn {
+  padding: .3rem .5rem;
+  font-size: .85rem;
+}
+
+/* 11) Footer buttons (Reset / Copy URL / Apply) to match .button style */
+#customRouteModal .modal-footer .reset-button,
+#customRouteModal .modal-footer #customRouteCopyUrl,
+#customRouteModal .modal-footer #customRouteApply {
+  padding: 6px 10px;
+  font-size: 14px;
+  text-align: center;
+  cursor: pointer;
+  outline: none;
+  color: #fff;
+  background-color: #04AA6D;
+  border: 3px solid white;
+  border-radius: 8px;
+  box-shadow: 0 6px #999;
+  transition: background-color 0.3s, box-shadow 0.3s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+#customRouteModal .modal-footer .reset-button:hover,
+#customRouteModal .modal-footer #customRouteCopyUrl:hover,
+#customRouteModal .modal-footer #customRouteApply:hover {
+  background-color: #3e8e41;
+}
+#customRouteModal .modal-footer .reset-button:active,
+#customRouteModal .modal-footer #customRouteCopyUrl:active,
+#customRouteModal .modal-footer #customRouteApply:active {
+  background-color: #3e8e41;
+  box-shadow: 0 5px #666;
+  transform: translateY(4px);
+}
+
+/* 12) Copy-URL “copied” state */
+#customRouteModal .modal-footer #customRouteCopyUrl.copied {
+  background: #ffc107 !important;
+  color: #212529;
+}
+
+/* 13) White “×” close button */
+#customRouteModal .modal-footer .btn-close-white {
+  filter: brightness(1.5);
+}
+
+/* ─── Mobile Overrides ─── */
 @media (max-width: 767.98px) {
-  /* a) Stack form above map */
+  /* stack form above map */
   #customRouteModal .modal-body {
     flex-direction: column;
     height: auto;
   }
-
-  /* b) Form should size to its content and never wrap rows */
+  /* form full width, no wrap */
   #customRouteFormContainer {
     flex: 0 0 auto;
     width: 100%;
   }
-  /* each row (using d-flex) stays on one line */
   #customRouteFormContainer .d-flex {
     flex-wrap: nowrap !important;
   }
-
-  /* c) Shrink inputs & buttons for mobile comfort */
+  /* smaller inputs/buttons */
   #customRouteFormContainer input,
   #customRouteFormContainer button {
-    font-size: 0.875rem;
-    padding: 0.4rem 0.6rem;
-    min-width: 0;      /* allow them to shrink */
+    font-size: .8rem;
+    padding: .4rem .6rem;
   }
-
-  /* d) Let the map flex-fill remaining space, down to a min-height */
+  /* map min-height */
   #customRouteMap {
     flex: 1 1 auto;
     min-height: 250px;
-    /* override any inline style="height:..." from JS */
     height: auto !important;
   }
-
-  /* e) Shrink the “+ Add Segment” button */
-  #customRouteFormContainer .button {
-    font-size: 0.875rem;
-    padding: 0.3rem 0.5rem;
-    min-width: 0;
-    margin-bottom: 0.5rem;
+  /* shrink add/reset/apply buttons */
+  #customRouteFormContainer .button,
+  #customRouteModal .modal-footer .reset-button,
+  #customRouteModal .modal-footer #customRouteCopyUrl,
+  #customRouteModal .modal-footer #customRouteApply {
+    font-size: .8rem;
+    padding: .4rem .8rem;
   }
+#customRouteModal .modal-footer .reset-button,
+#customRouteModal .modal-footer #customRouteCopyUrl,
+#customRouteModal .modal-footer #customRouteApply {
+  padding: 6px 10px;
+  font-size: 14px;
+  text-align: center;
+  cursor: pointer;
+  outline: none;
+  color: #fff;
+  background-color: #04AA6D;
+  border: 3px solid white;
+  border-radius: 8px;
+  box-shadow: 0 6px #999;
+  transition: background-color 0.3s, box-shadow 0.3s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 
-  /* f) Shrink footer buttons (Reset, Copy URL, Apply) */
-  #customRouteModal .modal-footer .reset-button {
-    font-size: 0.875rem;
-    padding: 0.3rem 0.5rem;
-    margin: 0 0.25rem;
-  }
 }
+#customRouteModal .modal-footer .reset-button:hover,
+#customRouteModal .modal-footer #customRouteCopyUrl:hover,
+#customRouteModal .modal-footer #customRouteApply:hover {
+  background-color: #3e8e41;
+}
+#customRouteModal .modal-footer .reset-button:active,
+#customRouteModal .modal-footer #customRouteCopyUrl:active,
+#customRouteModal .modal-footer #customRouteApply:active {
+  background-color: #3e8e41;
+  box-shadow: 0 5px #666;
+  transform: translateY(4px);
+}
+
+/* 12) Copy-URL “copied” state */
+#customRouteModal .modal-footer #customRouteCopyUrl.copied {
+  background: #ffc107 !important;
+  color: #212529;
+}
+
+/* 13) White “×” close button */
+#customRouteModal .modal-footer .btn-close-white {
+  filter: brightness(1.5);
+  
+}
+ 
+}
+
+
+
 
