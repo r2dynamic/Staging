@@ -229,82 +229,115 @@ function renderForm() {
   container.innerHTML = '';
   ensureSegmentData();
 
-  // HEADER ROW
+  // ─── HEADER ROW ───────────────────────────────────────────
   const headerRow = document.createElement('div');
   headerRow.className = 'custom-route-headers d-flex align-items-center gap-2 mb-2';
   ['hdr-handle','hdr-route','hdr-from','hdr-swap','hdr-to','hdr-rem']
-    .forEach(cls => headerRow.append(Object.assign(document.createElement('span'), { className: cls })));
+    .forEach(cls => headerRow.append(
+      Object.assign(document.createElement('span'), { className: cls })
+    ));
   headerRow.querySelector('.hdr-route').textContent = 'Route #';
   headerRow.querySelector('.hdr-from').textContent  = 'MP From';
   headerRow.querySelector('.hdr-to').textContent    = 'MP To';
   container.append(headerRow);
 
-  // ROWS
+  // ─── ROWS FOR EACH SEGMENT ────────────────────────────────
   window.customRouteFormData.forEach((seg, idx) => {
     const row = document.createElement('div');
     row.className = 'd-flex flex-nowrap align-items-center gap-2 mb-2 custom-route-row';
 
-    // drag
+    // • drag-handle
     const drag = document.createElement('span');
-    drag.className = 'drag-handle'; drag.textContent = '☰'; row.append(drag);
+    drag.className = 'drag-handle';
+    drag.textContent = '☰';
+    row.append(drag);
 
-    // Route #
+    // • Route #
     const routeIn = document.createElement('input');
     routeIn.type        = 'text';
     routeIn.placeholder = 'EX: 15, 201, 80';
     routeIn.value       = seg.name.replace(/P$/,'');
     routeIn.className   = 'form-control glass-dropdown-input';
-    routeIn.style.width = '60px';            // <-- match .hdr-route
-    routeIn.oninput     = () => { /*…*/ };
+    routeIn.style.width = '60px';
+    routeIn.oninput     = () => {
+      const d = (routeIn.value||'').replace(/\D/g,'');
+      seg.name = d ? `${d}P` : '';
+      updateApplyButtonState();
+      renderMap();
+    };
     row.append(routeIn);
 
-    // MP From
+    // • MP From
     const minIn = document.createElement('input');
     minIn.type        = 'number';
-    minIn.placeholder = '';
-    minIn.value       = seg.mpMin!=null ? seg.mpMin : '';
+    minIn.value       = seg.mpMin != null ? seg.mpMin : '';
     minIn.className   = 'form-control glass-dropdown-input';
-    minIn.style.width = '60px';              // <-- match .hdr-from
-    minIn.oninput     = () => { /*…*/ };
+    minIn.style.width = '60px';
+    minIn.oninput     = () => {
+      const v = parseFloat(minIn.value);
+      seg.mpMin = isNaN(v) ? null : v;
+      updateApplyButtonState();
+      renderMap();
+    };
     row.append(minIn);
 
-    // Swap
+    // • Swap
     const swap = document.createElement('button');
+    swap.type      = 'button';
     swap.className = 'btn btn-sm btn-outline-light swapBtn';
     swap.innerHTML = '<i class="fas fa-sync-alt"></i>';
-    swap.onclick   = () => { /*…*/ };
+    swap.onclick   = () => {
+      [seg.mpMin, seg.mpMax] = [seg.mpMax, seg.mpMin];
+      renderForm();
+      renderMap();
+    };
     row.append(swap);
 
-    // MP To
+    // • MP To
     const maxIn = document.createElement('input');
     maxIn.type        = 'number';
-    maxIn.placeholder = '';
-    maxIn.value       = seg.mpMax!=null ? seg.mpMax : '';
+    maxIn.value       = seg.mpMax != null ? seg.mpMax : '';
     maxIn.className   = 'form-control glass-dropdown-input';
-    maxIn.style.width = '60px';              // <-- match .hdr-to
-    maxIn.oninput     = () => { /*…*/ };
+    maxIn.style.width = '60px';
+    maxIn.oninput     = () => {
+      const v = parseFloat(maxIn.value);
+      seg.mpMax = isNaN(v) ? null : v;
+      updateApplyButtonState();
+      renderMap();
+    };
     row.append(maxIn);
 
-    // Remove
+    // • Remove
     const rem = document.createElement('button');
+    rem.type      = 'button';
     rem.className = 'btn btn-sm btn-outline-danger remBtn';
     rem.innerHTML = '<i class="far fa-window-close"></i>';
-    rem.onclick   = () => { /*…*/ };
+    rem.disabled  = window.customRouteFormData.length === 1;
+    rem.onclick   = () => {
+      window.customRouteFormData.splice(idx, 1);
+      renderForm();
+      renderMap();
+    };
     row.append(rem);
 
     container.append(row);
   });
 
-  // Add Segment
+  // ─── “+ Add Segment” BUTTON ────────────────────────────────
   const addBtn = document.createElement('button');
   addBtn.type        = 'button';
   addBtn.className   = 'btn button';
   addBtn.textContent = '+ Add Segment';
-  addBtn.onclick     = () => { /*…*/ };
+  addBtn.onclick     = () => {
+    window.customRouteFormData.push({ name:'', mpMin:null, mpMax:null });
+    renderForm();
+    renderMap();
+  };
   container.append(addBtn);
 
   updateApplyButtonState();
 }
+
 
 
 
@@ -337,7 +370,7 @@ function renderMap() {
     { attribution:'© Esri', maxZoom:20 }
   ).addTo(mapInstance);
   L.tileLayer(
-    'http://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
+    'https://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
     { attribution:'© Esri', minZoom:0, maxZoom:18 }
   ).addTo(mapInstance);
 
