@@ -18,6 +18,27 @@ body {
   -ms-overflow-style: none;
 }
 
+.has-emoji {
+  /* 1) Windows color emoji  2) macOS color emoji 3) Android/Linux color emoji 4) finally your normal text font 5) or an icon font */
+  font-family:
+    "Segoe UI Emoji",        /* Windows 10+ color emoji */
+    "Apple Color Emoji",     /* macOS/iOS color emoji */
+    "Noto Color Emoji",      /* Android, many Linux distros */
+    "EmojiSymbols",          /* fallback monochrome symbol set */
+    "FontAwesome",           /* your icon-font of choice */
+    sans-serif;
+}
+.fa-fallback:before {
+  font-family:
+    "Segoe UI Emoji",
+    "Apple Color Emoji",
+    "Noto Color Emoji",
+    "FontAwesome";
+  content: "\1F6E0";   /* if FA has no glyph at U+1F6E0, put its \f… code here instead */
+}
+
+
+
 /* Touch & Image Settings */
 #modalImage {
   touch-action: none;
@@ -183,16 +204,17 @@ html, body {
 }
 @media (max-width: 600px) {
   .header-controls .button {
-    flex: 1;
+    flex-shrink: 1;
     margin: 0 2px;
     max-width: auto;
-    height: 30px;
+    height: 40px;
     align-items: center;
     justify-content: center;
     box-shadow: 0 4px #999;
     border-radius: 6px;
     font-size: 11px;
     padding: 3px 5px;
+    max-width: 80px;
   }
 }
 .header-controls .button {

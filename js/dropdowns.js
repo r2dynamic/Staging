@@ -251,22 +251,7 @@ export function updateRouteOptions() {
   if (!menu) return;
   menu.innerHTML = '';
 
-  // — All Routes —
-  const liAll = document.createElement('li');
-  const aAll  = document.createElement('a');
-  aAll.classList.add('dropdown-item');
-  aAll.href          = '#';
-  aAll.dataset.value = 'All';
-  aAll.textContent   = 'All Routes';
-  aAll.addEventListener('click', e => {
-    e.preventDefault();
-    clearNearestCamerasMode();
-    window.selectedRoute = 'All';
-    filterImages();
-    updateURLParameters();
-  });
-  liAll.append(aAll);
-  menu.append(liAll);
+
 
   // — Build Custom Route trigger —
   const liCustom = document.createElement('li');
@@ -274,7 +259,7 @@ export function updateRouteOptions() {
   aCustom.classList.add('dropdown-item', 'text-info', 'fw-bold');
   aCustom.href      = '#';
   aCustom.id        = 'buildCustomRoute';
-  aCustom.textContent = '🛠 Build Custom Route…';
+  aCustom.textContent = '🛠️ Build Custom Route 🛠️';
   // the click handler itself is wired up in customRoute.js → setupCustomRouteBuilder()
   liCustom.append(aCustom);
   menu.append(liCustom);

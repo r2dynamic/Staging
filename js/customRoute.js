@@ -309,7 +309,7 @@ export function renderForm() {
     const swap = document.createElement('button');
     swap.type      = 'button';
     swap.className = 'swap-btn';
-    swap.innerHTML = '<i class="fas fa-redo-alt"></i>';
+    swap.innerHTML = '<i class="fas fa-sync-alt"></i>';
     swap.onclick   = () => {
       [seg.mpMin,seg.mpMax]=[seg.mpMax,seg.mpMin];
       renderForm();
