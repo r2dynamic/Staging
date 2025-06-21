@@ -281,31 +281,36 @@ function renderForm() {
     row.append(drag);
 
     // 2) Route #
-    const routeIn = document.createElement('input');
-    routeIn.type        = 'text';
-    routeIn.placeholder = 'EX: 15, 201, 80';
-    routeIn.value       = seg.name.replace(/P$/, '');
-    routeIn.className   = 'form-control glass-dropdown-input route-input';
-    routeIn.oninput     = () => {
-      const d = (routeIn.value||'').replace(/\D/g,'');
-      seg.name = d ? `${d}P` : '';
-      updateApplyButtonState();
-      renderMap();
-    };
-    row.append(routeIn);
+const routeIn = document.createElement('input');
+routeIn.type         = 'text';             // keep desktop behaviour
+routeIn.inputMode    = 'numeric';          // mobile: show digit keyboard
+routeIn.setAttribute('pattern', '[0-9]*'); // hint to stick to digits
+routeIn.placeholder  = 'EX: 15, 201, 80';
+routeIn.value        = seg.name.replace(/P$/, '');
+routeIn.className    = 'form-control glass-dropdown-input route-input';
+routeIn.oninput      = () => {
+  const d = (routeIn.value||'').replace(/\D/g,'');
+  seg.name = d ? `${d}P` : '';
+  updateApplyButtonState();
+  renderMap();
+};
+row.append(routeIn);
+
 
     // 3) MP From
-    const minIn = document.createElement('input');
-    minIn.type      = 'number';
-    minIn.value     = seg.mpMin != null ? seg.mpMin : '';
-    minIn.className = 'form-control glass-dropdown-input mp-input';
-    minIn.oninput   = () => {
-      const v = parseFloat(minIn.value);
-      seg.mpMin = isNaN(v) ? null : v;
-      updateApplyButtonState();
-      renderMap();
-    };
-    row.append(minIn);
+const minIn = document.createElement('input');
+minIn.type        = 'number';            // keeps desktop spinner
+minIn.inputMode   = 'decimal';           // hint mobile to show decimal pad
+minIn.setAttribute('pattern', '[0-9]*'); // further hint to stick to digits
+minIn.value       = seg.mpMin != null ? seg.mpMin : '';
+minIn.className   = 'form-control glass-dropdown-input mp-input';
+minIn.oninput     = () => {
+  const v = parseFloat(minIn.value);
+  seg.mpMin = isNaN(v) ? null : v;
+  updateApplyButtonState();
+  renderMap();
+};
+row.append(minIn);
 
     // 4) Swap
     const swap = document.createElement('button');
@@ -319,18 +324,20 @@ function renderForm() {
     };
     row.append(swap);
 
-    // 5) MP To
-    const maxIn = document.createElement('input');
-    maxIn.type      = 'number';
-    maxIn.value     = seg.mpMax != null ? seg.mpMax : '';
-    maxIn.className = 'form-control glass-dropdown-input mp-input';
-    maxIn.oninput   = () => {
-      const v = parseFloat(maxIn.value);
-      seg.mpMax = isNaN(v) ? null : v;
-      updateApplyButtonState();
-      renderMap();
-    };
-    row.append(maxIn);
+   // 5) MP To
+const maxIn = document.createElement('input');
+maxIn.type        = 'number';
+maxIn.inputMode   = 'decimal';
+maxIn.setAttribute('pattern', '[0-9]*');
+maxIn.value       = seg.mpMax != null ? seg.mpMax : '';
+maxIn.className   = 'form-control glass-dropdown-input mp-input';
+maxIn.oninput     = () => {
+  const v = parseFloat(maxIn.value);
+  seg.mpMax = isNaN(v) ? null : v;
+  updateApplyButtonState();
+  renderMap();
+};
+row.append(maxIn);
 
     // 6) Remove
     const rem = document.createElement('button');

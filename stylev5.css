@@ -838,33 +838,38 @@ html, body {
   /* stack form above map */
   #customRouteModal .modal-body {
     flex-direction: column;
-    height:         auto !important;
-    border-radius:0.75rem !important;
+    height: auto !important;
+    border-radius: 0.75rem !important;
   }
 
   /* form full-width */
   #customRouteFormContainer {
-    flex:   0 0 auto;
-    width:  100%;
+    flex: 0 0 auto;
+    width: 100%;
   }
 
+  /* ensure all form controls stay at least 16px font-size to prevent zoom */
+  #customRouteModal .form-control,
+  #customRouteModal select,
+  #customRouteModal textarea,
   .route-input,
-.mp-input {
-  width:      100%;
-  box-sizing: border-box;
-  font-size:  16px; /* prevents iOS zoom-on-focus */
-}
+  .mp-input {
+    font-size: 16px !important;
+    -webkit-text-size-adjust: 100% !important;
+    width: 100%;
+    box-sizing: border-box;
+  }
 
-/* remove spinner arrows on number inputs */
-.mp-input::-webkit-inner-spin-button,
-.mp-input::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin:            0;
-}
-.mp-input {
-  -moz-appearance:  textfield;
-  appearance:       textfield;
-}
+  /* remove spinner arrows on number inputs */
+  .mp-input::-webkit-inner-spin-button,
+  .mp-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .mp-input {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
 
   /* tighter grid on mobile */
   .custom-route-headers,
@@ -876,7 +881,7 @@ html, body {
       1.1rem  /* swap */
       50px    /* to */
       1.1rem  /* remove */
-    ;
+      ;
     column-gap: 0.5rem;
   }
 
@@ -885,35 +890,58 @@ html, body {
     font-size: 0.6rem;
   }
 
-  /* smaller fields & buttons */
-  #customRouteFormContainer input,
-  #customRouteFormContainer button {
+  /* only shrink buttons, not inputs */
+  #customRouteFormContainer button,
+  #customRouteModal .modal-footer button,
+  #customRouteFormContainer .button {
     font-size: 0.6rem;
-    padding:   0.3rem 0.4rem;
+    padding: 0.3rem 0.6rem;
+    box-shadow: 0 4px #999;
+  }
+
+  /* adjust input padding if you want smaller fields */
+  #customRouteFormContainer input {
+    padding: 0.3rem 0.4rem;
   }
 
   /* map under the form */
   #customRouteMap {
-    flex:       1 1 auto;
+    flex: 1 1 auto;
     min-height: 250px;
-    height:     auto !important;
-  }
-
-  /* shrink add/reset/copy/apply */
-  #customRouteFormContainer .button,
-  #customRouteModal .modal-footer button {
-    font-size: 0.6rem;
-    padding:   0.3rem 0.6rem;
-    box-shadow:0 4px #999;
+    height: auto !important;
   }
 
   /* slightly smaller swap/remove icons */
   .swap-btn i,
   .remove-btn i {
-    font-size: .5rem;
+    font-size: 0.5rem;
   }
-}
+    /* make the placeholder in .route-input a bit smaller */
+  #customRouteModal .route-input::placeholder {
+    /* 0.75em of the 16px base ⇒ ~12px placeholder */
+    font-size: 0.6em;
+    opacity:    1;      /* nice and visible */
+  }
 
+  /* vendor prefixes for max compatibility */
+  #customRouteModal .route-input::-webkit-input-placeholder {
+    font-size: 0.6em;
+    opacity:    1;
+  }
+  #customRouteModal .route-input::-moz-placeholder {
+    font-size: 0.6em;
+    opacity:    1;
+  }
+  #customRouteModal .route-input:-ms-input-placeholder {
+    font-size: 0.6em;
+    opacity:    1;
+  }
+  #customRouteModal .route-input::-ms-input-placeholder {
+    font-size: 0.6em;
+    opacity:    1;
+  }
+
+}
 
 
 

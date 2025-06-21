@@ -144,7 +144,7 @@ export function renderGallery(cameras) {
       ).addTo(miniMap);
 
       const terrainLines = L.tileLayer(
-        'http://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
+        'https://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
            attribution: '&copy; Esri',
           minZoom: 0,
           maxZoom: 18
