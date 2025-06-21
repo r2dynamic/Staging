@@ -97,24 +97,26 @@ function clearTooltip(marker) {
 
 function repositionTooltip(marker) {
   clearTooltip(marker);
+
+  // build popup HTML
   const cam = marker.cam;
   const html = `
     <div class="glass-popup-content">
       <img src="${cam.Views[0].Url}" alt="Camera View"/>
     </div>`;
 
-  // build occupied boxes from existing markers
+  // occupancy boxes of other markers
   const boxes = segmentMarkers.map(m => {
     const p = mapInstance.latLngToContainerPoint(m.getLatLng());
     return {
-      left: p.x - MARKER_RAD,
-      top: p.y - MARKER_RAD,
-      right: p.x + MARKER_RAD,
+      left:   p.x - MARKER_RAD,
+      top:    p.y - MARKER_RAD,
+      right:  p.x + MARKER_RAD,
       bottom: p.y + MARKER_RAD
     };
   });
 
-  // candidate positions
+  // candidate tooltip positions
   const candidates = [
     { dir:'top',    offset:[0, -MARKER_RAD] },
     { dir:'bottom', offset:[0,  MARKER_RAD] },
@@ -126,45 +128,58 @@ function repositionTooltip(marker) {
     { dir:'bottom', offset:[ (THUMB_WIDTH/2 - ARROW_HALF),  MARKER_RAD] }
   ];
 
-  // measure each candidate
+  // measure each candidate safely
   const measured = candidates.map(c => {
-    const tmp = L.tooltip({
-      direction: c.dir,
-      offset:    c.offset,
-      permanent: true,
-      interactive: false,
-      opacity: 1
-    })
-    .setLatLng(marker.getLatLng())
-    .setContent(html)
-    .addTo(mapInstance);
-    const rect = tmp.getElement().getBoundingClientRect();
-    mapInstance.removeLayer(tmp);
+    let rect = { left:0, top:0, right:0, bottom:0 };
+    try {
+      const tmp = L.tooltip({
+        direction:   c.dir,
+        offset:      c.offset,
+        permanent:   true,
+        interactive: false,
+      })
+      .setLatLng(marker.getLatLng())
+      .setContent(html)
+      .addTo(mapInstance);
+
+      const el = tmp.getElement && tmp.getElement();
+      if (el && typeof el.getBoundingClientRect === 'function') {
+        rect = el.getBoundingClientRect();
+      }
+      mapInstance.removeLayer(tmp);
+    } catch (e) {
+      // if anything goes wrong, just leave rect at zeros
+    }
     return { ...c, rect };
   });
 
-  // pick first non‐colliding, or fallback
-  let chosen = measured.find(c => {
+  // pick the first non‐colliding candidate or fallback
+  const chosen = measured.find(c => {
+    // skip if collides with existing markers
     if (boxes.some(b =>
-      !(b.right < c.rect.left ||
-        b.left  > c.rect.right ||
+      !(b.right  < c.rect.left ||
+        b.left   > c.rect.right ||
         b.bottom < c.rect.top ||
         b.top    > c.rect.bottom)
     )) return false;
+
+    // skip if collides with existing open tooltips
     return !openTips.some(ot => {
       const tip = ot.getTooltip?.();
-      if (!tip || typeof tip.getElement !== 'function') return false;
-      const r2 = tip.getElement().getBoundingClientRect();
+      if (!tip) return false;
+      const el = tip.getElement?.();
+      if (!el || typeof el.getBoundingClientRect !== 'function') return false;
+      const r2 = el.getBoundingClientRect();
       return !(
-        r2.right < c.rect.left ||
-        r2.left  > c.rect.right ||
+        r2.right  < c.rect.left ||
+        r2.left   > c.rect.right ||
         r2.bottom < c.rect.top ||
         r2.top    > c.rect.bottom
       );
     });
   }) || measured[0];
 
-  // enforce minimum anchor
+  // enforce minimum anchor distance
   let [ox,oy] = chosen.offset;
   const norm = Math.hypot(ox,oy);
   if (norm < MARKER_RAD + MIN_ANCHOR) {
@@ -172,7 +187,7 @@ function repositionTooltip(marker) {
     ox *= f; oy *= f;
   }
 
-  // bind & open
+  // bind & open the tooltip
   marker.bindTooltip(html, {
     direction:   chosen.dir,
     offset:      [ox, oy],
@@ -187,32 +202,35 @@ function repositionTooltip(marker) {
   openTips.push(marker);
 
   // draw connector
-  const p0   = marker.getLatLng();
-  const cp   = mapInstance.latLngToContainerPoint(p0);
-  const tip  = mapInstance.containerPointToLatLng(cp.add([ox,oy]));
+  const p0  = marker.getLatLng();
+  const cp  = mapInstance.latLngToContainerPoint(p0);
+  const tip = mapInstance.containerPointToLatLng(cp.add([ox, oy]));
   marker._connector = L.polyline([p0, tip], {
     color:       '#ff7800',
     weight:      4,
     interactive: false
   }).addTo(mapInstance);
 
-  // update connector safely
+  // safe connector updater
   marker._updateConn = () => {
     if (!marker._connector) return;
     const tooltip = marker.getTooltip?.();
-    if (!tooltip || typeof tooltip.getElement !== 'function') return;
-    const el = tooltip.getElement();
-    if (!el) return;
+    if (!tooltip) return;
+    const el = tooltip.getElement?.();
+    if (!el || typeof el.getBoundingClientRect !== 'function') return;
+
     const tt = el.getBoundingClientRect();
     const mp = mapInstance.getContainer().getBoundingClientRect();
     const cp1 = mapInstance.latLngToContainerPoint(marker.getLatLng());
-    const px = tt.left - mp.left + tt.width/2;
-    const py = tt.top  - mp.top  + tt.height/2;
+    const px = tt.left - mp.left + tt.width / 2;
+    const py = tt.top  - mp.top  + tt.height / 2;
     const newTip = mapInstance.containerPointToLatLng([px,py]);
     marker._connector.setLatLngs([marker.getLatLng(), newTip]);
   };
+  
   mapInstance.on('move zoom viewreset', marker._updateConn);
 }
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Form rendering + drag-and-drop

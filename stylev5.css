@@ -658,7 +658,7 @@ html, body {
   display:    flex;
   gap:        1rem;
   padding:    1rem;
-  height:     75vh;
+  height:     85vh;
   box-sizing: border-box;
 }
 
@@ -683,7 +683,7 @@ html, body {
   display:             grid !important;
   grid-template-columns:
     1.5rem  /* ☰ handle */
-    100px    /* Route # */
+    120px    /* Route # */
     60px    /* MP From */
     1.2rem  /* swap btn */
     60px    /* MP To */
@@ -702,13 +702,30 @@ html, body {
   line-height: 1;
 }
 
-/* ─── Inputs fill their cells ─────────────────────────────────── */
-.route-input,
-.mp-input {
-  width:      100%;
-  box-sizing: border-box;
-  font-size:  16px; /* prevents iOS zoom-on-focus */
-}
+    /* make the placeholder in .route-input a bit smaller */
+  #customRouteModal .route-input::placeholder {
+    /* 0.75em of the 16px base ⇒ ~12px placeholder */
+    font-size: 0.7em;
+    opacity:    1;      /* nice and visible */
+  }
+
+  /* vendor prefixes for max compatibility */
+  #customRouteModal .route-input::-webkit-input-placeholder {
+    font-size: 0.7em;
+    opacity:    1;
+  }
+  #customRouteModal .route-input::-moz-placeholder {
+    font-size: 0.7em;
+    opacity:    1;
+  }
+  #customRouteModal .route-input:-ms-input-placeholder {
+    font-size: 0.7em;
+    opacity:    1;
+  }
+  #customRouteModal .route-input::-ms-input-placeholder {
+    font-size: 0.7em;
+    opacity:    1;
+  }
 
 /* remove spinner arrows on number inputs */
 .mp-input::-webkit-inner-spin-button,
@@ -827,10 +844,13 @@ html, body {
   color:            #212529;
 }
 
-/* White “×” close button */
-#customRouteModal .modal-footer .btn-close-white {
-  filter: brightness(1.5);
+#customRouteModal .modal-footer .btn-close {
+  background-color: transparent !important;
+  border:            none        !important;
+  box-shadow:        none        !important;
+  padding:           0.25rem     !important; /* match other modals */
 }
+
 
 /* ─── Mobile Overrides (≤600px) ───────────────────────────── */
 @media (max-width: 600px) {
@@ -942,8 +962,5 @@ html, body {
   }
 
 }
-
-
-
 
 

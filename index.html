@@ -193,27 +193,38 @@
   </div>
 
   <!-- Custom Route Builder Modal -->
-  <div class="modal fade" id="customRouteModal" tabindex="-1" aria-labelledby="customRouteModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-xl modal-fullscreen-md-down">
-      <div class="modal-content glass-modal">
-        <div class="modal-header">
-          <h5 class="modal-title" id="customRouteModalLabel">Build Custom Route</h5>
-        </div>
-        <div class="modal-body">
-          <!-- Form container -->
-          <div id="customRouteFormContainer"></div>
-          <!-- Mini overview map -->
-          <div id="customRouteMap"></div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="reset-button" id="customRouteReset">Reset</button>
-          <button type="button" class="reset-button" id="customRouteCopyUrl">Copy URL</button>
-          <button type="button" class="reset-button" id="customRouteApply" disabled>Apply</button>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
+<div class="modal fade" id="customRouteModal" tabindex="-1" aria-labelledby="customRouteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl modal-fullscreen-md-down">
+    <div class="modal-content glass-modal">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="customRouteModalLabel">Build Custom Route</h5>
       </div>
-    </div>
-  </div>
+
+      <div class="modal-body">
+        <!-- Form container -->
+        <div id="customRouteFormContainer"></div>
+        <!-- Mini overview map -->
+        <div id="customRouteMap"></div>
+      </div>
+
+      <div class="modal-footer justify-content-end align-items-center">
+        <!-- action buttons -->
+        <button type="button" class="reset-button me-2" id="customRouteReset">Reset</button>
+        <button type="button" class="reset-button me-2" id="customRouteCopyUrl">Copy URL</button>
+        <button type="button" class="reset-button me-3" id="customRouteApply" disabled>Apply</button>
+
+        <!-- footer-only close, white “×” -->
+        <button type="button"
+                class="btn-close btn-close-white"
+                data-bs-dismiss="modal"
+                aria-label="Close"></button>
+      </div>
+
+    </div> 
+  </div>   
+</div>     
+
 
   <!-- Mobile App Modal -->
   <div class="modal fade" id="mobileAppModal" tabindex="-1" aria-labelledby="mobileAppLabel" aria-hidden="true">
