@@ -246,34 +246,46 @@ function renderForm() {
   ensureSegmentData();
 
   // ─── HEADER ROW ───────────────────────────────────────────────
+  // (uses the grid defined in CSS under .custom-route-headers)
   const headerRow = document.createElement('div');
-  headerRow.className = 'custom-route-headers d-flex align-items-center gap-2 mb-2';
-  ['hdr-handle','hdr-route','hdr-from','hdr-swap','hdr-to','hdr-rem']
-    .forEach(cls => headerRow.append(
-      Object.assign(document.createElement('span'), { className: cls })
-    ));
-  headerRow.querySelector('.hdr-route').textContent = 'Route #';
-  headerRow.querySelector('.hdr-from').textContent  = 'MP From';
-  headerRow.querySelector('.hdr-to').textContent    = 'MP To';
+  headerRow.className = 'custom-route-headers';
+
+  // These six spans line up over: handle | route | from | swap | to | remove
+  const headerConfigs = [
+    { cls: 'hdr-handle', text: ''         },
+    { cls: 'hdr-route',  text: 'Route #'  },
+    { cls: 'hdr-from',   text: 'MP From' },
+    { cls: 'hdr-swap',   text: ''         },
+    { cls: 'hdr-to',     text: 'MP To'   },
+    { cls: 'hdr-rem',    text: ''         },
+  ];
+
+  headerConfigs.forEach(cfg => {
+    const span = document.createElement('span');
+    span.className   = cfg.cls;
+    span.textContent = cfg.text;
+    headerRow.append(span);
+  });
+
   container.append(headerRow);
 
-  // ─── ROWS FOR EACH SEGMENT ──────────────────────────────────
-  window.customRouteFormData.forEach((seg,idx) => {
+  // ─── DATA ROWS ───────────────────────────────────────────────────
+  window.customRouteFormData.forEach((seg, idx) => {
     const row = document.createElement('div');
-    row.className = 'd-flex flex-nowrap align-items-center gap-2 mb-2 custom-route-row';
+    row.className = 'custom-route-row';
 
-    // drag-handle
+    // 1) Drag handle
     const drag = document.createElement('span');
-    drag.className = 'drag-handle'; drag.textContent = '☰';
+    drag.className = 'drag-handle';
+    drag.textContent = '☰';
     row.append(drag);
 
-    // Route #
+    // 2) Route #
     const routeIn = document.createElement('input');
     routeIn.type        = 'text';
     routeIn.placeholder = 'EX: 15, 201, 80';
-    routeIn.value       = seg.name.replace(/P$/,'');
-    routeIn.className   = 'form-control glass-dropdown-input';
-    routeIn.style.width = '60px';
+    routeIn.value       = seg.name.replace(/P$/, '');
+    routeIn.className   = 'form-control glass-dropdown-input route-input';
     routeIn.oninput     = () => {
       const d = (routeIn.value||'').replace(/\D/g,'');
       seg.name = d ? `${d}P` : '';
@@ -282,13 +294,12 @@ function renderForm() {
     };
     row.append(routeIn);
 
-    // MP From
+    // 3) MP From
     const minIn = document.createElement('input');
-    minIn.type        = 'number';
-    minIn.value       = seg.mpMin!=null ? seg.mpMin : '';
-    minIn.className   = 'form-control glass-dropdown-input';
-    minIn.style.width = '60px';
-    minIn.oninput     = () => {
+    minIn.type      = 'number';
+    minIn.value     = seg.mpMin != null ? seg.mpMin : '';
+    minIn.className = 'form-control glass-dropdown-input mp-input';
+    minIn.oninput   = () => {
       const v = parseFloat(minIn.value);
       seg.mpMin = isNaN(v) ? null : v;
       updateApplyButtonState();
@@ -296,11 +307,11 @@ function renderForm() {
     };
     row.append(minIn);
 
-    // Swap
+    // 4) Swap
     const swap = document.createElement('button');
     swap.type      = 'button';
-    swap.className = 'btn btn-sm btn-outline-light swapBtn';
-    swap.innerHTML = '<i class="fas fa-sync-alt"></i>';
+    swap.className = 'swap-btn';
+    swap.innerHTML = '<i class="fas fa-redo-alt"></i>';
     swap.onclick   = () => {
       [seg.mpMin, seg.mpMax] = [seg.mpMax, seg.mpMin];
       renderForm();
@@ -308,13 +319,12 @@ function renderForm() {
     };
     row.append(swap);
 
-    // MP To
+    // 5) MP To
     const maxIn = document.createElement('input');
-    maxIn.type        = 'number';
-    maxIn.value       = seg.mpMax!=null ? seg.mpMax : '';
-    maxIn.className   = 'form-control glass-dropdown-input';
-    maxIn.style.width = '60px';
-    maxIn.oninput     = () => {
+    maxIn.type      = 'number';
+    maxIn.value     = seg.mpMax != null ? seg.mpMax : '';
+    maxIn.className = 'form-control glass-dropdown-input mp-input';
+    maxIn.oninput   = () => {
       const v = parseFloat(maxIn.value);
       seg.mpMax = isNaN(v) ? null : v;
       updateApplyButtonState();
@@ -322,14 +332,14 @@ function renderForm() {
     };
     row.append(maxIn);
 
-    // Remove
+    // 6) Remove
     const rem = document.createElement('button');
     rem.type      = 'button';
-    rem.className = 'btn btn-sm btn-outline-danger remBtn';
-    rem.innerHTML = '<i class="far fa-window-close"></i>';
+    rem.className = 'remove-btn';
+    rem.innerHTML = '<i class="fas fa-times"></i>';
     rem.disabled  = window.customRouteFormData.length === 1;
     rem.onclick   = () => {
-      window.customRouteFormData.splice(idx,1);
+      window.customRouteFormData.splice(idx, 1);
       renderForm();
       renderMap();
     };
@@ -338,7 +348,7 @@ function renderForm() {
     container.append(row);
   });
 
-  // “+ Add Segment”
+  // ─── “+ Add Segment” ────────────────────────────────────────────
   const addBtn = document.createElement('button');
   addBtn.type        = 'button';
   addBtn.className   = 'btn button';
@@ -352,6 +362,7 @@ function renderForm() {
 
   updateApplyButtonState();
 }
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Mini‐overview map inside your custom‐routes modal
