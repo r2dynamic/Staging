@@ -207,14 +207,13 @@ html, body {
     flex-shrink: 1;
     margin: 0 2px;
     max-width: auto;
-    height: 40px;
+    height: 30px;
     align-items: center;
     justify-content: center;
     box-shadow: 0 4px #999;
     border-radius: 6px;
     font-size: 11px;
     padding: 3px 5px;
-    max-width: 80px;
   }
 }
 .header-controls .button {
@@ -530,10 +529,10 @@ html, body {
 /* Overview Map Modal Styling */
 #overviewMapModal.modal.show .modal-dialog {
   margin: 0 auto !important;
-  max-width: 90vw !important;
-  max-height: 90vh !important;
-  width: 90vw !important;
-  height: 90vh !important;
+  max-width: 98vw !important;
+  max-height: 98vh !important;
+  width: 98vw !important;
+  height: 98vh !important;
 }
 
 /* Stack content vertically and fill dialog */
