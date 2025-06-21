@@ -848,6 +848,24 @@ html, body {
     width:  100%;
   }
 
+  .route-input,
+.mp-input {
+  width:      100%;
+  box-sizing: border-box;
+  font-size:  16px; /* prevents iOS zoom-on-focus */
+}
+
+/* remove spinner arrows on number inputs */
+.mp-input::-webkit-inner-spin-button,
+.mp-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin:            0;
+}
+.mp-input {
+  -moz-appearance:  textfield;
+  appearance:       textfield;
+}
+
   /* tighter grid on mobile */
   .custom-route-headers,
   .custom-route-row {
