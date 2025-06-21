@@ -3,7 +3,7 @@ import { refreshGallery } from './ui.js';
 import { copyToClipboard } from './utils.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Shared icon (identical to overview modal)
+// Shared icon
 // ─────────────────────────────────────────────────────────────────────────────
 const smallIcon = L.divIcon({
   className:     'custom-marker',
@@ -13,7 +13,7 @@ const smallIcon = L.divIcon({
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Constants (match your overview logic exactly)
+// Constants
 // ─────────────────────────────────────────────────────────────────────────────
 const MAX_TOOLTIPS  = 20;
 const THUMB_WIDTH   = 120;
@@ -29,11 +29,11 @@ const ZOOM_COLLIDE  = 14;
 let mapInstance    = null;
 let segmentMarkers = [];
 let openTips       = [];
+let renderTimer    = null; // for debouncing
 
-/**
- * Test if a camera lies on a given segment,
- * but always use the numeric min/max regardless of order.
- */
+// ─────────────────────────────────────────────────────────────────────────────
+// Test if a camera lies on a given segment
+// ─────────────────────────────────────────────────────────────────────────────
 function isCameraOnSegment(cam, seg) {
   let mp = cam.RoadwayOption1 === seg.name
          ? cam.MilepostOption1
@@ -41,37 +41,33 @@ function isCameraOnSegment(cam, seg) {
            ? cam.MilepostOption2
            : null;
   if (mp == null || isNaN(mp)) return false;
-
-  // normalize range
   let lo = seg.mpMin, hi = seg.mpMax;
   if (lo != null && hi != null && lo > hi) [lo, hi] = [hi, lo];
-
   if (lo != null && mp < lo) return false;
   if (hi != null && mp > hi) return false;
   return true;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Exported: serialize ↔ URL
+// URL serialization / parsing
 // ─────────────────────────────────────────────────────────────────────────────
 export function serializeSegments(segs) {
   return segs.map(s => `${s.name}:${s.mpMin}-${s.mpMax}`).join(',');
 }
-
 export function parseMultiRouteFromURL() {
-  const params = new URLSearchParams(window.location.search);
-  const raw    = params.get('multiRoute');
+  const p = new URLSearchParams(window.location.search);
+  const raw = p.get('multiRoute');
   if (!raw) {
     window.customRouteFormData = [];
     return;
   }
   window.customRouteFormData = raw.split(',').map(chunk => {
-    const [r,range]     = chunk.split(':');
-    const code          = (r||'').toUpperCase();
-    const name          = code.endsWith('P') ? code : `${code}P`;
-    const [minRaw,maxRaw] = (range||'').split('-');
-    const mpMin         = parseFloat(minRaw);
-    const mpMax         = parseFloat(maxRaw);
+    const [r,range]       = chunk.split(':');
+    const code            = (r||'').toUpperCase();
+    const name            = code.endsWith('P') ? code : `${code}P`;
+    const [minStr,maxStr] = (range||'').split('-');
+    const mpMin = parseFloat(minStr),
+          mpMax = parseFloat(maxStr);
     return {
       name,
       mpMin: isNaN(mpMin) ? null : mpMin,
@@ -81,7 +77,7 @@ export function parseMultiRouteFromURL() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Tooltip + Connector exactly as overview modal
+// Tooltip & connector helpers
 // ─────────────────────────────────────────────────────────────────────────────
 function clearTooltip(marker) {
   if (!marker.getTooltip) return;
@@ -101,15 +97,19 @@ function clearTooltip(marker) {
 
 function repositionTooltip(marker) {
   clearTooltip(marker);
-  const html = `<div class="glass-popup-content"><img src="${marker.cam.Views[0].Url}"/></div>`;
+  const cam = marker.cam;
+  const html = `
+    <div class="glass-popup-content">
+      <img src="${cam.Views[0].Url}" alt="Camera View"/>
+    </div>`;
 
-  // occupied marker boxes
+  // build occupied boxes from existing markers
   const boxes = segmentMarkers.map(m => {
     const p = mapInstance.latLngToContainerPoint(m.getLatLng());
     return {
-      left:   p.x - MARKER_RAD,
-      top:    p.y - MARKER_RAD,
-      right:  p.x + MARKER_RAD,
+      left: p.x - MARKER_RAD,
+      top: p.y - MARKER_RAD,
+      right: p.x + MARKER_RAD,
       bottom: p.y + MARKER_RAD
     };
   });
@@ -126,42 +126,38 @@ function repositionTooltip(marker) {
     { dir:'bottom', offset:[ (THUMB_WIDTH/2 - ARROW_HALF),  MARKER_RAD] }
   ];
 
-  // measure each
+  // measure each candidate
   const measured = candidates.map(c => {
     const tmp = L.tooltip({
-      direction:    c.dir,
-      offset:       c.offset,
-      permanent:    true,
-      interactive:  false,
-      opacity:      1
+      direction: c.dir,
+      offset:    c.offset,
+      permanent: true,
+      interactive: false,
+      opacity: 1
     })
-      .setLatLng(marker.getLatLng())
-      .setContent(html)
-      .addTo(mapInstance);
+    .setLatLng(marker.getLatLng())
+    .setContent(html)
+    .addTo(mapInstance);
     const rect = tmp.getElement().getBoundingClientRect();
     mapInstance.removeLayer(tmp);
     return { ...c, rect };
   });
 
-  // pick non‐colliding or fallback
+  // pick first non‐colliding, or fallback
   let chosen = measured.find(c => {
-    // collision vs other markers
     if (boxes.some(b =>
-      !(b.right  < c.rect.left ||
-        b.left   > c.rect.right ||
+      !(b.right < c.rect.left ||
+        b.left  > c.rect.right ||
         b.bottom < c.rect.top ||
         b.top    > c.rect.bottom)
     )) return false;
-    // collision vs open tooltips
     return !openTips.some(ot => {
       const tip = ot.getTooltip?.();
       if (!tip || typeof tip.getElement !== 'function') return false;
-      const el = tip.getElement();
-      if (!el) return false;
-      const r2 = el.getBoundingClientRect();
+      const r2 = tip.getElement().getBoundingClientRect();
       return !(
-        r2.right  < c.rect.left ||
-        r2.left   > c.rect.right ||
+        r2.right < c.rect.left ||
+        r2.left  > c.rect.right ||
         r2.bottom < c.rect.top ||
         r2.top    > c.rect.bottom
       );
@@ -176,7 +172,7 @@ function repositionTooltip(marker) {
     ox *= f; oy *= f;
   }
 
-  // bind & open tooltip
+  // bind & open
   marker.bindTooltip(html, {
     direction:   chosen.dir,
     offset:      [ox, oy],
@@ -186,46 +182,40 @@ function repositionTooltip(marker) {
     maxWidth:    THUMB_WIDTH,
     opacity:     1
   }).openTooltip();
-  marker.sticky = true;
+  marker.sticky      = true;
+  marker._lastOffset = [ox, oy];
   openTips.push(marker);
 
-  // draw connector line
-  const cp  = mapInstance.latLngToContainerPoint(marker.getLatLng());
-  const tip = mapInstance.containerPointToLatLng(cp.add([ox,oy]));
-  const poly = L.polyline([marker.getLatLng(), tip], {
-    color: '#ff7800',
-    weight:4,
-    interactive:false
+  // draw connector
+  const p0   = marker.getLatLng();
+  const cp   = mapInstance.latLngToContainerPoint(p0);
+  const tip  = mapInstance.containerPointToLatLng(cp.add([ox,oy]));
+  marker._connector = L.polyline([p0, tip], {
+    color:       '#ff7800',
+    weight:      4,
+    interactive: false
   }).addTo(mapInstance);
-  marker._connector = poly;
 
-  // update on pan/zoom
+  // update connector safely
   marker._updateConn = () => {
+    if (!marker._connector) return;
     const tooltip = marker.getTooltip?.();
-    if (!tooltip || typeof tooltip.getElement!=='function') return;
-    const tt  = tooltip.getElement().getBoundingClientRect();
-    const mp  = mapInstance.getContainer().getBoundingClientRect();
+    if (!tooltip || typeof tooltip.getElement !== 'function') return;
+    const el = tooltip.getElement();
+    if (!el) return;
+    const tt = el.getBoundingClientRect();
+    const mp = mapInstance.getContainer().getBoundingClientRect();
     const cp1 = mapInstance.latLngToContainerPoint(marker.getLatLng());
-    let px, py;
-    switch (chosen.dir) {
-      case 'top':    px = tt.left-mp.left+tt.width/2; py = tt.bottom-mp.top;    break;
-      case 'bottom': px = tt.left-mp.left+tt.width/2; py = tt.top   -mp.top;    break;
-      case 'left':   px = tt.right-mp.left;           py = tt.top   -mp.top+tt.height/2; break;
-      default:       px = tt.left-mp.left;           py = tt.top   -mp.top+tt.height/2;
-    }
-    let vec = L.point(px,py).subtract(cp1);
-    const d  = cp1.distanceTo([px,py]);
-    if (d < MARKER_RAD + MIN_ANCHOR) {
-      vec = vec.multiplyBy((MARKER_RAD + MIN_ANCHOR)/(d||1));
-    }
-    const newLL = mapInstance.containerPointToLatLng(cp1.add(vec));
-    poly.setLatLngs([marker.getLatLng(), newLL]);
+    const px = tt.left - mp.left + tt.width/2;
+    const py = tt.top  - mp.top  + tt.height/2;
+    const newTip = mapInstance.containerPointToLatLng([px,py]);
+    marker._connector.setLatLngs([marker.getLatLng(), newTip]);
   };
   mapInstance.on('move zoom viewreset', marker._updateConn);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Form rendering + Sortable drag‐and‐drop
+// Form rendering + drag-and-drop
 // ─────────────────────────────────────────────────────────────────────────────
 function ensureSegmentData() {
   if (!Array.isArray(window.customRouteFormData)) window.customRouteFormData = [];
@@ -236,157 +226,148 @@ function ensureSegmentData() {
 function updateApplyButtonState() {
   const btn = document.getElementById('customRouteApply');
   if (!btn) return;
-  btn.disabled = !window.customRouteFormData.every(s => s.name && s.mpMin!=null && s.mpMax!=null);
+  btn.disabled = !window.customRouteFormData.every(
+    s => s.name && s.mpMin!=null && s.mpMax!=null
+  );
 }
 
-function renderForm() {
+export function renderForm() {
   const container = document.getElementById('customRouteFormContainer');
   if (!container) return;
   container.innerHTML = '';
   ensureSegmentData();
 
-  // ─── HEADER ROW ───────────────────────────────────────────────
-  // (uses the grid defined in CSS under .custom-route-headers)
-  const headerRow = document.createElement('div');
-  headerRow.className = 'custom-route-headers';
-
-  // These six spans line up over: handle | route | from | swap | to | remove
-  const headerConfigs = [
-    { cls: 'hdr-handle', text: ''         },
-    { cls: 'hdr-route',  text: 'Route #'  },
-    { cls: 'hdr-from',   text: 'MP From' },
-    { cls: 'hdr-swap',   text: ''         },
-    { cls: 'hdr-to',     text: 'MP To'   },
-    { cls: 'hdr-rem',    text: ''         },
-  ];
-
-  headerConfigs.forEach(cfg => {
+  // header row
+  const hdr = document.createElement('div');
+  hdr.className = 'custom-route-headers';
+  ['','Route #','MP From','','MP To',''].forEach(txt => {
     const span = document.createElement('span');
-    span.className   = cfg.cls;
-    span.textContent = cfg.text;
-    headerRow.append(span);
+    span.textContent = txt;
+    hdr.append(span);
   });
+  container.append(hdr);
 
-  container.append(headerRow);
-
-  // ─── DATA ROWS ───────────────────────────────────────────────────
-  window.customRouteFormData.forEach((seg, idx) => {
+  // data rows
+  window.customRouteFormData.forEach((seg,idx) => {
     const row = document.createElement('div');
     row.className = 'custom-route-row';
 
-    // 1) Drag handle
+    // drag handle
     const drag = document.createElement('span');
     drag.className = 'drag-handle';
     drag.textContent = '☰';
     row.append(drag);
 
-    // 2) Route #
-const routeIn = document.createElement('input');
-routeIn.type         = 'text';             // keep desktop behaviour
-routeIn.inputMode    = 'numeric';          // mobile: show digit keyboard
-routeIn.setAttribute('pattern', '[0-9]*'); // hint to stick to digits
-routeIn.placeholder  = 'EX: 15, 201, 80';
-routeIn.value        = seg.name.replace(/P$/, '');
-routeIn.className    = 'form-control glass-dropdown-input route-input';
-routeIn.oninput      = () => {
-  const d = (routeIn.value||'').replace(/\D/g,'');
-  seg.name = d ? `${d}P` : '';
-  updateApplyButtonState();
-  renderMap();
-};
-row.append(routeIn);
+    // Route #
+    const routeIn = document.createElement('input');
+    routeIn.type        = 'text';
+    routeIn.inputMode   = 'numeric';       // numeric keypad on mobile
+    routeIn.setAttribute('pattern','[0-9]*');
+    routeIn.placeholder = 'EX: 15, 201, 80';
+    routeIn.value       = seg.name.replace(/P$/,'');
+    routeIn.className   = 'form-control glass-dropdown-input route-input';
+    routeIn.oninput     = () => debounce(() => {
+      const d = (routeIn.value||'').replace(/\D/g,'');
+      seg.name = d ? `${d}P` : '';
+      updateApplyButtonState();
+    });
+    row.append(routeIn);
 
+    // MP From
+    const minIn = document.createElement('input');
+    minIn.type        = 'number';
+    minIn.inputMode   = 'decimal';
+    minIn.setAttribute('pattern','[0-9]*');
+    minIn.value       = seg.mpMin!=null ? seg.mpMin : '';
+    minIn.className   = 'form-control glass-dropdown-input mp-input';
+    minIn.oninput     = () => debounce(() => {
+      const v = parseFloat(minIn.value);
+      seg.mpMin = isNaN(v)?null:v;
+      updateApplyButtonState();
+    });
+    row.append(minIn);
 
-    // 3) MP From
-const minIn = document.createElement('input');
-minIn.type        = 'number';            // keeps desktop spinner
-minIn.inputMode   = 'decimal';           // hint mobile to show decimal pad
-minIn.setAttribute('pattern', '[0-9]*'); // further hint to stick to digits
-minIn.value       = seg.mpMin != null ? seg.mpMin : '';
-minIn.className   = 'form-control glass-dropdown-input mp-input';
-minIn.oninput     = () => {
-  const v = parseFloat(minIn.value);
-  seg.mpMin = isNaN(v) ? null : v;
-  updateApplyButtonState();
-  renderMap();
-};
-row.append(minIn);
-
-    // 4) Swap
+    // swap button
     const swap = document.createElement('button');
     swap.type      = 'button';
     swap.className = 'swap-btn';
     swap.innerHTML = '<i class="fas fa-redo-alt"></i>';
     swap.onclick   = () => {
-      [seg.mpMin, seg.mpMax] = [seg.mpMax, seg.mpMin];
+      [seg.mpMin,seg.mpMax]=[seg.mpMax,seg.mpMin];
       renderForm();
-      renderMap();
     };
     row.append(swap);
 
-   // 5) MP To
-const maxIn = document.createElement('input');
-maxIn.type        = 'number';
-maxIn.inputMode   = 'decimal';
-maxIn.setAttribute('pattern', '[0-9]*');
-maxIn.value       = seg.mpMax != null ? seg.mpMax : '';
-maxIn.className   = 'form-control glass-dropdown-input mp-input';
-maxIn.oninput     = () => {
-  const v = parseFloat(maxIn.value);
-  seg.mpMax = isNaN(v) ? null : v;
-  updateApplyButtonState();
-  renderMap();
-};
-row.append(maxIn);
+    // MP To
+    const maxIn = document.createElement('input');
+    maxIn.type        = 'number';
+    maxIn.inputMode   = 'decimal';
+    maxIn.setAttribute('pattern','[0-9]*');
+    maxIn.value       = seg.mpMax!=null ? seg.mpMax : '';
+    maxIn.className   = 'form-control glass-dropdown-input mp-input';
+    maxIn.oninput     = () => debounce(() => {
+      const v = parseFloat(maxIn.value);
+      seg.mpMax = isNaN(v)?null:v;
+      updateApplyButtonState();
+    });
+    row.append(maxIn);
 
-    // 6) Remove
+    // remove button
     const rem = document.createElement('button');
     rem.type      = 'button';
     rem.className = 'remove-btn';
     rem.innerHTML = '<i class="fas fa-times"></i>';
-    rem.disabled  = window.customRouteFormData.length === 1;
+    rem.disabled  = window.customRouteFormData.length===1;
     rem.onclick   = () => {
-      window.customRouteFormData.splice(idx, 1);
+      window.customRouteFormData.splice(idx,1);
       renderForm();
-      renderMap();
     };
     row.append(rem);
 
     container.append(row);
   });
 
-  // ─── “+ Add Segment” ────────────────────────────────────────────
+  // + Add Segment
   const addBtn = document.createElement('button');
-  addBtn.type        = 'button';
-  addBtn.className   = 'btn button';
+  addBtn.type      = 'button';
+  addBtn.className = 'btn button';
   addBtn.textContent = '+ Add Segment';
-  addBtn.onclick     = () => {
+  addBtn.onclick   = () => {
     window.customRouteFormData.push({ name:'', mpMin:null, mpMax:null });
     renderForm();
-    renderMap();
   };
   container.append(addBtn);
 
   updateApplyButtonState();
 }
 
+// debounce helper for renderMap()
+function debounce(fn) {
+  clearTimeout(renderTimer);
+  renderTimer = setTimeout(() => {
+    fn();
+    renderMap();
+  }, 150);
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Mini‐overview map inside your custom‐routes modal
+// Mini‐overview map — place **every** matching camera (original logic from :contentReference[oaicite:1]{index=1})
 // ─────────────────────────────────────────────────────────────────────────────
-function renderMap() {
+export function renderMap() {
   const mapDiv = document.getElementById('customRouteMap');
   if (!mapDiv) return;
-
-  // FULL TEARDOWN
+  // full teardown
   if (mapInstance) {
+    segmentMarkers.forEach(clearTooltip);
     mapInstance.off();
     mapInstance.remove();
     mapInstance = null;
+    delete mapDiv._leaflet_id;
   }
   segmentMarkers = [];
   openTips       = [];
 
+  // init map
   mapInstance = L.map(mapDiv, {
     zoomControl:        false,
     attributionControl: false,
@@ -394,8 +375,6 @@ function renderMap() {
     doubleClickZoom:    true,
     scrollWheelZoom:    true
   });
-
-  // base layers
   L.tileLayer(
     'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     { attribution:'© Esri', maxZoom:20 }
@@ -405,16 +384,18 @@ function renderMap() {
     { attribution:'© Esri', minZoom:0, maxZoom:18 }
   ).addTo(mapInstance);
 
-  // place cameras
+  // place one marker per camera that matches any segment
   (window.camerasList||[]).forEach(cam => {
     if (!window.customRouteFormData.some(seg=>isCameraOnSegment(cam,seg))) return;
     const m = L.marker([cam.Latitude, cam.Longitude], { icon: smallIcon }).addTo(mapInstance);
-    m.cam    = cam; m.sticky = false;
+    m.cam    = cam;
+    m.sticky = false;
     segmentMarkers.push(m);
+
+    // open/clear tooltip on click
     m.on('click', () => {
-      if (m.sticky) {
-        clearTooltip(m);
-      } else {
+      if (m.sticky) clearTooltip(m);
+      else {
         if (mapInstance.getZoom()>=ZOOM_COLLIDE && openTips.length>=MAX_TOOLTIPS) {
           clearTooltip(openTips.shift());
         }
@@ -423,38 +404,43 @@ function renderMap() {
     });
   });
 
-  // auto‐open on pan, auto‐close/collision on zoom
+  // auto‐open when you pan into view
   mapInstance.on('moveend', () => {
     if (mapInstance.getZoom()>=ZOOM_OPEN) {
-      segmentMarkers.forEach(m=>!m.sticky&&m.fire('click'));
+      segmentMarkers.forEach(m => !m.sticky && m.fire('click'));
     }
   });
+  // auto‐close below zoom, recompute collision above
   mapInstance.on('zoomend', () => {
     if (mapInstance.getZoom()<ZOOM_OPEN) openTips.slice().forEach(clearTooltip);
-    if (mapInstance.getZoom()>=ZOOM_COLLIDE) setTimeout(()=>openTips.forEach(repositionTooltip),200);
+    if (mapInstance.getZoom()>=ZOOM_COLLIDE) {
+      setTimeout(()=>openTips.forEach(repositionTooltip), 200);
+    }
   });
 
-  // fit or fallback
+  // fit bounds or fallback
   const pts = segmentMarkers.map(m=>m.getLatLng());
-  if (pts.length) mapInstance.fitBounds(pts,{ padding:[8,8], maxZoom:14 });
-  else            mapInstance.setView([39.5,-111.5],6);
+  if (pts.length) {
+    mapInstance.fitBounds(pts, { padding:[8,8], maxZoom:14 });
+  } else {
+    mapInstance.setView([39.5,-111.5], 6);
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Exported: apply filter, update URL + gallery
+// apply filter & update gallery
 // ─────────────────────────────────────────────────────────────────────────────
 export function applyCustomRouteFilter() {
   const ms = serializeSegments(window.customRouteFormData);
   const ps = new URLSearchParams(window.location.search);
   ps.set('multiRoute', ms);
   window.history.replaceState({}, '', `${window.location.pathname}?${ps}`);
-
   const all = window.customRouteFormData.flatMap(seg =>
     (window.camerasList||[])
       .filter(cam=>isCameraOnSegment(cam,seg))
       .sort((a,b)=>{
-        const ma = (a.RoadwayOption1===seg.name? a.MilepostOption1 : a.MilepostOption2);
-        const mb = (b.RoadwayOption1===seg.name? b.MilepostOption1 : b.MilepostOption2);
+        const ma = a.RoadwayOption1===seg.name ? a.MilepostOption1 : a.MilepostOption2;
+        const mb = b.RoadwayOption1===seg.name ? b.MilepostOption1 : b.MilepostOption2;
         return seg.mpMin<seg.mpMax ? ma-mb : mb-ma;
       })
   );
@@ -462,16 +448,15 @@ export function applyCustomRouteFilter() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Exported: wire up “Build Custom Route…” + modal + cancel logic
+// wire up modal buttons
 // ─────────────────────────────────────────────────────────────────────────────
 export function setupCustomRouteBuilder() {
   parseMultiRouteFromURL();
-
-  const buildBtn  = document.getElementById('buildCustomRoute');
-  const modalEl   = document.getElementById('customRouteModal');
-  const resetBtn  = document.getElementById('customRouteReset');
-  const copyBtn   = document.getElementById('customRouteCopyUrl');
-  const applyBtn  = document.getElementById('customRouteApply');
+  const buildBtn = document.getElementById('buildCustomRoute'),
+        modalEl  = document.getElementById('customRouteModal'),
+        resetBtn = document.getElementById('customRouteReset'),
+        copyBtn  = document.getElementById('customRouteCopyUrl'),
+        applyBtn = document.getElementById('customRouteApply');
   if (!buildBtn||!modalEl||!resetBtn||!copyBtn||!applyBtn) return;
 
   const modal = new bootstrap.Modal(modalEl);
@@ -486,25 +471,21 @@ export function setupCustomRouteBuilder() {
   };
 
   modalEl.addEventListener('shown.bs.modal', () => {
-    renderForm(); renderMap(); updateApplyButtonState();
-    mapInstance?.invalidateSize();
+    renderForm();
+    renderMap();
+    mapInstance.invalidateSize();
     Sortable.create(
       document.getElementById('customRouteFormContainer'),
-      {
-        handle:    '.drag-handle',
-        animation: 150,
-        onEnd: ({ oldIndex, newIndex }) => {
-          // account for headerRow at index 0
-          const from = oldIndex - 1, to = newIndex - 1;
-          if (from >= 0 && to >= 0) {
+      { handle:'.drag-handle', animation:150, onEnd:({oldIndex,newIndex})=>{
+          const from = oldIndex-1, to = newIndex-1;
+          if (from>=0 && to>=0) {
             window.customRouteFormData.splice(
-              to, 0,
+              to,0,
               window.customRouteFormData.splice(from,1)[0]
             );
-            renderMap();
+            renderForm();
           }
-        }
-      }
+      }}
     );
   });
 
@@ -523,22 +504,23 @@ export function setupCustomRouteBuilder() {
 
   resetBtn.onclick = () => {
     window.customRouteFormData = [];
-    renderForm(); renderMap();
+    renderForm();
+    renderMap();
   };
 
   copyBtn.addEventListener('click', async e => {
     e.preventDefault();
     const ms = serializeSegments(window.customRouteFormData);
-    const params = new URLSearchParams(window.location.search);
-    params.set('multiRoute', ms);
-    window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
+    const ps = new URLSearchParams(window.location.search);
+    ps.set('multiRoute', ms);
+    window.history.replaceState({}, '', `${window.location.pathname}?${ps}`);
     await copyToClipboard(window.location.href);
     copyBtn.classList.add('copied');
     copyBtn.textContent = 'URL Copied!';
-    setTimeout(() => {
+    setTimeout(()=>{
       copyBtn.classList.remove('copied');
       copyBtn.textContent = 'Copy URL';
-    }, 2000);
+    },2000);
   });
 
   applyBtn.onclick = e => {
