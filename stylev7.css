@@ -888,8 +888,8 @@ html, body {
     margin:     0.5rem auto !important;
     width:      calc(100vw - 1rem) !important;
     max-width:  calc(100vw - 1rem) !important;
-    height:     calc(100vh - 1rem) !important;
-    max-height: calc(100vh - 1rem) !important;
+    height:     calc(100vh - 4rem) !important;
+    max-height: calc(100vh - 4rem) !important;
   }
 
   /* 2) Content is a column‐flex filling that height */
@@ -961,7 +961,7 @@ html, body {
     display:            grid !important;
     grid-template-columns:
       1rem   /* handle */
-      85px   /* route  */
+      120px   /* route  */
       55px   /* from   */
       0.8rem /* swap   */
       55px   /* to     */
