@@ -873,68 +873,70 @@ html, body {
 }
 
 
-/* ─── Mobile Overrides (≤600px) ───────────────────────────── */
+/* ─── Mobile Overrides (screens ≤600px) ───────────────────────────────── */
 @media (max-width: 600px) {
-  /* ✂️ Remove desktop height/overflow caps */
-  #customRouteModal .modal-content {
-    max-height: none !important;
-  }
-  #customRouteModal .modal-body {
-    height:      auto !important;
-  }
+  /* Remove any desktop‐only height caps */
+  #customRouteModal .modal-content { max-height: none !important; }
+  #customRouteModal .modal-body    { height:      auto !important; }
 
-  /* 1) Dialog nearly full‐screen but inset 0.5rem all around */
+  /* 1) Dialog inset by 1rem gutter on all sides */
   #customRouteModal .modal-dialog.modal-fullscreen-md-down {
-    margin:     0.5rem auto !important;
-    width:      calc(100vw - 1rem) !important;
-    max-width:  calc(100vw - 1rem) !important;
-    height:     calc(100vh - 4rem) !important;
-    max-height: calc(100vh - 4rem) !important;
+    margin:        1rem auto !important;
+    width:         calc(100vw - 1rem) !important;
+    max-width:     calc(100vw - 1rem) !important;
+    height:        calc(100vh - 1rem) !important;
+    max-height:    calc(100vh - 1rem) !important;
+    border-radius: 0.75rem !important;
   }
 
-  /* 2) Content is a column‐flex filling that height */
+  /* 2) Flex‐column layout: header/footer pinned */
   #customRouteModal .modal-content {
-    display:        flex !important;
-    flex-direction: column !important;
-    height:         100% !important;
-    border-radius:  0.75rem !important;
-    overflow:       hidden !important;
+    display:        flex       !important;
+    flex-direction: column     !important;
+    height:         100%       !important;
+    overflow:       hidden     !important;
+    border-radius:  0.75rem    !important;
   }
-
-  /* 3) Tighten header & footer */
   #customRouteModal .modal-header,
   #customRouteModal .modal-footer {
-    padding: 0.5rem 0.75rem !important;
-    margin:  0             !important;
+    flex:    0 0 auto !important;
+    padding: 0.5rem  !important;
+    margin:  0       !important;
   }
 
-  /* 4) Body stacks form over map & fills remaining space */
+  /* 3) Body scrolls internally, stacks form above map */
   #customRouteModal .modal-body {
-    display:        flex !important;
-    flex-direction: column !important;
-    flex:           1 1 auto !important;
-    padding:        0.5rem !important;
-    gap:            0.5rem !important;
-    overflow:       hidden !important;
+    display:        flex      !important;
+    flex-direction: column    !important;
+    flex:           1 1 auto  !important;
+    overflow-y:     auto      !important;
+    padding:        1rem      !important;
+    gap:            1rem      !important;
+    /* round lower corners of the inner body */
+    border-bottom-left-radius:  0.75rem !important;
+    border-bottom-right-radius: 0.75rem !important;
   }
 
-  /* 5) Form only as tall as its contents, no extra top‐padding */
+  /* 4) Form container: natural height + full width */
   #customRouteModal #customRouteFormContainer {
     flex:        0 0 auto !important;
-    width:       100% !important;
-    overflow-y:  auto !important;
-    padding-top: 0       !important;
+    width:       100%     !important;
+    overflow-y:  auto     !important;
+    padding-top: 1rem     !important;
   }
 
-  /* 6) Map gulps every pixel left */
-  #customRouteModal #customRouteMap {
-    flex:       1 1 auto !important;
-    width:      100% !important;
-    min-height: 0       !important;
-    height:     auto    !important;
+  /* 5) Map container: fills remaining space, rounded */
+  #customRouteModal #customRouteMap,
+  #customRouteModal #customRouteMapContainer {
+    flex:           1 1 auto !important;
+    width:          100%     !important;
+    min-height:     0        !important;
+    height:         auto     !important;
+    border-radius:  0.75rem  !important;
+    overflow:       hidden   !important;
   }
 
-  /* 7) Prevent zoom: full‐width 16px inputs */
+  /* 6) Inputs: full-width, 16px font to prevent zoom */
   #customRouteModal .form-control,
   #customRouteModal select,
   #customRouteModal textarea,
@@ -955,117 +957,59 @@ html, body {
     appearance:      textfield !important;
   }
 
-  /* 8) Override grid-template-columns for mobile */
+  /* 7) Grid for route rows */
   #customRouteModal .custom-route-headers,
   #customRouteModal .custom-route-row {
-    display:            grid !important;
+    display:       grid     !important;
     grid-template-columns:
       1rem   /* handle */
-      120px   /* route  */
+      85px   /* route  */
       55px   /* from   */
       0.8rem /* swap   */
       55px   /* to     */
-      0.5rem /* remove */
-      !important;
-    column-gap:         0.4rem !important;
+      0.5rem /* remove */ !important;
+    column-gap:    0.4rem  !important;
   }
   #customRouteModal .custom-route-headers span {
     font-size: 0.6rem !important;
   }
 
-  /* 9) Shrink your “.button” & footer buttons—but not swap/remove */
+  /* 8) Shrink only your Add-Segment & footer buttons */
   #customRouteModal .button,
   #customRouteModal .modal-footer button {
-    font-size:  0.6rem !important;
-    padding:    0.3rem 0.6rem !important;
-    box-shadow: 0 4px #999      !important;
+    font-size:   0.6rem  !important;
+    padding:     0.3rem 0.6rem !important;
+    box-shadow:  0 4px #999 !important;
   }
 
-  /* ⚡️ Explicitly override swap/remove */
+  /* 9) Remove underline on swap/remove only */
   #customRouteModal .swap-btn,
   #customRouteModal .remove-btn {
-    text-decoration: none    !important;
-    border-bottom:   none    !important;
-    box-shadow:      none    !important;
-    padding:         0       !important;
+    text-decoration: none !important;
+    border-bottom:   none !important;
   }
+  /* keep their icon at normal size */
   #customRouteModal .swap-btn i,
   #customRouteModal .remove-btn i {
-    font-size: 0.2rem !important;
+    font-size: 1rem !important;
   }
 
-  /* 10) Placeholder tweaks */
+  /* 10) Placeholder sizing */
   #customRouteModal .route-input::placeholder {
-    font-size: 0.5em !important;
-    opacity:   1     !important;
+    font-size: 0.6em !important;
+    opacity:    1    !important;
   }
-  #customRouteModal .route-input::-webkit-input-placeholder,
-  #customRouteModal .route-input::-moz-placeholder,
-  #customRouteModal .route-input:-ms-input-placeholder,
-  #customRouteModal .route-input::-ms-input-placeholder {
-    font-size: 0.5em !important;
-    opacity:   1     !important;
-  }
+  #customRouteModal .route-input::-webkit-input-placeholder { font-size:0.6em!important; opacity:1!important; }
+  #customRouteModal .route-input::-moz-placeholder         { font-size:0.6em!important; opacity:1!important; }
+  #customRouteModal .route-input:-ms-input-placeholder    { font-size:0.6em!important; opacity:1!important; }
+  #customRouteModal .route-input::-ms-input-placeholder   { font-size:0.6em!important; opacity:1!important; }
 
-  /* 11) General “just shy of full‐screen” for *all* non-image modals */
-  /* Excludes your standard #imageModal */
-  #customRouteModal .modal-dialog.modal-fullscreen-md-down,
-  #mobileAppModal  .modal-dialog,
-  #updateInfoModal .modal-dialog,
-  #aboutAppModal   .modal-dialog,
-  #overviewMapModal.modal .modal-dialog {
-    margin:     1rem auto       !important;
-    width:      calc(100vw - 2rem) !important;
-    max-width:  calc(100vw - 2rem) !important;
-    max-height: calc(100vh - 2rem) !important;
-  }
-
-  /* Flex container for all modal contents */
-  #customRouteModal .modal-content,
-  #mobileAppModal  .modal-content,
-  #updateInfoModal .modal-content,
-  #aboutAppModal   .modal-content,
-  #overviewMapModal .modal-content {
-    display:        flex !important;
-    flex-direction: column !important;
-    height:         100% !important;
-    overflow:       hidden !important;
-  }
-
-  /* Scrollable bodies */
-  #customRouteModal .modal-body,
-  #mobileAppModal  .modal-body,
-  #updateInfoModal .modal-body,
-  #aboutAppModal   .modal-body,
-  #overviewMapModal .modal-body {
-    flex:        1 1 auto !important;
-    overflow-y:  auto        !important;
-  }
-
-  /* Keep headers & footers pinned */
-  #customRouteModal .modal-header,
-  #customRouteModal .modal-footer,
-  #mobileAppModal  .modal-header,
-  #mobileAppModal  .modal-footer,
-  #updateInfoModal .modal-header,
-  #updateInfoModal .modal-footer,
-  #aboutAppModal   .modal-header,
-  #aboutAppModal   .modal-footer,
-  #overviewMapModal .modal-header,
-  #overviewMapModal .modal-footer {
-    flex: 0 0 auto !important;
-  }
-
-  /* 12) Notch support on iOS Safari */
+  /* 11) iOS notch & safe-area support */
   @supports(padding: env(safe-area-inset-top)) {
-    #customRouteModal .modal-dialog.modal-fullscreen-md-down,
-    #mobileAppModal  .modal-dialog,
-    #updateInfoModal .modal-dialog,
-    #aboutAppModal   .modal-dialog,
-    #overviewMapModal .modal-dialog {
+    #customRouteModal .modal-dialog.modal-fullscreen-md-down {
       margin-top:    calc(env(safe-area-inset-top) + 1rem) !important;
       margin-bottom: calc(env(safe-area-inset-bottom) + 1rem) !important;
     }
   }
 }
-
+/* ────────────────────────────────────────────────────────────────────────── */
