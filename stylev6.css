@@ -670,7 +670,7 @@ html, body {
 
 /* 2) Cap height & hide overflow */
 #customRouteModal .modal-content {
-  max-height: auto;
+  max-height: 98vw;
   overflow:   hidden;
 }
 
@@ -875,113 +875,136 @@ html, body {
 
 /* ─── Mobile Overrides (≤600px) ───────────────────────────── */
 @media (max-width: 600px) {
-
-  /* stack form above map */
+  /* ✂️ Remove desktop height/overflow caps */
+  #customRouteModal .modal-content {
+    max-height: none !important;
+  }
   #customRouteModal .modal-body {
-    flex-direction: column;
     height: auto !important;
-    border-radius: 0.75rem !important;
   }
 
-  /* form full-width */
-  #customRouteFormContainer {
-    flex: 0 0 auto;
-    width: 100%;
+  /* 1) Dialog nearly full‐screen but inset 0.5rem all around */
+  #customRouteModal .modal-dialog.modal-fullscreen-md-down {
+    margin:       0.5rem auto !important;
+    width:        calc(100vw - 1rem) !important;
+    max-width:    calc(100vw - 1rem) !important;
+    height:       calc(100vh - 1rem) !important;
+    max-height:   calc(100vh - 1rem) !important;
   }
 
-  /* ensure all form controls stay at least 16px font-size to prevent zoom */
+  /* 2) Content is a column‐flex filling that height */
+  #customRouteModal .modal-content {
+    display:         flex !important;
+    flex-direction:  column !important;
+    height:          100% !important;
+    border-radius:   0.75rem !important;
+    overflow:        hidden !important;
+  }
+
+  /* 3) Tighten header & footer */
+  #customRouteModal .modal-header,
+  #customRouteModal .modal-footer {
+    padding: 0.5rem 0.75rem !important;
+    margin:  0             !important;
+  }
+
+  /* 4) Body stacks form over map & fills remaining space */
+  #customRouteModal .modal-body {
+    display:         flex !important;
+    flex-direction:  column !important;
+    flex:            1 1 auto !important;
+    padding:         0.5rem !important;
+    gap:             0.5rem !important;
+    overflow:        hidden !important;
+  }
+
+  /* 5) Form only as tall as its contents, no extra top‐padding */
+  #customRouteModal #customRouteFormContainer {
+    flex:        0 0 auto !important;
+    width:       100%       !important;
+    overflow-y:  auto       !important;
+    padding-top: 0          !important;
+  }
+
+  /* 6) Map gulps every pixel left */
+  #customRouteModal #customRouteMap {
+    flex:       1 1 auto !important;
+    width:      100%       !important;
+    min-height: 0          !important;
+    height:     auto       !important;
+  }
+
+  /* 7) Prevent zoom: full‐width 16px inputs */
   #customRouteModal .form-control,
   #customRouteModal select,
   #customRouteModal textarea,
-  .route-input,
-  .mp-input {
-    font-size: 16px !important;
-    -webkit-text-size-adjust: 100% !important;
-    width: 100%;
-    box-sizing: border-box;
+  #customRouteModal .route-input,
+  #customRouteModal .mp-input {
+    font-size:                16px    !important;
+    -webkit-text-size-adjust: 100%    !important;
+    width:                    100%    !important;
+    box-sizing:               border-box !important;
+  }
+  #customRouteModal .mp-input::-webkit-inner-spin-button,
+  #customRouteModal .mp-input::-webkit-outer-spin-button {
+    -webkit-appearance: none !important;
+    margin:            0   !important;
+  }
+  #customRouteModal .mp-input {
+    -moz-appearance: textfield !important;
+    appearance:      textfield !important;
   }
 
-  /* remove spinner arrows on number inputs */
-  .mp-input::-webkit-inner-spin-button,
-  .mp-input::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-  .mp-input {
-    -moz-appearance: textfield;
-    appearance: textfield;
-  }
-
-  /* tighter grid on mobile */
-  .custom-route-headers,
-  .custom-route-row {
+  /* 8) Override grid-template-columns for mobile */
+  #customRouteModal .custom-route-headers,
+  #customRouteModal .custom-route-row {
+    display:            grid !important;
     grid-template-columns:
-      1.1rem  /* handle */
-      80px    /* route */
-      50px    /* from */
-      1.1rem  /* swap */
-      50px    /* to */
-      1.1rem  /* remove */
-      ;
-    column-gap: 0.5rem;
+      1rem  /* handle  */
+      85px    /* route   */
+      55px    /* from    */
+      0.8rem  /* swap    */
+      55px    /* to      */
+      0.5rem  /* remove  */
+      !important;
+    column-gap:         0.4rem !important;
+  }
+  #customRouteModal .custom-route-headers span {
+    font-size: 0.6rem !important;
   }
 
-  /* shrink header labels */
-  .custom-route-headers span {
-    font-size: 0.6rem;
+  /* 9) Shrink your “.button” & footer buttons—but not swap/remove */
+  #customRouteModal .button,
+  #customRouteModal .modal-footer button {
+    font-size:  0.6rem !important;
+    padding:    0.3rem 0.6rem !important;
+    box-shadow: 0 4px #999      !important;
   }
 
-  /* only shrink buttons, not inputs */
-  #customRouteFormContainer button,
-  #customRouteModal .modal-footer button,
-  #customRouteFormContainer .button {
-    font-size: 0.6rem;
-    padding: 0.3rem 0.6rem;
-    box-shadow: 0 4px #999;
+  /* ⚡️ Explicitly override swap/remove** */
+  #customRouteModal .swap-btn,
+  #customRouteModal .remove-btn {
+    text-decoration: none    !important;
+    border-bottom:   none    !important;
+    box-shadow:      none    !important;
+    padding:         0       !important;
+  }
+  #customRouteModal .swap-btn i,
+  #customRouteModal .remove-btn i {
+    font-size:   0.2rem !important;
+    
   }
 
-  /* adjust input padding if you want smaller fields */
-  #customRouteFormContainer input {
-    padding: 0.3rem 0.4rem;
-  }
-
-  /* map under the form */
-  #customRouteMap {
-    flex: 1 1 auto;
-    min-height: 250px;
-    height: auto !important;
-  }
-
-  /* slightly smaller swap/remove icons */
-  .swap-btn i,
-  .remove-btn i {
-    font-size: 0.5rem;
-  }
-    /* make the placeholder in .route-input a bit smaller */
+  /* 10) Placeholder tweaks */
   #customRouteModal .route-input::placeholder {
-    /* 0.75em of the 16px base ⇒ ~12px placeholder */
-    font-size: 0.6em;
-    opacity:    1;      /* nice and visible */
+    font-size: 0.5em !important;
+    opacity:   1     !important;
   }
-
-  /* vendor prefixes for max compatibility */
-  #customRouteModal .route-input::-webkit-input-placeholder {
-    font-size: 0.6em;
-    opacity:    1;
-  }
-  #customRouteModal .route-input::-moz-placeholder {
-    font-size: 0.6em;
-    opacity:    1;
-  }
-  #customRouteModal .route-input:-ms-input-placeholder {
-    font-size: 0.6em;
-    opacity:    1;
-  }
+  #customRouteModal .route-input::-webkit-input-placeholder,
+  #customRouteModal .route-input::-moz-placeholder,
+  #customRouteModal .route-input:-ms-input-placeholder,
   #customRouteModal .route-input::-ms-input-placeholder {
-    font-size: 0.6em;
-    opacity:    1;
+    font-size: 0.5em !important;
+    opacity:   1     !important;
   }
-
 }
-
-

@@ -6,6 +6,8 @@ import { filterImages } from './filters.js';
 import { setupCopyUrlButton } from './events.js';
 import { copyURLToClipboard } from './utils.js';
 import { setupCustomRouteBuilder } from './customRoute.js';
+import { initAutoLocationFilter, setupLocateButton } from './geolocation.js';
+
 
 import {
   updateRegionDropdown,
@@ -15,7 +17,6 @@ import {
   updateRouteOptions
 } from './dropdowns.js';
 
-import { renderGallery } from './gallery.js';
 
 import {
   setupModalMapToggle,
@@ -24,7 +25,7 @@ import {
   setupOverviewModal
 } from './modal.js';
 
-import { setupNearestCameraButton, autoSortByLocation } from './geolocation.js';
+
 
 import {
   setupSearchListener,
@@ -110,14 +111,9 @@ async function initializeApp() {
 document.addEventListener('DOMContentLoaded', async () => {
   await initializeApp();
 
-  setupNearestCameraButton();
-
-  // Only auto‑sort by location if the user did NOT supply any URL filters:
-  const params = new URLSearchParams(window.location.search);
-  if ([...params.keys()].length === 0) {
-    autoSortByLocation();
-  }
-
+  //  ——— New geolocation logic ———
+  setupLocateButton();
+  initAutoLocationFilter();
 
   // UI Controls
   setupRefreshButton();
