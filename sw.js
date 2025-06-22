@@ -23,8 +23,10 @@ const PRECACHE_URLS = [
   '/js/geolocation.js',
   '/js/events.js',
   '/js/ui.js',
+  '/js/customRoute.js',
   '/images/mobileSplash.webp',
   '/Icongridbackground3.png',
+  '/camIcon1.png',
   '/desktop-splash.mp4'
 ];
 
