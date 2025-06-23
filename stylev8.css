@@ -1039,3 +1039,10 @@ html, body {
   }
   /* …plus the vendor‐prefixed variants… */
 }
+
+/*— hide any .button in the header-controls that has no ID (i.e. your stray phantom) —*/
+@supports (-webkit-overflow-scrolling: touch) {
+  .header-controls .button:not([id]) {
+    display: none !important;
+  }
+}
