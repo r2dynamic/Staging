@@ -1,4 +1,5 @@
-// geolocation.js (50 nearest, clears on other filter, controls one-time permission prompt)
+// geolocation.js
+// Handles “Nearest Cameras” mode, one-time permission prompt, and silent startup under your splash.
 
 import { computeDistance } from './utils.js';
 import { renderGallery, updateCameraCount } from './gallery.js';
@@ -6,22 +7,13 @@ import { updateSelectedFilters, updateURLParameters } from './ui.js';
 import { filterImages } from './filters.js';
 
 const STORAGE_KEY = 'udot-location-allowed';
-
-/**
- * Geolocation options.
- */
 const geoOptions = {
   enableHighAccuracy: true,
   timeout: 5000,
   maximumAge: 0
 };
 
-/**
- * Sort all cameras by distance to given lat/lng.
- * @param {number} lat
- * @param {number} lng
- * @returns {Array} Sorted cameras
- */
+/** Sort all cameras by distance to given lat/lng. */
 function getCamerasSortedByProximity(lat, lng) {
   return window.camerasList
     .map(cam => ({
@@ -32,65 +24,56 @@ function getCamerasSortedByProximity(lat, lng) {
     .map(x => x.cam);
 }
 
-/**
- * Activates the "Nearest Cameras" mode:
- *  - Clears all other filters
- *  - Picks top 50 by proximity
- *  - Renders gallery & updates UI
- */
+/** Activates Nearest-Cameras mode and updates UI & URL. */
 function activateNearestCamerasMode(lat, lng) {
-  window.isNearestFilterActive = true;
-  window.nearestUserLocation = { lat, lng };
+  window.isNearestFilterActive    = true;
+  window.nearestUserLocation      = { lat, lng };
+  localStorage.setItem(STORAGE_KEY, 'yes');
 
-  // Clear all other filters
-  window.selectedRegion = '';
-  window.selectedCounty = '';
-  window.selectedCity = '';
+  // clear other filters
+  window.selectedRegion             = '';
+  window.selectedCounty             = '';
+  window.selectedCity               = '';
   window.selectedMaintenanceStation = '';
-  window.selectedRoute = 'All';
-  window.selectedOtherFilter = '';
-  window.searchQuery = '';
+  window.selectedRoute              = 'All';
+  window.selectedOtherFilter        = '';
+  window.searchQuery                = '';
 
-  // Sort & pick nearest 50
   const sorted = getCamerasSortedByProximity(lat, lng);
   window.visibleCameras = sorted.slice(0, 50);
-  window.currentIndex = 0;
+  window.currentIndex   = 0;
 
-  // Update badges, gallery, URL
   updateCameraCount();
   renderGallery(window.visibleCameras);
   updateSelectedFilters();
   updateURLParameters();
 }
 
-/**
- * Clears "Nearest Cameras" mode flags.
- * Does NOT re-render; that happens elsewhere.
- */
+/** Clears Nearest-Cameras mode flags. */
 export function clearNearestCamerasMode() {
-  window.isNearestFilterActive = false;
-  window.nearestUserLocation = null;
+  window.isNearestFilterActive   = false;
+  window.nearestUserLocation     = null;
 }
 
-/**
- * Centralized geolocation request:
- *  - On success: remember permission & activate nearest mode
- *  - On error/deny: clear flag & load default gallery
- */
+/** Load the default (unfiltered) gallery. */
+function loadDefaultGallery() {
+  clearNearestCamerasMode();
+  filterImages();
+}
+
+/** Called by the “Nearest Cameras” button: always triggers the native prompt. */
 function requestAndFilter() {
   if (!navigator.geolocation) {
     console.warn('Geolocation not supported');
     return loadDefaultGallery();
   }
-
   navigator.geolocation.getCurrentPosition(
     pos => {
-      // ✅ user granted
-      localStorage.setItem(STORAGE_KEY, 'yes');
+      // granted
       activateNearestCamerasMode(pos.coords.latitude, pos.coords.longitude);
     },
     err => {
-      // ❌ user denied or error
+      // denied or error
       console.warn('Geolocation error:', err);
       localStorage.removeItem(STORAGE_KEY);
       loadDefaultGallery();
@@ -100,54 +83,84 @@ function requestAndFilter() {
 }
 
 /**
- * On app startup, decide whether to prompt or silently load defaults.
- *  - If never asked before → prompt now
- *  - If asked & still granted → prompt now (UA auto-grants)
- *  - If asked & UA wants to re-prompt → load defaults
+ * Silent startup logic for your splash.
+ * Resolves once either nearest-mode is activated or default gallery loaded.
  */
-export async function initAutoLocationFilter() {
-  const userAllowedBefore = localStorage.getItem(STORAGE_KEY) === 'yes';
+export function initAutoLocationFilter() {
+  return new Promise(async resolve => {
+    const userAllowedBefore = localStorage.getItem(STORAGE_KEY) === 'yes';
 
-  if (navigator.permissions) {
-    try {
-      const status = await navigator.permissions.query({ name: 'geolocation' });
-      if (status.state === 'granted') {
-        // UA still considers us granted
-        return requestAndFilter();
-      }
-      // UA state is 'prompt' or 'denied'
-      return userAllowedBefore
-        ? loadDefaultGallery()
-        : requestAndFilter();
-    } catch {
-      // Permissions API failed
-      return userAllowedBefore
-        ? loadDefaultGallery()
-        : requestAndFilter();
+    // first-time visitor → default
+    if (!userAllowedBefore) {
+      loadDefaultGallery();
+      return resolve();
     }
-  }
 
-  // No Permissions API → use our own flag
-  return userAllowedBefore
-    ? loadDefaultGallery()
-    : requestAndFilter();
-}
-
-/**
- * Binds the “Locate Me” button to re-prompt for geolocation.
- */
-export function setupLocateButton() {
-  const btn = document.getElementById('nearestButton');
-  if (!btn) return;
-  btn.addEventListener('click', () => {
-    requestAndFilter();
+    // returning visitor → check browser state
+    if (navigator.permissions) {
+      try {
+        const status = await navigator.permissions.query({ name: 'geolocation' });
+        if (status.state === 'granted') {
+          navigator.geolocation.getCurrentPosition(
+            pos => {
+              activateNearestCamerasMode(pos.coords.latitude, pos.coords.longitude);
+              resolve();
+            },
+            () => {
+              loadDefaultGallery();
+              resolve();
+            },
+            geoOptions
+          );
+        } else {
+          // would prompt or denied → fallback
+          loadDefaultGallery();
+          resolve();
+        }
+      } catch {
+        loadDefaultGallery();
+        resolve();
+      }
+    } else {
+      // no Permissions API → fallback
+      loadDefaultGallery();
+      resolve();
+    }
   });
 }
 
 /**
- * Helper to clear nearest mode and show the regular gallery
+ * Wraps initAutoLocationFilter() in a watchdog timer so your splash can’t hang.
+ * The fallback only runs if the silent init hasn’t settled by timeoutMs.
  */
-function loadDefaultGallery() {
-  clearNearestCamerasMode();
-  filterImages();
+export function initAutoLocationFilterWithTimeout(timeoutMs = 5000) {
+  return new Promise(resolve => {
+    let settled = false;
+
+    // Kick off the real init
+    initAutoLocationFilter().then(() => {
+      if (!settled) {
+        settled = true;
+        resolve();
+      }
+    });
+
+    // Watchdog timer
+    setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        console.warn(`Geolocation init timed out after ${timeoutMs}ms — falling back to default gallery`);
+        clearNearestCamerasMode();
+        filterImages();
+        resolve();
+      }
+    }, timeoutMs);
+  });
+}
+
+/** Bind the Nearest-Cameras button to always re-prompt. */
+export function setupLocateButton() {
+  const btn = document.getElementById('nearestButton');
+  if (!btn) return;
+  btn.addEventListener('click', requestAndFilter);
 }

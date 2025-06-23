@@ -272,7 +272,7 @@ html, body {
   top: 100%;
   left: 0;
   z-index: 2000;
-  background: rgba(78, 78, 78, 0.189) !important;
+  background: rgba(59, 59, 59, 0.366) !important;
   backdrop-filter: blur(12px);
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 12px;
@@ -1034,7 +1034,7 @@ html, body {
 
   /* 11) Placeholder sizing */
   #customRouteModal .route-input::placeholder {
-    font-size: 0.6em !important;
+    font-size: 0.5em !important;
     opacity:    1    !important;
   }
   /* …plus the vendor‐prefixed variants… */
