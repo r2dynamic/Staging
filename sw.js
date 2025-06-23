@@ -1,6 +1,6 @@
 // sw.js - Service Worker
 
-const CACHE_VERSION = 'v23';
+const CACHE_VERSION = 'v24';
 const PRECACHE_NAME = `wpa-precache-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `wpa-runtime-${CACHE_VERSION}`;
 

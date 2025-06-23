@@ -875,48 +875,36 @@ html, body {
 
 /* ─── Mobile Overrides (screens ≤600px) ───────────────────────────── */
 @media (max-width: 600px) {
-  /* Remove any desktop‐only height caps */
-  #customRouteModal .modal-content { max-height: none !important; }
+  /* 0) Undo desktop caps */
+  #customRouteModal .modal-content { max-height: none   !important; }
   #customRouteModal .modal-body    { height:      auto !important; }
 
-  /* 1) Dialog inset by 1rem gutter + safe‐area on top/bottom */
-  #customRouteModal .modal-dialog.modal-fullscreen-md-down {
-    /* gutters + notch/home‐bar */
-    margin-top:    calc(env(safe-area-inset-top, 0px)    + 1rem) !important;
-    margin-bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem) !important;
-    margin-left:   1rem                                       !important;
-    margin-right:  1rem                                       !important;
-
-    /* width = viewport width − 2rem */
-    width:       calc(100vw - 2rem) !important;
-    max-width:   calc(100vw - 2rem) !important;
-
-    /* height = innerHeight − (2rem gutters + safe‐areas) */
-    height:     calc(
-      var(--vh,1vh)*100
-      - (2rem
-         + env(safe-area-inset-top, 0px)
-         + env(safe-area-inset-bottom, 0px)
-        )
-    ) !important;
-    max-height: calc(
-      var(--vh,1vh)*100
-      - (2rem
-         + env(safe-area-inset-top, 0px)
-         + env(safe-area-inset-bottom, 0px)
-        )
-    ) !important;
-
-    border-radius: 0.75rem !important;
+  /* 1) **Kill** Bootstrap’s min-height on the centered dialog */
+  #customRouteModal .modal-dialog.modal-dialog-centered {
+    min-height: 0 !important;
   }
 
-  /* 2) Flex‐column layout so header/footer stay pinned */
+  /* 2) Fixed inset dialog with 1rem gutters + safe-area support */
+  #customRouteModal .modal-dialog {
+    position:      fixed                          !important;
+    top:           calc(env(safe-area-inset-top,    0px) + 1rem) !important;
+    bottom:        calc(env(safe-area-inset-bottom, 0px) + 1rem) !important;
+    left:          1rem                            !important;
+    right:         1rem                            !important;
+    margin:        0                               !important;
+    width:         auto                            !important; /* override 98vw */
+    max-width:     none                            !important;
+    min-height:    0                               !important;
+    border-radius: 0.75rem                        !important;
+  }
+
+  /* 3) Fill that box: flex‐column so header/footer stay pinned */
   #customRouteModal .modal-content {
     display:        flex     !important;
     flex-direction: column   !important;
     height:         100%     !important;
     overflow:       hidden   !important;
-    border-radius:  0.75rem  !important;
+    border-radius:  inherit  !important;
   }
   #customRouteModal .modal-header,
   #customRouteModal .modal-footer {
@@ -925,19 +913,19 @@ html, body {
     margin:  0        !important;
   }
 
-  /* 3) Body scrolls internally, stacks form above map */
+  /* 4) Body scrolls internally, stacks form above map */
   #customRouteModal .modal-body {
-    display:                      flex      !important;
-    flex-direction:               column    !important;
-    flex:                         1 1 auto  !important;
-    overflow-y:                   auto      !important;
-    padding:                      1rem      !important;
-    gap:                          1rem      !important;
-    border-bottom-left-radius:    0.75rem   !important;
-    border-bottom-right-radius:   0.75rem   !important;
+    display:                    flex      !important;
+    flex-direction:             column    !important;
+    flex:                       1 1 auto  !important;
+    overflow-y:                 auto      !important;
+    padding:                    1rem      !important;
+    gap:                        1rem      !important;
+    border-bottom-left-radius:  0.75rem   !important;
+    border-bottom-right-radius: 0.75rem   !important;
   }
 
-  /* 4) Form container: natural height + full width */
+  /* 5) Form at natural height + full width */
   #customRouteModal #customRouteFormContainer {
     flex:        0 0 auto !important;
     width:       100%     !important;
@@ -945,7 +933,7 @@ html, body {
     padding-top: 1rem     !important;
   }
 
-  /* 5) Map container: fills remaining space, rounded corners */
+  /* 6) Map fills remaining space, rounded corners */
   #customRouteModal #customRouteMap,
   #customRouteModal #customRouteMapContainer {
     flex:           1 1 auto !important;
@@ -956,7 +944,7 @@ html, body {
     overflow:       hidden   !important;
   }
 
-  /* 6) Prevent zoom: inputs full-width, 16px font */
+  /* 7) Prevent zoom: inputs full-width & 16px font */
   #customRouteModal .form-control,
   #customRouteModal select,
   #customRouteModal textarea,
@@ -977,7 +965,7 @@ html, body {
     appearance:      textfield !important;
   }
 
-  /* 7) Grid layout for route rows */
+  /* 8) Grid for your route rows */
   #customRouteModal .custom-route-headers,
   #customRouteModal .custom-route-row {
     display:       grid     !important;
@@ -994,7 +982,7 @@ html, body {
     font-size: 0.6rem !important;
   }
 
-  /* 8) Shrink only “+ Add Segment” & footer buttons */
+  /* 9) Shrink only “+ Add Segment” & footer buttons */
   #customRouteModal .button,
   #customRouteModal .modal-footer button {
     font-size:   0.6rem  !important;
@@ -1002,7 +990,7 @@ html, body {
     box-shadow:  0 4px #999 !important;
   }
 
-  /* 9) Remove underline on swap/remove only */
+  /* 10) Remove underline on swap/remove only */
   #customRouteModal .swap-btn,
   #customRouteModal .remove-btn {
     text-decoration: none !important;
@@ -1013,14 +1001,10 @@ html, body {
     font-size: 1rem !important;
   }
 
-  /* 10) Placeholder sizing */
+  /* 11) Placeholder sizing */
   #customRouteModal .route-input::placeholder {
     font-size: 0.6em !important;
     opacity:    1    !important;
   }
-  #customRouteModal .route-input::-webkit-input-placeholder { font-size:0.6em!important; opacity:1!important; }
-  #customRouteModal .route-input::-moz-placeholder         { font-size:0.6em!important; opacity:1!important; }
-  #customRouteModal .route-input:-ms-input-placeholder    { font-size:0.6em!important; opacity:1!important; }
-  #customRouteModal .route-input::-ms-input-placeholder   { font-size:0.6em!important; opacity:1!important; }
+  /* …plus the vendor‐prefixed variants… */
 }
-/* ────────────────────────────────────────────────────────────────────────── */
