@@ -204,7 +204,7 @@ html, body {
 }
 @media (max-width: 600px) {
   .header-controls .button {
-    flex-shrink: 1;
+    flex: 0 1 auto;
     margin: 0 2px;
     max-width: auto;
     height: 30px;
