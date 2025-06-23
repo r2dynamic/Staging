@@ -526,14 +526,6 @@ html, body {
 
 }
 
-/* Overview Map Modal Styling */
-#overviewMapModal.modal.show .modal-dialog {
-  margin: 0 auto !important;
-  max-width: 98vw !important;
-  max-height: 98vh !important;
-  width: 98vw !important;
-  height: 98vh !important;
-}
 
 /* Stack content vertically and fill dialog */
 #overviewMapModal .modal-content {
@@ -590,6 +582,45 @@ html, body {
   padding: none;
  
 }
+
+/* ─── Desktop (≥601px): keep 98vw/98vh ─────────────────────────── */
+@media (min-width: 601px) {
+  #overviewMapModal.modal.show .modal-dialog {
+    margin:     0 auto           !important;
+    width:      98vw             !important;
+    max-width:  98vw             !important;
+    height:     98vh             !important;
+    max-height: 98vh             !important;
+  }
+}
+
+/* ─── Mobile (≤600px): inset fixed dialog with 1rem gutters ───── */
+@media (max-width: 600px) {
+  /* 1) Kill Bootstrap’s extra centering min-height */
+  #overviewMapModal .modal-dialog.modal-dialog-centered {
+    min-height: 0 !important;
+  }
+
+  /* 2) Fixed‐position inset, 1rem gutter + safe‐area support */
+  #overviewMapModal.modal.show .modal-dialog {
+    position:      fixed                          !important;
+    top:           calc(env(safe-area-inset-top,    0px) + 1rem) !important;
+    bottom:        calc(env(safe-area-inset-bottom, 0px) + 1rem) !important;
+    left:          1rem                            !important;
+    right:         1rem                            !important;
+    margin:        0                               !important;
+
+    /* cancel out any vw/vh sizing */
+    width:         auto                            !important;
+    max-width:     none                            !important;
+    height:        auto                            !important;
+    max-height:    none                            !important;
+    min-height:    0                               !important;
+
+    border-radius: 0.75rem                        !important;
+  }
+}
+
 /* ─────────────────────────────────────────────────
    T O O L T I P   I M A G E   S T Y L I N G
    ───────────────────────────────────────────────── */
