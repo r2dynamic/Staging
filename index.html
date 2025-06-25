@@ -147,7 +147,13 @@
       <i class="fas fa-location-arrow"></i>
     </button>
 
-    <!-- Image Size Slider -->
+
+
+    <button id="refreshButton" class="button" title="Refresh Images">
+      <i class="fas fa-sync"></i>
+    </button>
+
+          <!-- Image Size Slider -->
     <div id="sizeControlContainer" class="dropdown-control">
       <div id="sizeControlButton" class="button">
         <i class="fas fa-compress"></i> <i class="fas fa-expand"></i>
@@ -156,16 +162,14 @@
         <input id="sizeSlider" type="range" min="80" max="380" value="180" step="2" class="vertical-slider">
       </div>
     </div>
-
-    <button id="refreshButton" class="button" title="Refresh Images">
-      <i class="fas fa-sync"></i>
-    </button>
   </div>
 
   <!-- Image Gallery -->
   <div class="container-fluid">
     <div id="imageGallery" class="container-fluid hidden-on-load"></div>
   </div>
+
+
 
   <!-- Standard Image Modal -->
   <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
