@@ -229,12 +229,19 @@ html, body {
   align-items: center;
   gap: 5px;
 }
-.button:hover { background-color: #3e8e41; }
+.button:hover { 
+  background-color: #3e8e41; 
+  transform: scale(1.1);
+  
+}
 .button:active {
   background-color: #3e8e41;
   box-shadow: 0 5px #666;
   transform: translateY(4px);
+  
 }
+
+
 
 /* Glassmorphic Modal Style */
 .glass-modal {
@@ -1034,6 +1041,39 @@ html, body {
   #sizeControlContainer {
     display: none !important;
   }
+    .header-controls .button {
+    
+    margin: 0 2px;
+    max-width: auto;
+    height: 35px;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px #999;
+    border-radius: 6px;
+    font-size: 12px;
+    padding: 3px 8px;
+  }
+  
 }
 
-  
+/* pulsating glow on the active button */
+@keyframes button-glow {
+  0% {
+    box-shadow: 0 0 6px rgba(255,193,7,0.8);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(255,193,7,0.9);
+  }
+  100% {
+    box-shadow: 0 0 8px rgba(255,193,7,0.8);
+  }
+}
+
+.header-controls .button[aria-expanded="true"] {
+  border-color: #ffc107 !important;
+  /* static glow fallback: */
+  box-shadow: 0 0 12px rgba(255,193,7,0.8) !important;
+  /* animated glow: */
+  animation: button-glow 1.5s infinite ease-in-out !important;
+}
+
