@@ -111,11 +111,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupLocateButton();
 
   // 3) Auto‐filter by location ONLY if NO URL params present
-  const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = new URLSearchParams(window.location.search);
+  // Only run auto-location when there are no other filters in the URL
   if ([...urlParams.keys()].length === 0) {
     // Run silent init under splash with a 5s max wait
-    initAutoLocationFilterWithTimeout(5000);
+    await initAutoLocationFilterWithTimeout(5000);
   }
+
 
   // 4) Other UI Controls
   setupRefreshButton();
