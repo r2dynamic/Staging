@@ -205,6 +205,7 @@ html, body {
 @media (max-width: 600px) {
   .header-controls .button {
     flex: 0 1 auto;
+    min-width: 0;
     margin: 0 2px;
     max-width: auto;
     height: 30px;
@@ -215,7 +216,12 @@ html, body {
     font-size: 11px;
     padding: 3px 5px;
   }
+  /* make the wrapper position:relative so the panel can be absolute */
+.header-controls .dropdown-control {
+  position: relative;
 }
+}
+
 .header-controls .button {
   max-width: auto;
   height: 30px;
