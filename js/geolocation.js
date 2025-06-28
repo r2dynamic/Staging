@@ -86,48 +86,59 @@ function requestAndFilter() {
  * Silent startup logic for your splash.
  * Resolves once either nearest-mode is activated or default gallery loaded.
  */
-export function initAutoLocationFilter() {
-  return new Promise(async resolve => {
-    const userAllowedBefore = localStorage.getItem(STORAGE_KEY) === 'yes';
+ export function initAutoLocationFilter() {
+   return new Promise(async resolve => {
+     const userAllowedBefore = localStorage.getItem(STORAGE_KEY) === 'yes';
 
-    // first-time visitor → default
-    if (!userAllowedBefore) {
-      loadDefaultGallery();
-      return resolve();
-    }
+     // first-time visitor → default
+     if (!userAllowedBefore) {
+       loadDefaultGallery();
+       return resolve();
+     }
 
-    // returning visitor → check browser state
+     // returning visitor → check browser state
+
     if (navigator.permissions) {
-      try {
-        const status = await navigator.permissions.query({ name: 'geolocation' });
-        if (status.state === 'granted') {
-          navigator.geolocation.getCurrentPosition(
-            pos => {
-              activateNearestCamerasMode(pos.coords.latitude, pos.coords.longitude);
-              resolve();
-            },
-            () => {
-              loadDefaultGallery();
-              resolve();
-            },
-            geoOptions
-          );
-        } else {
-          // would prompt or denied → fallback
+       try {
+         const status = await navigator.permissions.query({ name: 'geolocation' });
+         if (status.state === 'granted') {
+           navigator.geolocation.getCurrentPosition(
+             pos => {
+               activateNearestCamerasMode(pos.coords.latitude, pos.coords.longitude);
+               resolve();
+             },
+             () => {
+               loadDefaultGallery();
+               resolve();
+             },
+             geoOptions
+           );
+         } else {
+           loadDefaultGallery();
+           resolve();
+         }
+       } catch {
+         loadDefaultGallery();
+         resolve();
+       }
+     } else {
+
+      // no Permissions API (iOS Safari/Chrome) → try geolocation directly
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          activateNearestCamerasMode(pos.coords.latitude, pos.coords.longitude);
+          resolve();
+        },
+        () => {
           loadDefaultGallery();
           resolve();
-        }
-      } catch {
-        loadDefaultGallery();
-        resolve();
-      }
-    } else {
-      // no Permissions API → fallback
-      loadDefaultGallery();
-      resolve();
-    }
-  });
-}
+        },
+        geoOptions
+      );
+     }
+   });
+ }
+
 
 /**
  * Wraps initAutoLocationFilter() in a watchdog timer so your splash can’t hang.
