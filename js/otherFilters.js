@@ -32,14 +32,14 @@ export const otherFiltersConfig = [
       }
     },
     forecastHTML: `<a class="weatherwidget-io"
-       href="https://forecast7.com/en/44d56n114d54/orem/"
-       data-label_1="IDAHO FALLS"
+       href="https://forecast7.com/en40d30n111d69/orem/"
+       data-label_1="OREM"
        data-label_2="WEATHER"
        data-font="Verdana"
        data-icons="Climacons Animated"
        data-mode="Current"
        data-theme="weather_one">
-      IDAHO FALLS WEATHER
+      OREM WEATHER
     </a>`
   },
   {
