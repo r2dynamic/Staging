@@ -1076,3 +1076,32 @@ html, body {
   /* animated glow: */
   animation: button-glow 1.5s infinite ease-in-out !important;
 }
+
+/* ─── Forecast Tile (16:9 hack + full-fill) ───────────────── */
+
+/* 1) Use the same 16:9 hack as your other .aspect-ratio-box items */
+.aspect-ratio-box.forecast-item {
+  /* restore the default ratio */
+  padding-bottom: 56.25% !important;  /* 9/16 = 0.5625 */
+  /* re-apply your framing */
+  position: relative;     
+  overflow: hidden;       
+  border: 2px solid #fff; 
+  border-radius: 0.5rem;  
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  box-sizing: border-box;
+}
+
+/* 2) Force the widget anchor & iframe to absolutely fill that box */
+.aspect-ratio-box.forecast-item .weatherwidget-io,
+.aspect-ratio-box.forecast-item iframe {
+  position: absolute !important;
+  top:     0 !important;
+  left:    0 !important;
+  width:   100% !important;
+  height:  100% !important;
+  display: block   !important;
+  border:  none    !important;
+}
+
+
