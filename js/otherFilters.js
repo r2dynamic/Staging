@@ -32,7 +32,7 @@ export const otherFiltersConfig = [
       }
     },
     forecastHTML: `<a class="weatherwidget-io"
-       href="https://forecast7.com/en/44d56n114d54/idaho-falls/"
+       href="https://forecast7.com/en/44d56n114d54/orem/"
        data-label_1="IDAHO FALLS"
        data-label_2="WEATHER"
        data-font="Verdana"

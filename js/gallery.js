@@ -245,7 +245,9 @@ export function showImage(index) {
   document.querySelectorAll('.aspect-ratio-box.selected')
     .forEach(el => el.classList.remove('selected'));
   currentIndex = index;
-  const cam = window.visibleCameras[index];
+  const item = window.visibleCameras[index];
+  if (item.type !== 'camera') return;
+  const cam = item.camera;
   const modalImage = document.getElementById('imageModal').querySelector('img');
   const modalTitle = document.querySelector('.modal-title');
   modalImage.src         = cam.Views[0].Url;
