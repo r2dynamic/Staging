@@ -4,15 +4,14 @@ import { refreshGallery } from './ui.js';
 
 /**
  * Configuration for each "Other Filters" menu item.
- * - name: dropdown label & data-value
- * - loader: returns/resolves to an array of camera objects
- * - forecastHTML: optional HTML string for a weather widget (<a>…</a> + <script>)
+ * - name         : dropdown label & data-value
+ * - loader       : returns/resolves to an array of camera objects
+ * - forecastHTML : optional HTML anchor snippet for the weather widget
  */
 export const otherFiltersConfig = [
   {
     name: 'Inactive Cameras',
     loader: () => {
-      console.log('[OtherFilters] loader: Inactive Cameras');
       const all = Array.isArray(window.camerasList) ? window.camerasList : [];
       return all.filter(cam =>
         Array.isArray(cam.Views) &&
@@ -23,60 +22,54 @@ export const otherFiltersConfig = [
   {
     name: 'Idaho Cameras',
     loader: async () => {
-      console.log('[OtherFilters] loader: Idaho Cameras');
       try {
         const res = await fetch('IdahoCameras.json');
         const json = await res.json();
-        const list = Array.isArray(json.CamerasList) ? json.CamerasList : [];
-        console.log(`[OtherFilters] Idaho Cameras → ${list.length} items`);
-        return list;
+        return Array.isArray(json.CamerasList) ? json.CamerasList : [];
       } catch (err) {
-        console.error('[OtherFilters] Idaho loader error', err);
+        console.error('Error loading IdahoCameras.json', err);
         return [];
       }
     },
-    forecastHTML: `<a class="weatherwidget-io" href="https://forecast7.com/en/44d56n114d54/idaho-falls/"
-       data-label_1="IDAHO FALLS" data-label_2="WEATHER" data-font="Verdana"
-       data-icons="Climacons Animated" data-mode="Current" data-theme="weather_one">
+    forecastHTML: `<a class="weatherwidget-io"
+       href="https://forecast7.com/en/44d56n114d54/idaho-falls/"
+       data-label_1="IDAHO FALLS"
+       data-label_2="WEATHER"
+       data-font="Verdana"
+       data-icons="Climacons Animated"
+       data-mode="Current"
+       data-theme="weather_one">
       IDAHO FALLS WEATHER
-    </a>
-    <script>
-    !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];
-    if(!d.getElementById(id)){js=d.createElement(s);js.id=id;
-    js.src='https://weatherwidget.io/js/widget.min.js';
-    fjs.parentNode.insertBefore(js,fjs);} }(document,'script','weatherwidget-io-js');
-    </script>`
+    </a>`
   },
   {
     name: 'Zions Cameras',
     loader: async () => {
-      console.log('[OtherFilters] loader: Zions Cameras');
       try {
         const res = await fetch('ZionCameras.json');
         const json = await res.json();
-        const list = Array.isArray(json.CamerasList) ? json.CamerasList : [];
-        console.log(`[OtherFilters] Zions Cameras → ${list.length} items`);
-        return list;
+        return Array.isArray(json.CamerasList) ? json.CamerasList : [];
       } catch (err) {
-        console.error('[OtherFilters] Zions loader error', err);
+        console.error('Error loading ZionCameras.json', err);
         return [];
       }
     },
-    forecastHTML: `<a class="weatherwidget-io" href="https://forecast7.com/en/37d19n113d00/springdale/"
-       data-label_1="SPRINGDALE" data-label_2="WEATHER" data-font="Verdana"
-       data-icons="Climacons Animated" data-mode="Current" data-theme="weather_one">
+    forecastHTML: `<a class="weatherwidget-io"
+       href="https://forecast7.com/en/37d19n113d00/springdale/"
+       data-label_1="SPRINGDALE"
+       data-label_2="WEATHER"
+       data-font="Verdana"
+       data-icons="Climacons Animated"
+       data-mode="Current"
+       data-theme="weather_one">
       SPRINGDALE WEATHER
-    </a>
-    <script>
-    !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];
-    if(!d.getElementById(id)){js=d.createElement(s);js.id=id;
-    js.src='https://weatherwidget.io/js/widget.min.js';
-    fjs.parentNode.insertBefore(js,fjs);} }(document,'script','weatherwidget-io-js');
-    </script>`
+    </a>`
   }
 ];
 
-/** Renders the "Other Filters" dropdown menu. */
+/**
+ * Renders the “Other Filters” dropdown menu.
+ */
 export function renderOtherFiltersMenu(rootEl) {
   rootEl.innerHTML = otherFiltersConfig
     .map(cfg => `
@@ -94,26 +87,41 @@ export function renderOtherFiltersMenu(rootEl) {
  * 1. Load cameras via loader()
  * 2. Prepend forecast tile if forecastHTML exists
  * 3. Refresh gallery with unified items
+ * 4. Load or re-init the weatherwidget.io script
  */
 export async function applyOtherFilter(name) {
-  console.log('[OtherFilters] applyOtherFilter()', name);
   const cfg = otherFiltersConfig.find(f => f.name === name);
   if (!cfg) {
     console.warn(`No Other Filter configured for “${name}”`);
     return;
   }
 
-  // Load cameras
+  // 1) load camera list
   const cameraList = await cfg.loader();
 
-  // Build items array
+  // 2) build mixed items array
   const items = [];
   if (cfg.forecastHTML) {
     items.push({ type: 'forecast', html: cfg.forecastHTML });
   }
   cameraList.forEach(cam => items.push({ type: 'camera', camera: cam }));
 
-  // Render
+  // 3) redraw gallery
   refreshGallery(items);
-}
 
+  // 4) ensure weatherwidget.io script is loaded & initialized
+  const scriptId = 'weatherwidget-io-js';
+  if (!document.getElementById(scriptId)) {
+    const s = document.createElement('script');
+    s.id = scriptId;
+    s.src = 'https://weatherwidget.io/js/widget.min.js';
+    s.onload = () => {
+      if (typeof __weatherwidget_init === 'function') __weatherwidget_init();
+      if (typeof weatherwidget_init === 'function') weatherwidget_init();
+    };
+    document.body.appendChild(s);
+  } else {
+    if (typeof __weatherwidget_init === 'function') __weatherwidget_init();
+    if (typeof weatherwidget_init === 'function') weatherwidget_init();
+  }
+}
