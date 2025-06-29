@@ -3,16 +3,16 @@
 import { refreshGallery } from './ui.js';
 
 /**
- * Configuration for each "Other Filters" menu item.
- * - name         : dropdown label & data-value
- * - loader       : returns/resolves to an array of camera objects
- * - forecastHTML : optional HTML anchor snippet for the weather widget
+ * Each entry becomes one “Other Filters” menu item.
+ * - name:        menu label / data-value
+ * - loader:      async or sync function returning an array of camera objects
+ * - forecastHTML: OPTIONAL: just the <a class="weatherwidget-io"…> anchor
  */
 export const otherFiltersConfig = [
   {
     name: 'Inactive Cameras',
     loader: () => {
-      const all = Array.isArray(window.camerasList) ? window.camerasList : [];
+      const all = window.camerasList || [];
       return all.filter(cam =>
         Array.isArray(cam.Views) &&
         String(cam.Views[0].Status).toLowerCase() === 'disabled'
@@ -22,14 +22,9 @@ export const otherFiltersConfig = [
   {
     name: 'Idaho Cameras',
     loader: async () => {
-      try {
-        const res = await fetch('IdahoCameras.json');
-        const json = await res.json();
-        return Array.isArray(json.CamerasList) ? json.CamerasList : [];
-      } catch (err) {
-        console.error('Error loading IdahoCameras.json', err);
-        return [];
-      }
+      const res  = await fetch('IdahoCameras.json');
+      const json = await res.json();
+      return Array.isArray(json.CamerasList) ? json.CamerasList : [];
     },
     forecastHTML: `<a class="weatherwidget-io"
        href="https://forecast7.com/en/44d56n114d54/idaho-falls/"
@@ -45,14 +40,9 @@ export const otherFiltersConfig = [
   {
     name: 'Zions Cameras',
     loader: async () => {
-      try {
-        const res = await fetch('ZionCameras.json');
-        const json = await res.json();
-        return Array.isArray(json.CamerasList) ? json.CamerasList : [];
-      } catch (err) {
-        console.error('Error loading ZionCameras.json', err);
-        return [];
-      }
+      const res  = await fetch('ZionCameras.json');
+      const json = await res.json();
+      return Array.isArray(json.CamerasList) ? json.CamerasList : [];
     },
     forecastHTML: `<a class="weatherwidget-io"
        href="https://forecast7.com/en/37d19n113d00/springdale/"
@@ -67,9 +57,7 @@ export const otherFiltersConfig = [
   }
 ];
 
-/**
- * Renders the “Other Filters” dropdown menu.
- */
+/** Renders the “Other Filters” dropdown */
 export function renderOtherFiltersMenu(rootEl) {
   rootEl.innerHTML = otherFiltersConfig
     .map(cfg => `
@@ -78,25 +66,21 @@ export function renderOtherFiltersMenu(rootEl) {
           ${cfg.name}
         </a>
       </li>
-    `)
-    .join('');
+    `).join('');
 }
 
 /**
- * Applies the selected filter:
- * 1. Load cameras via loader()
- * 2. Prepend forecast tile if forecastHTML exists
- * 3. Refresh gallery with unified items
- * 4. Load or re-init the weatherwidget.io script
+ * Applies the given filter:
+ * 1) loads cameraList
+ * 2) prepends a forecast item if forecastHTML exists
+ * 3) refreshes the gallery
+ * 4) ensures the weatherwidget script is loaded and initialized
  */
 export async function applyOtherFilter(name) {
   const cfg = otherFiltersConfig.find(f => f.name === name);
-  if (!cfg) {
-    console.warn(`No Other Filter configured for “${name}”`);
-    return;
-  }
+  if (!cfg) return;
 
-  // 1) load camera list
+  // 1) load cameras
   const cameraList = await cfg.loader();
 
   // 2) build mixed items array
@@ -109,19 +93,20 @@ export async function applyOtherFilter(name) {
   // 3) redraw gallery
   refreshGallery(items);
 
-  // 4) ensure weatherwidget.io script is loaded & initialized
-  const scriptId = 'weatherwidget-io-js';
-  if (!document.getElementById(scriptId)) {
+  // 4) load & init weatherwidget
+  const id = 'weatherwidget-io-js';
+  if (!document.getElementById(id)) {
     const s = document.createElement('script');
-    s.id = scriptId;
+    s.id = id;
     s.src = 'https://weatherwidget.io/js/widget.min.js';
     s.onload = () => {
-      if (typeof __weatherwidget_init === 'function') __weatherwidget_init();
-      if (typeof weatherwidget_init === 'function') weatherwidget_init();
+      window.__weatherwidget_init?.();
+      window.weatherwidget_init?.();
     };
     document.body.appendChild(s);
   } else {
-    if (typeof __weatherwidget_init === 'function') __weatherwidget_init();
-    if (typeof weatherwidget_init === 'function') weatherwidget_init();
+    // if already loaded, just re-init to parse new anchors
+    window.__weatherwidget_init?.();
+    window.weatherwidget_init?.();
   }
 }
