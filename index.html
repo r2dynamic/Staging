@@ -25,6 +25,7 @@
   <!-- then load LabelGun -->
   <script src="https://unpkg.com/labelgun@6.0.0/lib/labelgun.js"></script>
   <!-- finally your app code -->
+  <script type="module" src="js/otherFilters.js"></script>
   <script type="module" src="js/main.js"></script>
 
   <!-- Leaflet for Route Overview Map -->
@@ -117,18 +118,32 @@
               <!-- Options dynamically populated -->
             </ul>
           </div>
-        </div> 
-        <!-- Other Filters Sub‑Dropdown -->
-        <div class="mt-2">
-          <button class="dropdown-toggle button" type="button" data-bs-toggle="collapse" data-bs-target="#otherFiltersOptions" aria-expanded="false" aria-controls="otherFiltersOptions" style="width:100%; text-align:left;">
-            <i class="fas fa-sliders-h"></i> Other Filters
-          </button>
-          <div class="collapse" id="otherFiltersOptions">
-            <ul class="list-unstyled m-0" id="otherFiltersMenu">
-              <li><a class="dropdown-item" href="#" data-value="Inactive Cameras">Inactive Cameras</a></li>
-            </ul>
-          </div>
         </div>
+        
+        <!-- Other Filters Sub-Dropdown -->
+<div class="mt-2">
+  <button
+    class="dropdown-toggle button"
+    type="button"
+    data-bs-toggle="collapse"
+    data-bs-target="#otherFiltersOptions"
+    aria-expanded="false"
+    aria-controls="otherFiltersOptions"
+    style="width:100%; text-align:left;"
+  >
+    <i class="fas fa-sliders-h"></i> Other Filters
+  </button>
+
+  <div class="collapse" id="otherFiltersOptions">
+    <ul class="list-unstyled m-0" id="otherFiltersMenu">
+      <!--  ← no <li> here — otherFilters.js will inject one for each entry in your config -->
+    </ul>
+  </div>
+</div> 
+
+        
+
+
       </div>
     </div>
 

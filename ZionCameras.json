@@ -1,0 +1,39 @@
+{
+  "CamerasList": [
+    
+    {
+      "Id": "Not available",
+      "Source": "Not available",
+      "SourceId": "Not available",
+      "Roadway": "Not available",
+      "RoadwayOption1": "Not available",
+      "MilepostOption1": "Not available",
+      "RoadwayOption2": "Not available",
+      "MilepostOption2": "Not available",
+      "MunicipalBoundary": "Not available",
+      "CountyBoundary": "Not available",
+      "Region": "Not available",
+      "MaintenanceStationOption1": "Not available",
+      "MaintenanceStationOption2": "Not available",
+      "GoogleMapsURL": "https://www.google.com/maps?q=37.200152,-112.987221",
+      "ArcGISURL": "Not available",
+      "Direction": "Not available",
+      "Latitude": 37.200152,
+      "Longitude": -112.987221,
+      "Location": "Zion National Park",
+      "SortOrder": 0,
+      "Views": [
+        {
+          "Id": "Not available",
+          "Url": "https://www.nps.gov/webcams-zion/camera2.jpg?1751166323263",
+          "Status": "Not available",
+          "Description": "Not available"
+        }
+      ]
+    }
+        
+
+
+        
+ ]
+}
