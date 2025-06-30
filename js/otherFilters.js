@@ -4,14 +4,13 @@ import { refreshGallery } from './ui.js';
 
 /** ─── Global Weather Settings (shared across all filters) ───── */
 const WEATHER_SETTINGS = {
-  timezone:        'America/Denver',  // your fixed timezone
-  temperatureUnit: 'fahrenheit',      // units for temperature
-  windspeedUnit:   'mph'              // units for windspeed (unused here)
+  timezone:        'America/Denver',
+  temperatureUnit: 'fahrenheit',
+  windspeedUnit:   'mph'
 };
 
 /**
- * Fetches current temperature (°F) from Open-Meteo for given lat/lon.
- * No API key required.
+ * Fetch current temperature (°F) from Open-Meteo for given lat/lon.
  */
 async function fetchCurrentTemp(lat, lon) {
   const { timezone, temperatureUnit, windspeedUnit } = WEATHER_SETTINGS;
@@ -30,10 +29,30 @@ async function fetchCurrentTemp(lat, lon) {
 }
 
 /**
- * Configuration for each “Other Filters” menu item.
- * - name           : dropdown label & data-value
- * - loader         : async function returning CamerasList[]
- * - forecastLoader : OPTIONAL async function returning HTML for a preview tile
+ * Build a Windy.com embed URL from params.
+ */
+function buildWindyUrl(params) {
+  const q = new URLSearchParams({
+    type:        'map',
+    location:    'coordinates',
+    metricRain:  'default',
+    metricTemp:  'default',
+    metricWind:  'default',
+    zoom:        params.zoom,
+    overlay:     params.overlay,
+    product:     params.product,
+    level:       params.level,
+    lat:         params.lat,
+    lon:         params.lon,
+    ...(params.detailLat  !== undefined ? { detailLat:  params.detailLat }  : {}),
+    ...(params.detailLon  !== undefined ? { detailLon:  params.detailLon }  : {}),
+    ...(params.marker      ? { marker: 'true' } : {})
+  });
+  return `https://embed.windy.com/embed.html?${q}`;
+}
+
+/**
+ * Configuration for "Other Filters".
  */
 export const otherFiltersConfig = [
   {
@@ -58,7 +77,7 @@ export const otherFiltersConfig = [
         return [];
       }
     }
-    // no forecastLoader here
+    // no forecastLoader or windyParams here
   },
   {
     name: 'Zions Cameras',
@@ -72,19 +91,32 @@ export const otherFiltersConfig = [
         return [];
       }
     },
-    // preview shows current temp; opens Windy modal on click
+    // 1) preview shows current temp & opens modal
     forecastLoader: async () => {
-  const temp = await fetchCurrentTemp(37.188976, -112.998541);
-  return `
-    <button type="button"
-            class="forecast-preview"
-            data-bs-toggle="modal"
-            data-bs-target="#weatherModal">
-      <i class="fas fa-cloud-sun"></i>
-      <div class="temp-preview">${temp}°F</div>
-      <div class="label-preview">Click for map</div>
-    </button>`;
-}
+      const temp = await fetchCurrentTemp(37.108, -113.024);
+      return `
+        <button type="button"
+                class="forecast-preview"
+                data-bs-toggle="modal"
+                data-bs-target="#weatherModal">
+          <i class="fas fa-cloud-sun fa-2x text-white"></i>
+          <div class="temp-preview">${temp}°F</div>
+          <div class="label-preview">Click for map</div>
+        </button>`;
+    },
+    // 2) define the Windy embed params for this filter
+    windyParams: {
+      zoom:      11,
+      overlay:   'radar',
+      product:   'radar',
+      level:     'surface',
+      lat:       37.166,
+      lon:      -113.017,
+      detailLat: 37.67982035083307,
+      detailLon: -112.46228775089216,
+      message:   true,
+      marker:    true
+    }
   }
 ];
 
@@ -105,9 +137,10 @@ export function renderOtherFiltersMenu(rootEl) {
 /**
  * Applies the selected “Other Filter”:
  * 1) load cameras via cfg.loader()
- * 2) if cfg.forecastLoader exists, await it and prepend that tile
- * 3) append each camera as a camera tile
+ * 2) if cfg.forecastLoader exists, await it & prepend that tile
+ * 3) append each camera as {type:'camera',camera}
  * 4) refreshGallery(items)
+ * 5) if cfg.windyParams exists, update the modal's iframe src
  */
 export async function applyOtherFilter(name) {
   const cfg = otherFiltersConfig.find(f => f.name === name);
@@ -116,19 +149,25 @@ export async function applyOtherFilter(name) {
     return;
   }
 
-  // 1) load camera list
+  // 1) load cameras
   const cameraList = await cfg.loader();
 
-  // 2) build a mixed items array
+  // 2) build mixed items
   const items = [];
   if (typeof cfg.forecastLoader === 'function') {
     const html = await cfg.forecastLoader();
-    if (html) {
-      items.push({ type: 'forecast', html });
-    }
+    if (html) items.push({ type: 'forecast', html });
   }
   cameraList.forEach(cam => items.push({ type: 'camera', camera: cam }));
 
-  // 3) redraw the gallery
+  // 3) redraw gallery
   refreshGallery(items);
+
+  // 4) update the Windy.com iframe in your #weatherModal
+  if (cfg.windyParams) {
+    const iframe = document.querySelector('#weatherModal iframe');
+    if (iframe) {
+      iframe.src = buildWindyUrl(cfg.windyParams);
+    }
+  }
 }
