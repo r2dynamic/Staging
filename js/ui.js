@@ -184,10 +184,15 @@ export function resetFilters() {
  * Renders the gallery, updates badges & URL.
  */
 export function refreshGallery(cameras) {
-  window.visibleCameras = cameras;
+  // Normalize raw camera arrays into the mixed-item format used elsewhere.
+  const unified = Array.isArray(cameras) && cameras.length && cameras[0].type
+    ? cameras
+    : cameras.map(camObj => ({ type: 'camera', camera: camObj }));
+
+  window.visibleCameras = unified;
   window.currentIndex   = 0;
   updateCameraCount();
-  renderGallery(cameras);
+  renderGallery(unified);
   updateSelectedFilters();
   updateURLParameters();
 }
