@@ -1,6 +1,7 @@
 // js/otherFilters.js
 
 import { refreshGallery } from './ui.js';
+import { clearNearestCamerasMode } from './geolocation.js';
 
 /** ─── Global Weather Settings (shared across all filters) ───── */
 const WEATHER_SETTINGS = {
@@ -148,6 +149,9 @@ export async function applyOtherFilter(name) {
     console.warn(`No Other Filter configured for “${name}”`);
     return;
   }
+
+  // clear any previous "nearest cameras" state so context is correct
+  clearNearestCamerasMode();
 
   // 1) load cameras
   const cameraList = await cfg.loader();
