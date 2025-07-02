@@ -118,6 +118,43 @@ export const otherFiltersConfig = [
       message:   true,
       marker:    true
     }
+  },
+  {
+    name: 'Lake Powell Cameras',
+    loader: async () => {
+      try {
+        const res  = await fetch('PowellCameras.json');
+        const json = await res.json();
+        return Array.isArray(json.CamerasList) ? json.CamerasList : [];
+      } catch (err) {
+        console.error('Error loading ZionCameras.json', err);
+        return [];
+      }
+    },
+    // 1) preview shows current temp & opens modal
+    forecastLoader: async () => {
+      const temp = await fetchCurrentTemp(37.0365, -111.3533);
+      return `
+        <button type="button"
+                class="forecast-preview"
+                data-bs-toggle="modal"
+                data-bs-target="#weatherModal">
+          <i class="fas fa-cloud-sun fa-2x text-white"></i>
+          <div class="temp-preview">${temp}°F</div>
+          <div class="label-preview">Click for map</div>
+        </button>`;
+    },
+    // 2) define the Windy embed params for this filter
+    windyParams: {
+      zoom:      11,
+      overlay:   'radar',
+      product:   'radar',
+      level:     'surface',
+      lat:       37.057,
+      lon:       -111.358,
+      message:   true,
+      marker:    true
+    }
   }
 ];
 
