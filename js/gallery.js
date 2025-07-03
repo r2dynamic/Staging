@@ -240,10 +240,9 @@ export function renderGallery(cameras) {
 let userImageSizeOverride = false;
 
 function calculateDynamicImageSize(imageCount, containerWidth) {
-  // On mobile, default to 120px
+  // On mobile, default to 120px (restores previous sizing)
   if (window.innerWidth <= 600) return 120;
   if (imageCount <= 3) {
-    // For 1-3 images, cap the max size so they don't get too big
     const maxImg = Math.min(420, Math.floor(containerWidth / imageCount) - 8);
     return Math.max(260, maxImg);
   } else if (imageCount <= 10) {
