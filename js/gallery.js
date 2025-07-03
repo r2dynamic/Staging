@@ -241,7 +241,7 @@ let userImageSizeOverride = false;
 
 function calculateDynamicImageSize(imageCount, containerWidth) {
   // On mobile, default to 120px (restores previous sizing)
-  if (window.innerWidth <= 600) return 120;
+  if (window.innerWidth <= 600) return 180;
   if (imageCount <= 3) {
     const maxImg = Math.min(420, Math.floor(containerWidth / imageCount) - 8);
     return Math.max(260, maxImg);
