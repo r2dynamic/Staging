@@ -2,6 +2,8 @@
 
 import { refreshGallery } from './ui.js';
 import { clearNearestCamerasMode } from './geolocation.js';
+import { weatherCodeToLottie } from './weatherLottieMap.js';
+
 
 /** ─── Global Weather Settings (shared across all filters) ───── */
 const WEATHER_SETTINGS = {
@@ -10,10 +12,11 @@ const WEATHER_SETTINGS = {
   windspeedUnit:   'mph'
 };
 
+
 /**
- * Fetch current temperature (°F) from Open-Meteo for given lat/lon.
+ * Fetch current weather (temp, code) from Open-Meteo for given lat/lon.
  */
-async function fetchCurrentTemp(lat, lon) {
+async function fetchCurrentWeather(lat, lon) {
   const { timezone, temperatureUnit, windspeedUnit } = WEATHER_SETTINGS;
   const url = new URL('https://api.open-meteo.com/v1/forecast');
   url.searchParams.set('latitude',          lat);
@@ -26,7 +29,11 @@ async function fetchCurrentTemp(lat, lon) {
   const resp = await fetch(url);
   const data = await resp.json();
   const temp = data.current_weather?.temperature;
-  return temp != null ? Math.round(temp) : '–';
+  const code = data.current_weather?.weathercode;
+  return {
+    temp: temp != null ? Math.round(temp) : '–',
+    code: code != null ? code : 0
+  };
 }
 
 /**
@@ -94,13 +101,21 @@ export const otherFiltersConfig = [
     },
     // 1) preview shows current temp & opens modal
     forecastLoader: async () => {
-      const temp = await fetchCurrentTemp(37.108, -113.024);
+      const { temp, code } = await fetchCurrentWeather(37.108, -113.024);
+      const lottieFile = weatherCodeToLottie[code] || weatherCodeToLottie[0];
       return `
         <button type="button"
                 class="forecast-preview"
                 data-bs-toggle="modal"
                 data-bs-target="#weatherModal">
-          <i class="fas fa-cloud-sun fa-2x text-white"></i>
+          <lottie-player
+            src="lottie-weather/${lottieFile}"
+            background="transparent"
+            speed="1"
+            style="width: 64px; height: 64px; margin-bottom: 0.5rem;"
+            loop
+            autoplay
+          ></lottie-player>
           <div class="temp-preview">${temp}°F</div>
           <div class="label-preview">Click for map</div>
         </button>`;
@@ -133,13 +148,21 @@ export const otherFiltersConfig = [
     },
     // 1) preview shows current temp & opens modal
     forecastLoader: async () => {
-      const temp = await fetchCurrentTemp(37.0365, -111.3533);
+      const { temp, code } = await fetchCurrentWeather(37.0365, -111.3533);
+      const lottieFile = weatherCodeToLottie[code] || weatherCodeToLottie[0];
       return `
         <button type="button"
                 class="forecast-preview"
                 data-bs-toggle="modal"
                 data-bs-target="#weatherModal">
-          <i class="fas fa-cloud-sun fa-2x text-white"></i>
+          <lottie-player
+            src="lottie-weather/${lottieFile}"
+            background="transparent"
+            speed="1"
+            style="width: 64px; height: 64px; margin-bottom: 0.5rem;"
+            loop
+            autoplay
+          ></lottie-player>
           <div class="temp-preview">${temp}°F</div>
           <div class="label-preview">Click for map</div>
         </button>`;
