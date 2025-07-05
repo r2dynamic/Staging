@@ -14,25 +14,32 @@ const WEATHER_SETTINGS = {
 
 
 /**
- * Fetch current weather (temp, code) from Open-Meteo for given lat/lon.
+ * Fetch current weather (temp, code, sunrise, sunset) from Open-Meteo for given lat/lon.
  */
 async function fetchCurrentWeather(lat, lon) {
   const { timezone, temperatureUnit, windspeedUnit } = WEATHER_SETTINGS;
   const url = new URL('https://api.open-meteo.com/v1/forecast');
-  url.searchParams.set('latitude',          lat);
-  url.searchParams.set('longitude',         lon);
-  url.searchParams.set('current_weather',  'true');
+  url.searchParams.set('latitude', lat);
+  url.searchParams.set('longitude', lon);
+  url.searchParams.set('current_weather', 'true');
   url.searchParams.set('temperature_unit', temperatureUnit);
-  url.searchParams.set('windspeed_unit',   windspeedUnit);
-  url.searchParams.set('timezone',         timezone);
+  url.searchParams.set('windspeed_unit', windspeedUnit);
+  url.searchParams.set('timezone', timezone);
+  url.searchParams.set('daily', 'sunrise,sunset');
 
   const resp = await fetch(url);
   const data = await resp.json();
   const temp = data.current_weather?.temperature;
   const code = data.current_weather?.weathercode;
+  // Get today's sunrise/sunset (first in array)
+  const sunrise = data.daily?.sunrise?.[0];
+  const sunset = data.daily?.sunset?.[0];
   return {
     temp: temp != null ? Math.round(temp) : '–',
-    code: code != null ? code : 0
+    code: code != null ? code : 0,
+    sunrise,
+    sunset,
+    time: data.current_weather?.time // ISO string
   };
 }
 
@@ -101,8 +108,17 @@ export const otherFiltersConfig = [
     },
     // 1) preview shows current temp & opens modal
     forecastLoader: async () => {
-      const { temp, code } = await fetchCurrentWeather(37.108, -113.024);
-      const lottieFile = weatherCodeToLottie[code] || weatherCodeToLottie[0];
+      const { temp, code, sunrise, sunset, time } = await fetchCurrentWeather(37.108, -113.024);
+      let lottieFile = weatherCodeToLottie[code] || weatherCodeToLottie[0];
+      // Determine if it's night for clear codes (0, 1)
+      if ((code === 0 || code === 1) && sunrise && sunset && time) {
+        const now = new Date(time);
+        const sunriseTime = new Date(sunrise);
+        const sunsetTime = new Date(sunset);
+        if (now < sunriseTime || now > sunsetTime) {
+          lottieFile = 'clear-night.json';
+        }
+      }
       return `
         <button type="button"
                 class="forecast-preview"
@@ -155,8 +171,16 @@ export const otherFiltersConfig = [
     },
     // 1) preview shows current temp & opens modal
     forecastLoader: async () => {
-      const { temp, code } = await fetchCurrentWeather(37.0365, -111.3533);
-      const lottieFile = weatherCodeToLottie[code] || weatherCodeToLottie[0];
+      const { temp, code, sunrise, sunset, time } = await fetchCurrentWeather(37.0365, -111.3533);
+      let lottieFile = weatherCodeToLottie[code] || weatherCodeToLottie[0];
+      if ((code === 0 || code === 1) && sunrise && sunset && time) {
+        const now = new Date(time);
+        const sunriseTime = new Date(sunrise);
+        const sunsetTime = new Date(sunset);
+        if (now < sunriseTime || now > sunsetTime) {
+          lottieFile = 'clear-night.json';
+        }
+      }
       return `
         <button type="button"
                 class="forecast-preview"
