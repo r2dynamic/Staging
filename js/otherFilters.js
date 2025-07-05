@@ -120,6 +120,14 @@ export const otherFiltersConfig = [
         }
       }
       return `
+        <lottie-player
+          src="lottie-weather/background-radar.json"
+          background="transparent"
+          speed="1"
+          loop
+          autoplay
+          class="forecast-bg-lottie"
+        ></lottie-player>
         <button type="button"
                 class="forecast-preview"
                 data-bs-toggle="modal"
@@ -182,6 +190,14 @@ export const otherFiltersConfig = [
         }
       }
       return `
+        <lottie-player
+          src="lottie-weather/background-radar.json"
+          background="transparent"
+          speed="1"
+          loop
+          autoplay
+          class="forecast-bg-lottie"
+        ></lottie-player>
         <button type="button"
                 class="forecast-preview"
                 data-bs-toggle="modal"
