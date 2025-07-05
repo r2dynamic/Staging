@@ -108,16 +108,23 @@ export const otherFiltersConfig = [
                 class="forecast-preview"
                 data-bs-toggle="modal"
                 data-bs-target="#weatherModal">
-          <lottie-player
-            src="lottie-weather/${lottieFile}"
-            background="transparent"
-            speed="1"
-            style="width: 64px; height: 64px; margin-bottom: 0.5rem;"
-            loop
-            autoplay
-          ></lottie-player>
-          <div class="temp-preview">${temp}°F</div>
-          <div class="label-preview">Click for map</div>
+          <div class="forecast-preview-inner column-layout">
+            <div class="forecast-main-row">
+              <div class="forecast-icon-col">
+                <lottie-player
+                  src="lottie-weather/${lottieFile}"
+                  background="transparent"
+                  speed="1"
+                  loop
+                  autoplay
+                ></lottie-player>
+              </div>
+              <div class="forecast-text-col">
+                <div class="temp-preview">${temp}&deg;</div>
+              </div>
+            </div>
+            <div class="label-preview">Click for map</div>
+          </div>
         </button>`;
     },
     // 2) define the Windy embed params for this filter
@@ -155,16 +162,23 @@ export const otherFiltersConfig = [
                 class="forecast-preview"
                 data-bs-toggle="modal"
                 data-bs-target="#weatherModal">
-          <lottie-player
-            src="lottie-weather/${lottieFile}"
-            background="transparent"
-            speed="1"
-            style="width: 64px; height: 64px; margin-bottom: 0.5rem;"
-            loop
-            autoplay
-          ></lottie-player>
-          <div class="temp-preview">${temp}°F</div>
-          <div class="label-preview">Click for map</div>
+          <div class="forecast-preview-inner column-layout">
+            <div class="forecast-main-row">
+              <div class="forecast-icon-col">
+                <lottie-player
+                  src="lottie-weather/${lottieFile}"
+                  background="transparent"
+                  speed="1"
+                  loop
+                  autoplay
+                ></lottie-player>
+              </div>
+              <div class="forecast-text-col">
+                <div class="temp-preview">${temp}&deg;</div>
+              </div>
+            </div>
+            <div class="label-preview">Click for map</div>
+          </div>
         </button>`;
     },
     // 2) define the Windy embed params for this filter
