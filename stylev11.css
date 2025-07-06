@@ -245,6 +245,17 @@ html, body {
   transform: translateY(4px);
   
 }
+.button.off {
+  background-color: #888 !important;
+  color: #fff !important;
+  opacity: 0.7;
+  box-shadow: 0 2px #666;
+  transition: background-color 0.3s, opacity 0.3s;
+}
+.button.off:hover {
+  background-color: #666 !important;
+  opacity: 1;
+}
 
 
 
@@ -464,7 +475,12 @@ html, body {
 }
 .modal-footer {
   display: flex;
-  justify-content: flex-end;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding: 0.5rem 0.2rem;
 }
 .modal-body {
   padding: 0;
@@ -579,7 +595,36 @@ html, body {
   border-top: none;
   justify-content: center;
   padding: none;
- 
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 0.5rem 0.25rem;
+}
+#overviewMapModal .modal-footer .button {
+  min-width: 0;
+  flex-shrink: 1;
+  font-size: 14px;
+  padding: 0.4rem 0.7rem;
+  white-space: nowrap;
+  max-width: 100vw;
+}
+
+/* --- Responsive Overview Map Modal Footer Buttons --- */
+@media (max-width: 600px) {
+  #overviewMapModal .modal-footer {
+    gap: 0.2rem;
+    padding: 0.3rem 0.1rem;
+  }
+  #overviewMapModal .modal-footer .button {
+    font-size: 11px !important;
+    padding: 0.25rem 0.4rem !important;
+    min-width: 0 !important;
+    flex-shrink: 1 !important;
+    max-width: 100vw !important;
+  }
 }
 
 /* ─── Desktop (≥601px): keep 98vw/98vh ─────────────────────────── */
@@ -838,8 +883,6 @@ html, body {
   height:       100%;
   border-radius:0.75rem;
   overflow:     hidden;
-  background:   none !important;
-  background-color: transparent !important;
 }
 
 /* ─── “+ Add Segment” (reuse .button theme) ───────────────── */
@@ -858,7 +901,9 @@ html, body {
   cursor:           pointer;
   margin-bottom:       5px;
 }
-
+#customRouteFormContainer .button:hover {
+  background-color: #3e8e41;
+}
 #customRouteFormContainer .button:active {
   background-color: #3e8e41;
   box-shadow:       0 5px #666;
@@ -895,18 +940,13 @@ html, body {
   color:            #212529;
 }
 
-/* Restore default close button style for custom route modal */
 #customRouteModal .modal-footer .btn-close {
-  color: #fff !important;
-  filter: none !important;
-  background: none !important;
-  border: none !important;
-  box-shadow: none !important;
-  opacity: 1 !important;
-  font-size: 1.25rem !important;
-  padding: 0.25rem 0.5rem !important;
-  line-height: 1;
+  background-color: transparent !important;
+  border:            none        !important;
+  box-shadow:        none        !important;
+  padding:           0.25rem     !important; /* match other modals */
 }
+
 
 /* ─── Mobile Overrides (screens ≤600px) ───────────────────────────── */
 @media (max-width: 600px) {
@@ -1245,82 +1285,6 @@ html, body {
   flex: 0 0 auto;
 }
 
-/* Camera image marker for overview map (background sample version) */
-.camera-image-marker {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  overflow: hidden;
-  box-shadow: 0 0 4px #fff, 0 0 8px #0002;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
-  border: 2px solid #fff;
-}
-.camera-image-marker .marker-img-bg {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background-repeat: no-repeat;
-  background-size: 1200% 1200%; /* zoom in for a sample effect */
-  background-position: 54% 37%; /* adjust to sample a specific spot */
-}
 
-/* Make Leaflet map tiles semi-transparent */
-#overviewMap .leaflet-tile-pane {
-  opacity: 0.6; /* Adjust 0.0 (fully transparent) to 1.0 (fully opaque) */
-}
 
-/* Responsive footer buttons for overview map modal */
-#overviewMapModal .modal-footer {
-  display: flex;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  gap: 0.5rem;
-  padding: 0.5rem 0.25rem;
-  justify-content: center;
-  align-items: center;
-  min-height: 0;
-  max-height: 48px;
-  box-sizing: border-box;
-}
-#overviewMapModal .modal-footer button:not(.btn-close),
-#overviewMapModal .modal-footer .button {
-  font-size: 0.8rem;
-  padding: 0.3rem 0.7rem;
-  min-width: 0;
-  flex: 0 0 auto;
-  white-space: nowrap;
-  border-radius: 6px;
-  box-shadow: 0 4px #999;
-}
-@media (max-width: 600px) {
-  #overviewMapModal .modal-footer {
-    gap: 0.3rem;
-    padding: 0.3rem 0.1rem;
-    max-height: 36px;
-    font-size: 0.7rem;
-  }
-  #overviewMapModal .modal-footer button:not(.btn-close),
-  #overviewMapModal .modal-footer .button {
-    font-size: 0.6rem !important;
-    padding: 0.2rem 0.5rem !important;
-    min-width: 0 !important;
-    border-radius: 5px !important;
-    box-shadow: 0 2px #999 !important;
-  }
-}
 
-/* Restore default close button style for custom route modal */
-#customRouteModal .modal-footer .btn-close {
-  color: #fff !important;
-  filter: none !important;
-  background: none !important;
-  border: none !important;
-  box-shadow: none !important;
-  opacity: 1 !important;
-  font-size: 1.25rem !important;
-  padding: 0.25rem 0.5rem !important;
-  line-height: 1;
-}
