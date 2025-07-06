@@ -78,17 +78,7 @@ export function setupLongPressShare(sel) {
 
 // ---- OVERVIEW MODAL ----
 export function setupOverviewModal() {
-  // Custom camera marker icon as a circular image sample (background-positioned)
-  function camImageIcon(imgUrl) {
-    return L.divIcon({
-      className: 'camera-image-marker',
-      html: `<div class="marker-img-bg" style="background-image:url('${imgUrl}');"></div>`,
-      iconSize: [10, 10],        // match your CSS marker size
-      iconAnchor: [5, 5],        // center of the marker
-      tooltipAnchor: [0, 10]
-    });
-  }
-
+  const smallIcon = L.divIcon({ className: 'custom-marker', iconSize: [12,12], iconAnchor: [6,6], tooltipAnchor: [0,10] });
   const userDotIcon = L.divIcon({
     className: 'user-dot-marker',
     iconSize: [20, 20],
@@ -350,7 +340,8 @@ const bounds = L.latLngBounds(coords);
     ).addTo(map);
 
     cams.forEach(cam => {
-      const m = L.marker([cam.Latitude, cam.Longitude], { icon: camImageIcon(cam.Views[0].Url) }).addTo(map);
+  const m = L.marker([cam.Latitude, cam.Longitude], { icon: smallIcon }).addTo(map);
+  m.cam = cam;
       m.cam = cam; m.sticky = false;
       markers.push(m);
       let hover = null;
