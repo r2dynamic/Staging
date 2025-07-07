@@ -1,13 +1,12 @@
 // sw.js - Service Worker
 
-const CACHE_VERSION = 'v53.5';
+const CACHE_VERSION = 'v53.8';
 const PRECACHE_NAME = `wpa-precache-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `wpa-runtime-${CACHE_VERSION}`;
 
 // List of resources to precache
 const PRECACHE_URLS = [
   '/',
-  
   '/images/mobileSplash.webp',
   '/Icongridbackground3.png',
   '/desktop-splash.mp4'
