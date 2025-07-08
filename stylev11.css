@@ -497,7 +497,10 @@ html, body {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); /* Allow grid to shrink to smaller images */
   gap: 6px;
-  padding: 6px;
+  padding-left: 6px;
+  padding-right: 6px;
+  padding-top: 6px;
+  padding-bottom: 6px;
   margin: 0;
   box-sizing: border-box;
 }
@@ -561,6 +564,32 @@ html, body {
   opacity: 1 !important;
   visibility: visible !important;
   display: block !important;
+}
+
+/* Remove left/right gap on gallery by overriding parent container padding/margin */
+.container-fluid > #imageGallery,
+.container-fluid#imageGallery,
+#imageGallery {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
+/* If #imageGallery is inside another .container-fluid, remove its padding too */
+.container-fluid {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* Maintain the gap between images only via grid gap */
+#imageGallery {
+  gap: 6px;
+  padding-top: 6px;
+  padding-bottom: 6px;
 }
 
 /* Restore image size slider styling */
@@ -1228,6 +1257,32 @@ html, body {
   #imageGallery .aspect-ratio-box.forecast-item .forecast-text-col .temp-preview {
     font-size: clamp(1.5em, 6vw, 3em);
   }
+}
+
+/* Remove left/right padding from parent container-fluid when it contains #imageGallery */
+.container-fluid > #imageGallery,
+.container-fluid#imageGallery {
+  padding-left: 6px !important;
+  padding-right: 6px !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+/* Remove all padding from .container-fluid if it only contains #imageGallery */
+.container-fluid:has(> #imageGallery) {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+/* Remove 100vw from previous override for #imageGallery */
+#imageGallery.container-fluid,
+#imageGallery,
+#imageGallery.container-fluid.hidden-on-load,
+#imageGallery.hidden-on-load {
+  width: 100% !important;
+  max-width: 100% !important;
+  /* ...existing code... */
 }
 
 
