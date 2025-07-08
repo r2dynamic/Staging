@@ -1224,6 +1224,11 @@ html, body {
 #imageGallery .aspect-ratio-box.forecast-item:hover {
   border-color: #ffc107 !important;
 }
+@media (max-width: 600px) {
+  #imageGallery .aspect-ratio-box.forecast-item .forecast-text-col .temp-preview {
+    font-size: clamp(1.5em, 6vw, 3em);
+  }
+}
 
 
 
