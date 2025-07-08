@@ -772,9 +772,292 @@ html, body {
   overflow: visible !important; /* Prevent clipping of marker pane */
 }
 
-/* --- Remove all debug logging for mini overview map and overview modal map ---
-(No logging code in CSS, all logging was in gallery.js and modal.js)
-*/
+/* --- CUSTOM ROUTE BUILDER MODAL LAYOUT --- */
+#customRouteModal .modal-dialog {
+  width:     98vw;
+  max-width: 98vw;
+  margin:    auto;
+}
+#customRouteModal .modal-content {
+  max-height: 98vw;
+  overflow:   hidden;
+}
+#customRouteModal .modal-body {
+  display:    flex;
+  gap:        1rem;
+  padding:    1rem;
+  height:     85vh;
+  box-sizing: border-box;
+}
+@media (min-width: 601px) {
+  #customRouteModal .modal-body {
+    flex-direction: row-reverse;
+  }
+}
+#customRouteFormContainer {
+  position:    relative;
+  flex:        1 1 300px;
+  overflow-y:  auto;
+  padding-top: 2rem;
+}
+.custom-route-headers,
+.custom-route-row {
+  display:             grid !important;
+  grid-template-columns:
+    1.5rem  /* ☰ handle */
+    120px    /* Route # */
+    60px    /* MP From */
+    1.2rem  /* swap btn */
+    60px    /* MP To */
+    1.2rem  /* remove btn */
+  ;
+  column-gap:          1rem;
+  align-items:         center;
+  margin-bottom:       0.5rem;
+}
+.custom-route-headers span {
+  color:       white;
+  text-align:  center;
+  font-size:   0.75rem;
+  line-height: 1;
+}
+#customRouteModal .route-input::placeholder {
+  font-size: 0.7em;
+  opacity:    1;
+}
+#customRouteModal .route-input::-webkit-input-placeholder {
+  font-size: 0.7em;
+  opacity:    1;
+}
+#customRouteModal .route-input::-moz-placeholder {
+  font-size: 0.7em;
+  opacity:    1;
+}
+#customRouteModal .route-input:-ms-input-placeholder {
+  font-size: 0.7em;
+  opacity:    1;
+}
+#customRouteModal .route-input::-ms-input-placeholder {
+  font-size: 0.7em;
+  opacity:    1;
+}
+.mp-input::-webkit-inner-spin-button,
+.mp-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin:            0;
+}
+.mp-input {
+  -moz-appearance:  textfield;
+  appearance:       textfield;
+}
+.swap-btn,
+.remove-btn {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  padding:         0.2rem;
+  background:      transparent !important;
+  border:          none        !important;
+  box-shadow:      none        !important;
+  cursor:          pointer;
+  color: white !important;  
+  opacity: 0.6;
+}
+.swap-btn:hover,
+.remove-btn:hover { 
+  transform: scale(1.4);
+  opacity: 1;
+}
+.swap-btn:active,
+.remove-btn:active { 
+  transform: scale(1.4);
+  opacity: 1;
+}
+.drag-handle {
+  cursor:      grab;
+  user-select: none;
+}
+.drag-handle:hover {
+  cursor:      grab;
+  transform: scale(1.4);
+  color: white !important;
+}
+.drag-handle:active {
+  cursor: grabbing;
+  color: white !important;
+}
+#customRouteMap {
+  flex:         2 1 600px;
+  width:        100%;
+  height:       100%;
+  border-radius:0.75rem;
+  overflow:     hidden;
+}
+#customRouteFormContainer .button {
+  padding:          6px 10px;
+  font-size:        14px;
+  color:            #fff;
+  background-color: #04AA6D;
+  border:           3px solid white;
+  border-radius:    8px;
+  box-shadow:       0 6px #999;
+  transition:       background-color 0.3s, box-shadow 0.3s, transform 0.1s;
+  display:          flex;
+  align-items:      center;
+  gap:              5px;
+  cursor:           pointer;
+  margin-bottom:       5px;
+}
+#customRouteFormContainer .button:hover {
+  background-color: #3e8e41;
+}
+#customRouteFormContainer .button:active {
+  background-color: #3e8e41;
+  box-shadow:       0 5px #666;
+  transform:        translateY(4px);
+}
+#customRouteModal .modal-footer button {
+  padding:          6px 10px;
+  font-size:        14px;
+  color:            #fff;
+  background-color: #04AA6D;
+  border:           3px solid white;
+  border-radius:    8px;
+  box-shadow:       0 6px #999;
+  transition:       background-color 0.3s, box-shadow 0.3s, transform 0.1s;
+  display:          flex;
+  align-items:      center;
+  gap:              5px;
+  cursor:           pointer;
+}
+#customRouteModal .modal-footer button:hover {
+  background-color: #3e8e41;
+}
+#customRouteModal .modal-footer button:active {
+  background-color: #3e8e41;
+  box-shadow:       0 5px #666;
+  transform:        translateY(4px);
+}
+#customRouteModal .modal-footer #customRouteCopyUrl.copied {
+  background-color: #ffc107 !important;
+  color:            #212529;
+}
+#customRouteModal .modal-footer .btn-close {
+  background-color: transparent !important;
+  border:            none        !important;
+  box-shadow:        none        !important;
+  padding:           0.25rem     !important;
+}
+@media (max-width: 600px) {
+  #customRouteModal .modal-content { max-height: none   !important; }
+  #customRouteModal .modal-body    { height:      auto !important; }
+  #customRouteModal .modal-dialog.modal-dialog-centered {
+    min-height: 0 !important;
+  }
+  #customRouteModal .modal-dialog {
+    position:      fixed                          !important;
+    top:           calc(env(safe-area-inset-top,    0px) + 1rem) !important;
+    bottom:        calc(env(safe-area-inset-bottom, 0px) + 1rem) !important;
+    left:          1rem                            !important;
+    right:         1rem                            !important;
+    margin:        0                               !important;
+    width:         auto                            !important;
+    max-width:     none                            !important;
+    min-height:    0                               !important;
+    border-radius: 0.75rem                        !important;
+  }
+  #customRouteModal .modal-content {
+    display:        flex     !important;
+    flex-direction: column   !important;
+    height:         100%     !important;
+    overflow:       hidden   !important;
+    border-radius:  inherit  !important;
+  }
+  #customRouteModal .modal-header,
+  #customRouteModal .modal-footer {
+    flex:    0 0 auto !important;
+    padding: 0.5rem   !important;
+    margin:  0        !important;
+  }
+  #customRouteModal .modal-body {
+    display:                    flex      !important;
+    flex-direction:             column    !important;
+    flex:                       1 1 auto  !important;
+    overflow-y:                 auto      !important;
+    padding:                    1rem      !important;
+    gap:                        1rem      !important;
+    border-bottom-left-radius:  0.75rem   !important;
+    border-bottom-right-radius: 0.75rem   !important;
+  }
+  #customRouteModal #customRouteFormContainer {
+    flex:        0 0 auto !important;
+    width:       100%     !important;
+    overflow-y:  auto     !important;
+    padding-top: 1rem     !important;
+  }
+  #customRouteModal #customRouteMap,
+  #customRouteModal #customRouteMapContainer {
+    flex:           1 1 auto !important;
+    width:          100%     !important;
+    min-height:     0        !important;
+    height:         auto     !important;
+    border-radius:  0.75rem  !important;
+    overflow:       hidden   !important;
+  }
+  #customRouteModal .form-control,
+  #customRouteModal select,
+  #customRouteModal textarea,
+  #customRouteModal .route-input,
+  #customRouteModal .mp-input {
+    font-size:                16px    !important;
+    -webkit-text-size-adjust: 100%    !important;
+    width:                    100%    !important;
+    box-sizing:               border-box !important;
+  }
+  #customRouteModal .mp-input::-webkit-inner-spin-button,
+  #customRouteModal .mp-input::-webkit-outer-spin-button {
+    -webkit-appearance: none !important;
+    margin:            0   !important;
+  }
+  #customRouteModal .mp-input {
+    -moz-appearance: textfield !important;
+    appearance:      textfield !important;
+  }
+  #customRouteModal .custom-route-headers,
+  #customRouteModal .custom-route-row {
+    display:       grid     !important;
+    grid-template-columns:
+      1rem   /* handle */
+      85px   /* route  */
+      55px   /* from   */
+      0.8rem /* swap   */
+      55px   /* to     */
+      0.5rem /* remove */ !important;
+    column-gap:    0.4rem  !important;
+  }
+  #customRouteModal .custom-route-headers span {
+    font-size: 0.6rem !important;
+  }
+  #customRouteModal .button,
+  #customRouteModal .modal-footer button {
+    font-size:   0.6rem  !important;
+    padding:     0.3rem 0.6rem !important;
+    box-shadow:  0 4px #999 !important;
+  }
+  #customRouteModal .swap-btn,
+  #customRouteModal .remove-btn {
+    text-decoration: none !important;
+    border-bottom:   none !important;
+  }
+  #customRouteModal .swap-btn i,
+  #customRouteModal .remove-btn i {
+    font-size: 1rem !important;
+  }
+  #customRouteModal .route-input::placeholder {
+    font-size: 0.5em !important;
+    opacity:    1    !important;
+  }
+}
 
 
 
