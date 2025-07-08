@@ -1096,6 +1096,135 @@ html, body {
   }
 }
 
+/* Weather preview in gallery: scales, overlays, and is clickable */
+#imageGallery .aspect-ratio-box.weather-preview {
+  position: relative;
+  overflow: hidden;
+  background: #222 !important;
+  border: 2px solid #ebfc0288 !important;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: box-shadow 0.2s, border 0.2s;
+  display: block;
+}
+#imageGallery .aspect-ratio-box.weather-preview .weather-lottie-bg,
+#imageGallery .aspect-ratio-box.weather-preview .weather-lottie-current {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+#imageGallery .aspect-ratio-box.weather-preview .weather-lottie-current {
+  z-index: 2;
+}
+#imageGallery .aspect-ratio-box.weather-preview .weather-temp {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  color: #fff;
+  font-size: 1.5em;
+  font-weight: bold;
+  text-shadow: 0 2px 8px #000a;
+  z-index: 3;
+  pointer-events: none;
+}
+#imageGallery .aspect-ratio-box.weather-preview:hover {
+  border-color: #ffc107 !important;
+}
+
+/* Forecast/weather preview tile in gallery: scales, overlays, and is clickable */
+#imageGallery .aspect-ratio-box.forecast-item {
+  position: relative;
+  overflow: hidden;
+  background: #222 !important;
+  border: 2px solid #fff !important; /* White border only */
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: box-shadow 0.2s, border 0.2s;
+  display: block;
+}
+#imageGallery .aspect-ratio-box.forecast-item .forecast-bg-lottie {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.3;
+}
+#imageGallery .aspect-ratio-box.forecast-item .forecast-preview {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: none;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+}
+#imageGallery .aspect-ratio-box.forecast-item .forecast-preview-inner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+#imageGallery .aspect-ratio-box.forecast-item .forecast-main-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  flex: 1 1 auto;
+}
+#imageGallery .aspect-ratio-box.forecast-item .forecast-icon-col lottie-player {
+  width: 4vw;
+  height: 4vw;
+  min-width: 48px;
+  min-height: 48px;
+  max-width: 120px;
+  max-height: 120px;
+  margin: 0 auto;
+  filter: drop-shadow(0 0 12px #fff8) drop-shadow(0 0 24px #ebfc0288);
+}
+#imageGallery .aspect-ratio-box.forecast-item .forecast-text-col .temp-preview {
+  color: #fff;
+  font-size: 3vw;
+  min-font-size: 1.5em;
+  font-weight: bold;
+  text-shadow: 0 0 8px #fff, 0 0 18px #ebfc0288, 0 2px 8px #000a;
+  margin-left: 0.5em;
+  line-height: 1;
+}
+#imageGallery .aspect-ratio-box.forecast-item .label-preview {
+  color: #fff;
+  font-size: 0.75em;
+  margin-top: 0;
+  margin-bottom: 0;
+  text-align: center;
+  text-shadow: 0 2px 8px #000a;
+  align-self: center;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  line-height: 1.05;
+  padding: 0 6px 6px 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  z-index: 3;
+}
+#imageGallery .aspect-ratio-box.forecast-item:hover {
+  border-color: #ffc107 !important;
+}
+
 
 
 
