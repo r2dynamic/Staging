@@ -237,218 +237,154 @@ html, body {
 .button:hover { 
   background-color: #3e8e41; 
   transform: scale(1.1);
-  
 }
 .button:active {
   background-color: #3e8e41;
   box-shadow: 0 5px #666;
   transform: translateY(4px);
-  
 }
-.button.off {
+.button--off {
   background-color: #888 !important;
   color: #fff !important;
   opacity: 0.7;
   box-shadow: 0 2px #666;
   transition: background-color 0.3s, opacity 0.3s;
 }
-.button.off:hover {
+.button--off:hover {
   background-color: #666 !important;
   opacity: 1;
 }
 
-
-
-/* Glassmorphic Modal Style */
-.glass-modal {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(12px);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 12px;
-  animation: modalFadeIn 0.9s ease-out;
-}
-@keyframes modalFadeIn {
-  from { opacity: 0; transform: scale(0.6); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-/* Dropdown */
-.dropdown {
-  position: relative;
-  z-index: 1001;
-}
-.dropdown-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  z-index: 2000;
-  background: rgba(59, 59, 59, 0.366) !important;
-  backdrop-filter: blur(12px);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 12px;
-  box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
-  transition: opacity 0.3s ease-in-out, transform 0.2s ease-in-out;
-}
-.dropdown-menu .dropdown-item {
-  color: white !important;
-  font-weight: bold;
-  padding: 6px 10px;
-  border-radius: 8px;
-  transition: background 0.2s ease-in-out;
-}
-.dropdown-menu .dropdown-item:hover {
-  background: rgba(255, 255, 255, 0.2) !important;
-}
-.dropdown-menu select,
-.dropdown-menu input {
-  background: rgba(255, 255, 255, 0.2) !important;
-  color: white !important;
-  border: none;
-  padding: 6px;
-  border-radius: 6px;
-  outline: none;
-  width: 100%;
-}
-.dropdown-menu select:focus,
-.dropdown-menu input:focus {
-  background: rgba(255, 255, 255, 0.3) !important;
-}
-.dropdown-menu {
-  opacity: 0;
-  transform: translateY(-10px);
-  visibility: hidden;
-}
-.dropdown-menu.show {
-  opacity: 1;
-  transform: translateY(0);
-  visibility: visible;
-}
-.dropdown-menu {
-  max-height: 400px;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-.dropdown-menu::-webkit-scrollbar {
-  display: none;
-}
-
-/* Image Size Slider */
-#sizeControlContainer {
-  display: inline-block;
-  position: relative;
-}
-#sizeControlButton {
-  background: #04AA6D;
-  color: white;
-  border: 3px solid white;
-  padding: 10px 10px;
+/* Contextual button modifiers */
+.button--modal {
+  min-width: 0;
+  flex-shrink: 1;
   font-size: 14px;
-  cursor: pointer;
-  border-radius: 8px;
-  box-shadow: 0 6px #999;
-  transition: background-color 0.3s, box-shadow 0.3s, transform 0.1s;
-  display: flex;
-  align-items: center;
-  gap: 5px;
+  padding: 0.4rem 0.7rem;
+  white-space: nowrap;
+  max-width: 100vw;
 }
-#sizeControlButton i { font-size: 14px; }
-#sizeControlButton:hover { background-color: #3e8e41; }
+.button--header {
+  max-width: none;
+  min-width: 40px;
+  height: 30px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+}
 @media (max-width: 600px) {
-  #sizeControlButton {
-    max-width: 150px;
+  .button--modal {
+    font-size: 11px !important;
+    padding: 0.25rem 0.4rem !important;
+    min-width: 0 !important;
+    flex-shrink: 1 !important;
+    max-width: 100vw !important;
+  }
+  .button--header {
+    margin: 0 2px;
+    max-width: auto;
+    height: 35px;
+    align-items: center;
+    justify-content: center;
     box-shadow: 0 4px #999;
     border-radius: 6px;
-    font-size: 11px;
-    padding: 5.3px 5px;
+    font-size: 12px;
+    padding: 3px 8px;
   }
 }
-.slider-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  padding: 10px;
-  border-radius: 10px;
-  box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
-  max-height: 0;
-  opacity: 0;
-  overflow: hidden;
-  transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+
+/* Button glow for active state */
+@keyframes button-glow {
+  0% { box-shadow: 0 0 6px rgba(255,193,7,0.8); }
+  50% { box-shadow: 0 0 20px rgba(255,193,7,0.9); }
+  100% { box-shadow: 0 0 8px rgba(255,193,7,0.8); }
+}
+.button[aria-expanded="true"] {
+  border-color: #ffc107 !important;
+  box-shadow: 0 0 12px rgba(255,193,7,0.8) !important;
+  animation: button-glow 1.5s infinite ease-in-out !important;
+}
+
+/* Icon-only buttons (swap, remove) */
+.button--icon {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0.2rem;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  color: white !important;  
+  opacity: 0.6;
+  text-decoration: none !important;
 }
-.slider-dropdown.active {
-  max-height: 150px;
+.button--icon:hover, .button--icon:active { 
+  transform: scale(1.4);
   opacity: 1;
 }
-.vertical-slider {
-  writing-mode: bt-lr;
-  -webkit-appearance: slider-vertical;
-  appearance: slider-vertical;
-  height: 120px;
-  width: 8px;
-  background: white;
-  border-radius: 8px;
-  outline: none;
-  transition: opacity 0.3s ease-in-out;
+
+/* =========================================================
+   MAP-RELATED STYLES (Leaflet, Markers, Tooltips)
+   ---------------------------------------------------------
+   All map-specific classes are prefixed with .map-*
+   to avoid conflicts with non-map UI. Only use these
+   classes for map/Leaflet elements. See maps.js for usage.
+   ========================================================= */
+
+.map-marker {
+  width:            8px;
+  height:           8px;
+  background-color: #ff7800;
+  border:           .5px solid #ffffff;
+  border-radius:    50%;
+  box-shadow:       0 0 2px rgb(255, 255, 255);
 }
-.vertical-slider::-webkit-slider-thumb {
-  appearance: auto;
-  width: 25px;
-  height: 25px;
-  background: #707070;
-  border-radius: 90%;
-  cursor: pointer;
-  transition: transform 0.4s;
-}
-.vertical-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
+.map-user-marker {
+  background: #2186f6;
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  width: 10px;
+  height: 10px;
+  box-shadow: 0 0 8px #1257aa55;
 }
 
-/* Image Gallery */
-#imageGallery {
-  width: 100vw;
-  margin-left: calc(-50vw + 50%);
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 2px;
-  margin-top: 2px;
-  margin-bottom: 200px;
-  justify-content: center;
-  transition: grid-template-columns 0.3s ease-out;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-y pinch-zoom;
-  position: relative;
-  z-index: 1;
+/* Leaflet tooltip for map popups only */
+.leaflet-container .leaflet-tooltip {
+  background: none       !important;
+  border: none           !important;
+  box-shadow: none       !important;
+  padding: 0             !important;
 }
-.col { flex: 1; }
-.aspect-ratio-box {
-  width: 100%;
-  position: relative;
-  padding-bottom: 56.25%;
-  overflow: hidden;
+.leaflet-container .leaflet-tooltip .leaflet-tooltip-content {
+  background: none       !important;
+  border: none           !important;
+  padding: 0             !important;
+  margin: 0              !important;
 }
-.aspect-ratio-box img {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 6px;
-  transition: transform 0.2s ease-in-out;
+.leaflet-container .leaflet-tooltip img {
+  display: block         !important;
+  width: 120px           !important;
+  aspect-ratio: 16 / 9   !important;
+  border: 2px solid #ff7800 !important;
+  border-radius: 8px     !important;
+  box-sizing: border-box;
 }
-.aspect-ratio-box:hover img { transform: scale(1.05); }
-.aspect-ratio-box:active img { transform: scale(1.02); }
+.leaflet-container .leaflet-tooltip:before,
+.leaflet-container .leaflet-tooltip:after {
+  display: none !important;
+}
+
+/* Glass popup content for map tooltips */
+.leaflet-container .glass-popup-content img {
+  border: 2px solid #ff7800 !important;
+  border-radius: 8px !important;
+  box-sizing: border-box;
+}
+
+/* ========== END MAP-RELATED STYLES ========== */
+
 
 /* Modal Styles */
 .modal-dialog-centered {
@@ -528,142 +464,95 @@ html, body {
 
 
 
-.aspect-ratio-box.overview-map {
+.aspect-ratio-box {
   position: relative;
   overflow: hidden;
-  border: 2px solid #ff7800;
-  box-sizing: border-box;
+  border: 2px solid rgba(255,255,255,0.7);
   border-radius: 8px;
+  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.25), 0 1.5px 8px 0 rgba(0,0,0,0.10);
+  box-sizing: border-box;
+  aspect-ratio: 16/9;
+  min-width: 120px;
+  min-height: 70px;
+  background: rgba(255,255,255,0.10);
+  transition: box-shadow 0.2s, border 0.2s;
+}
+
+/* Remove redundant styles from overview-map and forecast-item, only add unique ones */
+.aspect-ratio-box.overview-map {
+  /* Only add unique styles if needed, otherwise inherit from .aspect-ratio-box */
+  margin-bottom: 8px;
+  border: 2px solid #ff7800;
 }
 .aspect-ratio-box.overview-map #overview-tile {
   position: absolute;
   inset: 0;
-
-}
-
-
-/* Stack content vertically and fill dialog */
-#overviewMapModal .modal-content {
-  display: flex;
-  flex-direction: column;
+  width: 100% !important;
   height: 100% !important;
-  background: rgba(255,255,255,0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 1rem;
-  overflow: hidden;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  display: block;
 }
 
-/* Header */
-#overviewMapModal .modal-header {
-  flex: 0 0 auto;
-  border-bottom: none;
-  justify-content: center;
-  background: rgba(255,255,255,0.2);
-  padding: none;
-}
-#overviewMapModal .modal-title {
-  margin: 0;
-  text-align: center;
-  font-size: 1.25rem;
-  color: #ffffff;
-}
+/*.aspect-ratio-box.forecast-item {*/
+  /* Only add unique styles if needed, otherwise inherit from .aspect-ratio-box */
+/*}*/
 
-/* Body: flex container for the map */
-#overviewMapModal .modal-body {
-  flex: 1 1 auto;
-  display: flex !important;
-  flex-direction: column;
-  padding: 0;
-  min-height: 0; /* allow flex shrink */
-  overflow: hidden;
-}
-
-/* Map container full size */
-#overviewMap {
-  flex: 1 1 auto;
+/* Ensure images, maps, and forecast previews fill the box */
+.aspect-ratio-box > img,
+.aspect-ratio-box > a > img,
+.aspect-ratio-box > a > #overview-tile,
+.aspect-ratio-box > #overview-tile,
+.aspect-ratio-box .forecast-preview {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
-  min-height: 0;
-}
-
-/* Footer */
-#overviewMapModal .modal-footer {
-  flex: 0 0 auto;
-  max-height: auto;
-  max-width: auto;
-  border-radius: 6px;
-  border-top: none;
-  justify-content: center;
-  padding: none;
-  display: flex;
-  flex-wrap: nowrap;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  overflow-x: auto;
-  padding: 0.5rem 0.25rem;
-}
-#overviewMapModal .modal-footer .button {
   min-width: 0;
-  flex-shrink: 1;
-  font-size: 14px;
-  padding: 0.4rem 0.7rem;
-  white-space: nowrap;
-  max-width: 100vw;
+  min-height: 0;
+  object-fit: cover;
+  display: block;
 }
 
-/* --- Responsive Overview Map Modal Footer Buttons --- */
-@media (max-width: 600px) {
-  #overviewMapModal .modal-footer {
-    gap: 0.2rem;
-    padding: 0.3rem 0.1rem;
-  }
-  #overviewMapModal .modal-footer .button {
-    font-size: 11px !important;
-    padding: 0.25rem 0.4rem !important;
-    min-width: 0 !important;
-    flex-shrink: 1 !important;
-    max-width: 100vw !important;
-  }
+/* Responsive grid sizing for all items */
+#imageGallery .aspect-ratio-box {
+  width: 100%;
+  height: auto;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  aspect-ratio: 16/9;
+  background: rgba(255,255,255,0.10);
+  border-radius: 8px;
+  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.25), 0 1.5px 8px 0 rgba(0,0,0,0.10);
+  overflow: hidden;
+  transition: box-shadow 0.2s, border 0.2s;
 }
-
-/* ─── Desktop (≥601px): keep 98vw/98vh ─────────────────────────── */
-@media (min-width: 601px) {
-  #overviewMapModal.modal.show .modal-dialog {
-    margin:     0 auto           !important;
-    width:      98vw             !important;
-    max-width:  98vw             !important;
-    height:     98vh             !important;
-    max-height: 98vh             !important;
-  }
+#imageGallery .aspect-ratio-box > img,
+#imageGallery .aspect-ratio-box > a > img {
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  background: #222;
+  display: block;
 }
-
-/* ─── Mobile (≤600px): inset fixed dialog with 1rem gutters ───── */
-@media (max-width: 600px) {
-  /* 1) Kill Bootstrap’s extra centering min-height */
-  #overviewMapModal .modal-dialog.modal-dialog-centered {
-    min-height: 0 !important;
-  }
-
-  /* 2) Fixed‐position inset, 1rem gutter + safe‐area support */
-  #overviewMapModal.modal.show .modal-dialog {
-    position:      fixed                          !important;
-    top:           calc(env(safe-area-inset-top,    0px) + 1rem) !important;
-    bottom:        calc(env(safe-area-inset-bottom, 0px) + 1rem) !important;
-    left:          1rem                            !important;
-    right:         1rem                            !important;
-    margin:        0                               !important;
-
-    /* cancel out any vw/vh sizing */
-    width:         auto                            !important;
-    max-width:     none                            !important;
-    height:        auto                            !important;
-    max-height:    none                            !important;
-    min-height:    0                               !important;
-
-    border-radius: 0.75rem                        !important;
-  }
+/* Remove any min-width/max-width from .aspect-ratio-box and images */
+#imageGallery .aspect-ratio-box,
+#imageGallery img {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
 }
+/* === END GALLERY GRID & IMAGE SIZING FIXES === */
+
 
 /* ─────────────────────────────────────────────────
    T O O L T I P   I M A G E   S T Y L I N G
@@ -709,7 +598,6 @@ html, body {
 
 .leaflet-tooltip .glass-popup-content img {
   border: 2px solid #ff7800 !important;
-  border:           .5px solid #ffffff;
   border-radius: 8px !important;
   box-sizing: border-box;
 }
@@ -1284,6 +1172,274 @@ html, body {
   align-self: center;
   flex: 0 0 auto;
 }
+
+/* === RESTORED GALLERY GRID & IMAGE STYLES === */
+#imageGallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 6px;
+  padding: 6px;
+}
+#imageGallery img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  background: #222;
+  min-width: 120px;
+  max-width: 100%;
+  max-height: 240px;
+  transition: box-shadow 0.2s;
+}
+#imageGallery img:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+}
+/* === END RESTORED GALLERY STYLES === */
+
+/* === RESTORED GLASSMORPHIC STYLES FOR MODALS & DROPDOWNS === */
+.glass-modal, .modal-content {
+  background: rgba(255,255,255,0.18) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18) !important;
+  border: 1.5px solid rgba(255,255,255,0.25) !important;
+}
+
+.glass-dropdown, .dropdown-menu {
+  background: rgba(255,255,255,0.18) !important;
+  backdrop-filter: blur(14px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(180%) !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 4px 24px 0 rgba(31, 38, 135, 0.12) !important;
+  border: 1.5px solid rgba(255,255,255,0.18) !important;
+  color: #222 !important;
+}
+
+/* Optional: make sure dropdown items are readable */
+.glass-dropdown .dropdown-item, .dropdown-menu .dropdown-item {
+  background: transparent !important;
+  color: #222 !important;
+}
+
+/* === END GLASSMORPHIC STYLES === */
+
+/* --- Fullscreen Overview Map Modal --- */
+#overviewMapModal .modal-dialog {
+  width: 98vw;
+  max-width: 98vw;
+  height: 98vh;
+  max-height: 98vh;
+  margin: 0 auto;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+#overviewMapModal .modal-content {
+  height: 98vh;
+  max-height: 98vh;
+  display: flex;
+  flex-direction: column;
+}
+#overviewMapModal .modal-body {
+  flex: 1 1 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+#overviewMap {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
+  flex: 1 1 0;
+  background: #222;
+  border-radius: 1rem;
+}
+/* --- End Fullscreen Overview Map Modal --- */
+
+#toggleAutoTooltips.off {
+  background-color: #888 !important;
+  color: #fff !important;
+  opacity: 0.7;
+  box-shadow: 0 2px #666;
+  transition: background-color 0.3s, opacity 0.3s;
+}
+#toggleAutoTooltips.off:hover {
+  background-color: #666 !important;
+  opacity: 1;
+}
+
+/* === FIX SLIDER THUMB VERTICAL ALIGNMENT === */
+#sizeControlContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 140px;
+  height: 30px;
+  margin: 0 0 0 10px;
+  padding: 0 8px;
+  background: #04AA6D;
+  border-radius: 8px;
+  box-shadow: 0 6px #999;
+  border: 3px solid #fff;
+  transition: background 0.3s, box-shadow 0.3s;
+  gap: 8px;
+}
+#sizeControlContainer .slider-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: #fff;
+  margin-right: 2px;
+  width: 22px;
+  height: 22px;
+  opacity: 0.85;
+}
+#sizeSlider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 22px;
+  background: transparent;
+  outline: none;
+  margin: 0;
+  position: relative;
+  z-index: 2;
+  cursor: pointer;
+  display: block;
+}
+#sizeSlider::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 8px;
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px #04AA6D33, 0 1px 4px #9992;
+}
+#sizeSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid #04AA6D;
+  box-shadow: 0 2px 8px #3e8e4199;
+  transition: box-shadow 0.2s, border 0.2s;
+  position: relative;
+  z-index: 3;
+  margin: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+#sizeSlider::-moz-range-track {
+  width: 100%;
+  height: 8px;
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px #04AA6D33, 0 1px 4px #9992;
+}
+#sizeSlider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid #04AA6D;
+  box-shadow: 0 2px 8px #3e8e4199;
+  transition: box-shadow 0.2s, border 0.2s;
+  position: relative;
+  z-index: 3;
+  margin: 0;
+}
+#sizeSlider::-ms-fill-lower, #sizeSlider::-ms-fill-upper {
+  background: #fff;
+  border-radius: 6px;
+}
+#sizeSlider::-ms-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid #04AA6D;
+  box-shadow: 0 2px 8px #3e8e4199;
+  transition: box-shadow 0.2s, border 0.2s;
+  position: relative;
+  z-index: 3;
+  margin: 0;
+}
+#sizeSlider:focus {
+  outline: none;
+}
+#sizeSlider:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+@media (max-width: 600px) {
+  #sizeControlContainer {
+    display: none !important;
+  }
+}
+/* === END FIX SLIDER THUMB VERTICAL ALIGNMENT === */
+
+/* === GALLERY DENSITY & EDGE-TO-EDGE FIXES === */
+#imageGallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); /* edge-to-edge columns */
+  gap: 3px;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box;
+  /* REMOVE justify-content: center; */
+}
+#imageGallery img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  background: #222;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  max-height: 240px;
+  transition: box-shadow 0.2s;
+  border: none !important;
+}
+#imageGallery img:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+}
+@media (max-width: 600px) {
+  #imageGallery {
+    gap: 2px;
+    padding: 0 !important;
+  }
+}
+#imageGallery .aspect-ratio-box {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+#imageGallery .aspect-ratio-box > img,
+#imageGallery .aspect-ratio-box > a > img {
+  border: none !important;
+  background: #222 !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12) !important;
+}
+#imageGallery .aspect-ratio-box,
+#imageGallery img {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+}
+/* === END GALLERY DENSITY & EDGE-TO-EDGE FIXES === */
 
 
 
