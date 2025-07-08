@@ -772,6 +772,44 @@ html, body {
   overflow: visible !important; /* Prevent clipping of marker pane */
 }
 
+/* --- Fix for iOS/Android safe area insets for overview map modal --- */
+@media (max-width: 900px) {
+  #overviewMapModal .modal-dialog {
+    position: fixed !important;
+    top:    env(safe-area-inset-top, 0px) !important;
+    bottom: env(safe-area-inset-bottom, 0px) !important;
+    left:   env(safe-area-inset-left, 0px) !important;
+    right:  env(safe-area-inset-right, 0px) !important;
+    margin: 0 !important;
+    width:  auto !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    height: auto !important;
+    border-radius: 0.75rem !important;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  #overviewMapModal .modal-content {
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    border-radius: inherit !important;
+    display: flex;
+    flex-direction: column;
+  }
+  #overviewMapModal .modal-body {
+    flex: 1 1 0;
+    min-height: 0 !important;
+    height: 100%;
+    padding: 0 !important;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
 /* --- CUSTOM ROUTE BUILDER MODAL LAYOUT --- */
 #customRouteModal .modal-dialog {
   width:     98vw;
