@@ -88,11 +88,11 @@ export function setupSizeSlider() {
     galleryContainer.style.gridTemplateColumns = `repeat(auto-fit, minmax(${n}px, 1fr))`;
     window.userImageSizeOverride = true;
     clearTimeout(sizeSlider.autoHideTimeout);
-    sizeSlider.autoHideTimeout = setTimeout(() => sizeSliderContainer.classList.remove('active'), 3000);
+    sizeSlider.autoHideTimeout = setTimeout(() => sizeSliderContainer && sizeSliderContainer.classList.remove('active'), 3000);
   });
   document.addEventListener('click', e => {
-    if (!sizeControlButton.contains(e.target) && !sizeSliderContainer.contains(e.target)) {
-      sizeSliderContainer.classList.remove('active');
+    if ((sizeControlButton && !sizeControlButton.contains(e.target)) && (sizeSliderContainer && !sizeSliderContainer.contains(e.target))) {
+      if (sizeSliderContainer) sizeSliderContainer.classList.remove('active');
     }
   });
 

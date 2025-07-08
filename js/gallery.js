@@ -1,4 +1,6 @@
 // gallery.js (mini map for all filtered views, 50 nearest, zoom-in on user for nearest only)
+import { createMap } from './maps.js';
+
 const galleryContainer   = document.getElementById('imageGallery');
 const cameraCountElement = document.getElementById('cameraCount');
 let currentIndex = 0;
@@ -140,6 +142,7 @@ export function renderGallery(cameras) {
         overviewTile._miniMapInstance = null;
       }
 
+      let tileLayerLoaded = false;
       const miniMap = L.map(overviewTile, {
         attributionControl: false,
         zoomControl:      false,
@@ -150,15 +153,24 @@ export function renderGallery(cameras) {
       });
       overviewTile._miniMapInstance = miniMap;
 
-      L.tileLayer(
+      const imageryLayer = L.tileLayer(
         'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         { attribution: '&copy; Esri', subdomains: 'abcd', maxZoom: 20 }
-      ).addTo(miniMap);
-
-      L.tileLayer(
-        'https://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
-        { attribution: '&copy; Esri', minZoom: 0, maxZoom: 18 }
-      ).addTo(miniMap);
+      );
+      imageryLayer.on('loading', () => {});
+      imageryLayer.on('load', () => {
+        tileLayerLoaded = true;
+      });
+      imageryLayer.on('tileerror', (e) => {
+        if (!overviewTile.querySelector('.tile-error')) {
+          const errDiv = document.createElement('div');
+          errDiv.className = 'tile-error';
+          errDiv.style = 'position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(200,0,0,0.7);color:#fff;z-index:10;display:flex;align-items:center;justify-content:center;font-weight:bold;';
+          errDiv.textContent = 'Tile Error';
+          overviewTile.appendChild(errDiv);
+        }
+      });
+      imageryLayer.addTo(miniMap);
 
       coords.forEach(([lat, lng]) => {
         L.circleMarker([lat, lng], {
@@ -192,6 +204,12 @@ export function renderGallery(cameras) {
       };
       fitMap();
       new ResizeObserver(fitMap).observe(overviewTile);
+      // Extra debug: check after 1s if tile layer loaded
+      setTimeout(() => {
+        if (!tileLayerLoaded) {
+          console.warn('[MiniMap] Tile layer did not finish loading after 1s.');
+        }
+      }, 1000);
     });
   }
 
