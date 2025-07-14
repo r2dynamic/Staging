@@ -1,6 +1,23 @@
 /* =============================
-   Neumorphic Dark Theme Palette
+   Neumorphic Theme Palette & Variables
    ============================= */
+:root {
+  --nm-bg: #23242a;
+  --nm-surface: #282a32;
+  --nm-surface-gradient: linear-gradient(135deg, #23242a 0%, #282a32 100%);
+  --nm-panel-gradient: linear-gradient(135deg, #23242a 0%, #31343c 100%);
+  --nm-accent: #ff5e13;
+  --nm-accent-gradient: linear-gradient(90deg, #ff5e13 0%, #ffb36b 100%);
+  --nm-active-gradient: linear-gradient(135deg, #ff5e13 0%, #ff2a00 100%);
+  --nm-text: #fff;
+  --nm-text-secondary: #b0b0b0;
+  --nm-radius: 18px;
+  --nm-shadow: 3px 3px 12px #18191d, -3px -3px 12px #31343c;
+  --nm-shadow-inset: inset 2px 2px 8px #18191d, inset -2px -2px 8px #31343c;
+  --nm-shadow-dark: #18191d;
+  --nm-shadow-light: #31343c;
+  --nm-active-shadow: #b43613;
+}
 
 /* ========== GLOBAL RESET & BASE ========== */
 * {
@@ -10,9 +27,8 @@
 }
 html, body {
   height: 100%;
-  background-color: #23242a !important;
-  background-image: linear-gradient(145deg, #171717 0%, #444245 100%);
-  color: var(--nm2-icon);
+  background: #23242a !important;
+  color: #fff;
   font-family: Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -23,7 +39,7 @@ body { -ms-overflow-style: none; }
 
 /* ========== TYPOGRAPHY ========== */
 h1, h2, h3, h4, h5, h6, p, label, span, a, li, button {
-  color: var(--nm-text);
+  color: #fff;
 }
 
 /* ========== HEADER CONTROLS ========== */
@@ -31,20 +47,29 @@ h1, h2, h3, h4, h5, h6, p, label, span, a, li, button {
   position: sticky;
   top: 0;
   z-index: 1000;
-  background: transparent !important;
+  background: var(--nm-panel-gradient) !important;
+  border-radius: var(--nm-radius);
+  box-shadow:
+    0 6px 18px 0 rgba(16,18,22,0.45),
+    0.15vw 0.15vw 0.6vw var(--nm-shadow-dark),
+    -5px -5px 12px 0 rgba(255,255,255,0.10),
+    -0.15vw -0.15vw 0.6vw var(--nm-shadow-light),
+    0 0.5px 2px 0 rgba(255,255,255,0.10) inset,
+    0 -1px 2px 0 rgba(0,0,0,0.10) inset !important;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  padding: 18px 8px 32px 8px;
+  padding: 24px 8px;
   gap: 18px;
-  width: 100%;
-  border-radius: 0 0 var(--nm-radius) var(--nm-radius);
+  width: auto;
+  margin: 32px 18px 24px 18px;
+  transition: box-shadow 0.18s, background 0.18s;
 }
 
 /* ========== SELECTED FILTERS ========== */
 .selected-filters {
-  background: var(--nm-surface-gradient);
+  background: var(--nm-panel-gradient);
   color: var(--nm-text);
   border: none;
   border-radius: var(--nm-radius);
@@ -82,9 +107,9 @@ h1, h2, h3, h4, h5, h6, p, label, span, a, li, button {
   transition: box-shadow 0.18s, background 0.18s;
 }
 .selected-filters .filter-item.active, .selected-filters .filter-item:active {
-  background: var(--nm-gradient);
+  background: var(--nm-accent-gradient);
   box-shadow: var(--nm-shadow-inset);
-  color: var(--nm-accent);
+  color: var(--nm-text);
 }
 .selected-filters .filter-item i {
   margin-right: 8px;
@@ -103,27 +128,39 @@ h1, h2, h3, h4, h5, h6, p, label, span, a, li, button {
   border: none;
   border-radius: calc(var(--nm-radius) * 0.7);
   box-shadow: var(--nm-shadow);
-  padding: 6px 16px;
-  font-size: 1em;
-  font-weight: 500;
+  padding: 8px 18px;
+  font-size: 1.08em;
+  font-weight: 600;
   cursor: pointer;
   transition: box-shadow 0.18s, background 0.18s, color 0.18s;
+  outline: none;
 }
 .selected-filters .reset-button:hover {
+  background: var(--nm-accent-gradient);
+  color: var(--nm-text);
   box-shadow: 0.2vw 0.2vw 1vw var(--nm-shadow-dark), -0.2vw -0.2vw 1vw var(--nm-shadow-light);
 }
 .selected-filters .reset-button:active {
+  background: var(--nm-accent-gradient);
+  color: var(--nm-text);
   box-shadow: var(--nm-shadow-inset);
 }
 
 /* ========== DROPDOWNS ========== */
 .glass-dropdown, .dropdown-menu {
-  background: var(--nm-surface-gradient);
+  background: var(--nm-panel-gradient);
   border-radius: var(--nm-radius);
-  box-shadow: var(--nm-shadow);
-  border: none;
+  border: 4px solid #111216;
+  box-shadow:
+    0 10px 32px 0 rgba(16,18,22,0.65),
+    0.2vw 0.2vw 1vw var(--nm-shadow-dark),
+    -10px -10px 24px 0 rgba(255,255,255,0.13),
+    -0.2vw -0.2vw 1vw var(--nm-shadow-light),
+    0 0.5px 2px 0 rgba(255,255,255,0.13) inset,
+    0 -1px 2px 0 rgba(0,0,0,0.13) inset !important;
   color: var(--nm-text);
   padding: 0.5em 0;
+  transition: box-shadow 0.18s, background 0.18s;
 }
 .glass-dropdown .dropdown-item, .dropdown-menu .dropdown-item {
   background: transparent;
@@ -137,16 +174,16 @@ h1, h2, h3, h4, h5, h6, p, label, span, a, li, button {
   transition: background 0.18s, color 0.18s, font-size 0.18s, box-shadow 0.18s;
 }
 .dropdown-menu .dropdown-item:hover, .glass-dropdown .dropdown-item:hover {
-  background: var(--nm-surface);
-  color: var(--nm-accent);
+  background: var(--nm-accent-gradient);
+  color: var(--nm-text);
   font-size: 1.08rem;
   font-weight: bold;
   box-shadow: var(--nm-shadow);
 }
 .dropdown-menu .dropdown-item.active, .glass-dropdown .dropdown-item.active,
 .dropdown-menu .dropdown-item.selected, .glass-dropdown .dropdown-item.selected {
-  background: var(--nm-gradient);
-  color: var(--nm-accent);
+  background: var(--nm-accent-gradient);
+  color: var(--nm-text);
   font-size: 1.10rem;
   font-weight: bold;
   box-shadow: var(--nm-shadow-inset);
@@ -158,23 +195,29 @@ h1, h2, h3, h4, h5, h6, p, label, span, a, li, button {
 
 /* ========== MODALS ========== */
 .glass-modal, .modal-content {
-  background: var(--nm-surface-gradient);
+  background: var(--nm-panel-gradient);
   border-radius: var(--nm-radius);
-  box-shadow: var(--nm-shadow);
-  border: none;
+  border: 4px solid #111216;
+  box-shadow:
+    0 10px 32px 0 rgba(16,18,22,0.65),
+    0.2vw 0.2vw 1vw var(--nm-shadow-dark),
+    -10px -10px 24px 0 rgba(255,255,255,0.13),
+    -0.2vw -0.2vw 1vw var(--nm-shadow-light),
+    0 0.5px 2px 0 rgba(255,255,255,0.13) inset,
+    0 -1px 2px 0 rgba(0,0,0,0.13) inset !important;
 }
 .modal-title, .modal-header, .modal-footer {
   color: var(--nm-text);
 }
 .modal-body {
-  background: var(--nm-surface);
+  background: var(--nm-surface-gradient);
   color: var(--nm-text);
   border-radius: var(--nm-radius);
 }
 
 /* ========== CARDS & SURFACES ========== */
 .nm-card, .card, .gallery-card {
-  background: var(--nm-surface-gradient);
+  background: var(--nm-panel-gradient);
   border-radius: var(--nm-radius);
   box-shadow: var(--nm-shadow);
   border: none;
@@ -196,8 +239,6 @@ h1, h2, h3, h4, h5, h6, p, label, span, a, li, button {
   position: relative;
   overflow: hidden;
   border-radius: 18px;
-  box-shadow: var(--nm-shadow);
-  border: none;
   aspect-ratio: 16/9;
   min-width: 0;
   min-height: 0;
@@ -205,7 +246,7 @@ h1, h2, h3, h4, h5, h6, p, label, span, a, li, button {
   height: auto;
   max-width: 100%;
   max-height: none;
-  background: var(--nm-surface);
+  background: #23242a;
   transition: box-shadow 0.18s;
 }
 #imageGallery .aspect-ratio-box:hover {
@@ -240,7 +281,7 @@ h1, h2, h3, h4, h5, h6, p, label, span, a, li, button {
   z-index: 9999;
   overflow: hidden;
   opacity: 1;
-  background: var(--nm-bg);
+  background: #23242a;
 }
 .splash-screen.fade-out {
   animation: splashFade 1s forwards;
@@ -272,170 +313,183 @@ h1, h2, h3, h4, h5, h6, p, label, span, a, li, button {
   to { opacity: 1; }
 }
 
-/* ========== RESPONSIVE ========== */
-@media (max-width: 600px) {
-  .header-controls .button, .header-controls button, .header-controls .dropdown-toggle, .header-controls select {
-    min-width: 38px;
-    min-height: 38px;
-    height: 38px;
-    font-size: 1rem;
-    padding: 0 10px;
-  }
-  .header-controls .button--icon, .header-controls .icon-btn {
-    width: 38px;
-    height: 38px;
-    font-size: 1.1rem;
-  }
-  .header-controls #sizeControlContainer {
-    min-width: 100px;
-    height: 38px;
-    padding: 0 6px;
-  }
-  .header-controls #sizeSlider {
-    width: 60px;
-    height: 10px;
-  }
-  .selected-filters {
-    padding: 8px 6px;
-    font-size: 0.95rem;
-    gap: 6px;
-  }
-  .selected-filters .filter-item, .selected-filters .reset-button {
-    font-size: 0.95em;
-    padding: 4px 10px;
-  }
-}
-
-/* =============================
-   Neumorphic Button 2 Example Palette
-   ============================= */
-:root {
-  --nm2-bg: #23242a;
-  --nm2-surface: #262626;
-  --nm2-surface-inner: #171717;
-  --nm2-surface-highlight: #444245;
-  --nm2-shadow-dark: #141414;
-  --nm2-shadow-light: #525252;
-  --nm2-border: #090909;
-  --nm2-border-active: rgb(0, 215, 0);
-  --nm2-border-active-anim: rgba(0, 175, 0, 0.878);
-  --nm2-radius: 50%;
-  --nm2-icon: #a5a5a5;
-  --nm2-icon-active: rgb(0, 215, 0);
-}
-
-/* ========== HEADER CONTROLS BUTTONS 1–6 (Neumorphic 2 Style) ========== */
-.header-controls .button,
-.header-controls button,
-.header-controls .dropdown-toggle {
-  position: relative;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  border: 4px solid var(--nm2-border);
-  background-color: transparent;
-  background-image: linear-gradient(145deg, var(--nm2-surface-inner), var(--nm2-surface-highlight));
-  box-sizing: border-box;
-  box-shadow:
-    inset 2px 2px 0 #7d7c7e,
-    inset -2px -2px 0px #1c1c1c,
-    11px 11px 22px var(--nm2-shadow-dark),
-    -11px -11px 22px var(--nm2-shadow-light);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 8px;
-  padding: 0;
-  transition: box-shadow 0.18s, background 0.18s, border 0.18s;
-  overflow: visible;
-}
-.header-controls .button::before,
-.header-controls button::before,
-.header-controls .dropdown-toggle::before {
-  position: absolute;
-  content: "";
-  width: 60px;
-  height: 60px;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background-color: transparent;
-  background-image: linear-gradient(145deg, var(--nm2-surface), var(--nm2-shadow-light));
-  z-index: -1;
-  box-shadow: 11px 11px 22px var(--nm2-shadow-dark), -11px -11px 22px var(--nm2-shadow-light);
-}
-.header-controls .button .icon,
-.header-controls button .icon,
-.header-controls .dropdown-toggle .icon,
-.header-controls .button i,
-.header-controls button i,
-.header-controls .dropdown-toggle i {
-  width: 32px;
-  height: 32px;
-  color: var(--nm2-icon);
-  font-size: 1.7rem;
-  display: inline-block;
-  transition: color 0.18s;
-}
-.header-controls .button:active,
-.header-controls button:active,
-.header-controls .dropdown-toggle:active,
-.header-controls .button.active,
-.header-controls button.active,
-.header-controls .dropdown-toggle.active {
-  box-shadow: inset -2px -2px 0 #5e5e5e, inset 2px 2px 0 #1c1c1c;
-  border: 4px solid var(--nm2-border-active);
-}
-.header-controls .button:active .icon,
-.header-controls button:active .icon,
-.header-controls .dropdown-toggle:active .icon,
-.header-controls .button.active .icon,
-.header-controls button.active .icon,
-.header-controls .dropdown-toggle.active .icon,
-.header-controls .button:active i,
-.header-controls button:active i,
-.header-controls .dropdown-toggle:active i,
-.header-controls .button.active i,
-.header-controls button.active i,
-.header-controls .dropdown-toggle.active i {
-  color: var(--nm2-icon-active);
-}
-@media (max-width: 600px) {
-  .header-controls .button,
-  .header-controls button,
-  .header-controls .dropdown-toggle {
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
-    min-height: 40px;
-    max-width: 40px;
-    max-height: 40px;
-  }
-  .header-controls .button::before,
-  .header-controls button::before,
-  .header-controls .dropdown-toggle::before {
-    width: 44px;
-    height: 44px;
-  }
-  .header-controls .button .icon,
-  .header-controls button .icon,
-  .header-controls .dropdown-toggle .icon,
-  .header-controls .button i,
-  .header-controls button i,
-  .header-controls .dropdown-toggle i {
-    width: 22px;
-    height: 22px;
-    font-size: 1.1rem;
-  }
-}
-
 /* ========== UTILITY CLASSES ========== */
 .hidden-on-load { opacity: 0; visibility: hidden; }
 .fade-in { opacity: 1; visibility: visible; transition: opacity 1s ease; }
 .fade-out { opacity: 0; transition: opacity 1s ease-out; }
 
 /* ========== END ========== */
+/* ========== NEUMORPHIC INPUTS & FORMS ========== */
+/* ========== NEUMORPHIC SQUARE BUTTON ========== */
+.square-button {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  background: var(--nm-surface-gradient);
+  box-shadow:
+    0 6px 18px 0 rgba(16,18,22,0.45),
+    0.15vw 0.15vw 0.6vw var(--nm-shadow-dark),
+    -5px -5px 12px 0 rgba(255,255,255,0.10),
+    -0.15vw -0.15vw 0.6vw var(--nm-shadow-light),
+    0 0.5px 2px 0 rgba(255,255,255,0.10) inset,
+    0 -1px 2px 0 rgba(0,0,0,0.10) inset !important;
+  color: var(--nm-text);
+  font-size: 1.2rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  margin: 0 6px;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.square-button:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 10px 28px 0 rgba(16,18,22,0.55),
+    0.22vw 0.22vw 0.9vw var(--nm-shadow-dark),
+    -8px -8px 18px 0 rgba(255,255,255,0.13),
+    -0.22vw -0.22vw 0.9vw var(--nm-shadow-light),
+    0 1px 3px 0 rgba(255,255,255,0.13) inset,
+    0 -2px 3px 0 rgba(0,0,0,0.13) inset !important;
+}
+
+.square-button:active,
+.square-button.active {
+  background: var(--nm-active-gradient) !important;
+  box-shadow:
+    0 0 0 2px #ff5e13,
+    inset 0.5vw 0.5vw 1vw var(--nm-active-shadow) !important;
+  color: var(--nm-text) !important;
+  border: none !important;
+  outline: none !important;
+  z-index: 2;
+}
+.neumorph-toggle-state {
+  display: none;
+}
+.neumorph-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 15px;
+  background: var(--nm-surface-gradient);
+  box-shadow: var(--nm-shadow);
+  transition: background 0.3s, box-shadow 0.3s;
+}
+.neumorph-toggle-state:checked ~ .neumorph-indicator {
+  background: var(--nm-accent-gradient) !important;
+  box-shadow: var(--nm-shadow-inset);
+}
+.neumorph-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--nm-surface-gradient);
+  box-shadow: var(--nm-shadow);
+  transition: left 0.4s cubic-bezier(0.85, 0.05, 0.18, 1.35), background 0.3s, box-shadow 0.3s;
+}
+.neumorph-toggle-state:checked ~ .neumorph-indicator .neumorph-knob {
+  left: 33px;
+}
+
+/* ========== NEUMORPHIC SLIDER ========== */
+.slider-track {
+  width: 100%;
+  height: 8px;
+  background: var(--nm-surface-gradient);
+  border-radius: 4px;
+  box-shadow: var(--nm-shadow-inset);
+}
+.slider-fill {
+  height: 8px;
+  background: var(--nm-accent-gradient);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+.slider-thumb {
+  width: 20px;
+  height: 20px;
+  background: var(--nm-surface-gradient);
+  border-radius: 50%;
+  box-shadow: var(--nm-shadow);
+  top: -6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.slider-thumb:hover {
+  transform: scale(1.1);
+  box-shadow: 3px 3px 6px var(--nm-shadow-dark), -3px -3px 6px var(--nm-shadow-light);
+}
+.slider-thumb:active {
+  transform: scale(0.95);
+  box-shadow: var(--nm-shadow-inset);
+}
+
+/* ========== NEUMORPHIC RADIO GROUP ========== */
+.radio-input .label .check {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid transparent;
+  background: var(--nm-surface-gradient);
+  box-shadow: var(--nm-shadow);
+  position: relative;
+}
+.radio-input .label input:checked + .check {
+  box-shadow: var(--nm-shadow-inset);
+  transform: scale(1.1);
+  background: var(--nm-accent-gradient);
+}
+.radio-input .label .check::after {
+  content: '';
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: transparent;
+  opacity: 0;
+  transition: opacity 0.2s;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+.radio-input .label input:checked + .check::after {
+  background: var(--nm-accent-gradient);
+  opacity: 1;
+  border: 2px solid var(--nm-accent);
+  box-shadow: 0 0 6px 0 var(--nm-accent);
+}
+.glass-dropdown-input, .form-control {
+  background: var(--nm-surface-gradient);
+  color: var(--nm-text);
+  border: none;
+  border-radius: calc(var(--nm-radius) * 0.7);
+  box-shadow: var(--nm-shadow-inset);
+  padding: 10px 16px;
+  font-size: 1em;
+  font-weight: 500;
+  transition: box-shadow 0.18s, background 0.18s, color 0.18s;
+  outline: none;
+}
+.glass-dropdown-input:focus, .form-control:focus {
+  background: var(--nm-accent-gradient);
+  color: var(--nm-text);
+  box-shadow: var(--nm-shadow-inset);
+}
 
 /* Hide Bootstrap caret for header-controls dropdowns */
 .header-controls .dropdown-toggle::after {

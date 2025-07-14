@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <link rel="stylesheet" href="stylev11.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+  <script type="module" src="js/headerButtonToggle.js"></script>
   <!-- LottieFiles player for animated weather icons -->
   <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
   <title>UDOT Cameras</title>
@@ -62,7 +63,7 @@
   <div class="header-controls hidden-on-load">
     <!-- Camera Count Dropdown -->
     <div class="dropdown">
-      <button id="cameraCount" class="dropdown-toggle button" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Menu">
+      <button id="cameraCount" class="dropdown-toggle square-button" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Menu">
         0 Cameras
       </button>
       <ul class="dropdown-menu glass-dropdown p-2" aria-labelledby="cameraCount">
@@ -74,7 +75,7 @@
 
     <!-- Combined Filter Dropdown with Sub-dropdowns -->
     <div class="dropdown">
-      <button id="filterDropdownButton" class="dropdown-toggle button" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" title="Filter">
+      <button id="filterDropdownButton" class="dropdown-toggle square-button" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" title="Filter">
         <i class="fas fa-filter"></i>
       </button>
       <div class="dropdown-menu glass-dropdown p-3" aria-labelledby="filterDropdownButton" style="min-width:240px; max-width:280px; max-height:500px; overflow-y:auto;">
@@ -152,7 +153,7 @@
 
     <!-- Curated Routes Dropdown -->
     <div class="dropdown">
-      <button id="routeFilterButton" class="dropdown-toggle button" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Routes">
+      <button id="routeFilterButton" class="dropdown-toggle square-button" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Routes">
         <i class="fas fa-road"></i>
       </button>
       <ul class="dropdown-menu glass-dropdown p-2" id="routeFilterMenu">
@@ -161,7 +162,7 @@
 
     <!-- Search Dropdown -->
     <div class="dropdown">
-      <button id="searchDropdownButton" class="dropdown-toggle button" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Search">
+      <button id="searchDropdownButton" class="dropdown-toggle square-button" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Search">
         <i class="fas fa-search"></i>
       </button>
       <div class="dropdown-menu glass-dropdown p-3" style="min-width: 250px;" aria-label="Search options">
@@ -170,18 +171,20 @@
     </div>
 
     <!-- Nearest Camera Button -->
-    <button id="nearestButton" class="button" title="Show Nearest Camera">
+    <button id="nearestButton" class="square-button" title="Show Nearest Camera">
       <i class="fas fa-location-arrow"></i>
     </button>
 
 
 
-    <button id="refreshButton" class="button" title="Refresh Images">
+    <button id="refreshButton" class="square-button" title="Refresh Images">
       <i class="fas fa-sync"></i>
     </button>
     <!-- Permanent Image Size Slider in Header Controls (no icon) -->
     <div id="sizeControlContainer">
-      <input type="range" id="sizeSlider" min="80" max="380" value="180" step="2">
+      <div class="nm-slider" style="margin-left:12px; display:inline-flex; align-items:center;">
+        <input type="range" id="sizeSlider" min="80" max="240" value="120" class="slider-track">
+      </div>
     </div>
   </div>
 
