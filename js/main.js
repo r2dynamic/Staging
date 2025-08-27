@@ -11,9 +11,7 @@ import {
   setupRefreshButton,
   setupSizeSlider,
   setupDropdownHide,
-  setupModalLinks,
-  setupHeaderButtonToggles,
-  setupDropdownAutoCloseOnHeaderScroll
+  setupModalLinks
 } from './events.js';  // removed setupOtherFiltersListener here
 
 import { copyURLToClipboard } from './utils.js';
@@ -139,8 +137,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // 4) Other UI Controls
-  setupHeaderButtonToggles();
-  setupDropdownAutoCloseOnHeaderScroll();
   setupRefreshButton();
   setupSearchListener();
   setupDropdownHide();

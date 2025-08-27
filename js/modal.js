@@ -310,136 +310,135 @@ modal.addEventListener('shown.bs.modal', () => {
   }
   document.getElementById('overviewMapModalLabel').textContent = label;
 
-  if (map) { map.remove(); map = null; }
-  markers.length = 0;
-  openTips.length = 0;
-  if (userMarker) { userMarker.remove(); userMarker = null; }
-  const cams = (window.visibleCameras || [])
-    .filter(item => item.type === 'camera')
-    .map(item => item.camera);
-  if (!cams.length) return;
+    if (map) { map.remove(); map = null; }
+    markers.length = 0;
+    openTips.length = 0;
+    if (userMarker) { userMarker.remove(); userMarker = null; }
+    const cams = (window.visibleCameras || [])
+  .filter(item => item.type === 'camera')
+  .map(item => item.camera);
+if (!cams.length) return;
 
-  // Build bounds from camera coords
-  const coords = cams.map(c => [c.Latitude, c.Longitude]);
-  const bounds = L.latLngBounds(coords);
+// Build bounds from camera coords
+const coords = cams.map(c => [c.Latitude, c.Longitude]);
+const bounds = L.latLngBounds(coords);
+ 
+    map = L.map('overviewMap', { attributionControl:true, zoomControl:false, dragging:true, doubleClickZoom: true, scrollWheelZoom:true });
 
-  map = L.map('overviewMap', { attributionControl:true, zoomControl:false, dragging:true, doubleClickZoom: true, scrollWheelZoom:true });
-  window._debugOverviewMap = map;
-
-  L.tileLayer(
-    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-      attribution: '&copy; Esri',
-      subdomains: 'abcd', maxZoom:20
-    }
-  ).addTo(map);
-  L.tileLayer(
-    'https://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
-      minZoom:0, maxZoom:18,
-      attribution: '&copy; OpenStreetMap',
-      ext:'png'
-    }
-  ).addTo(map);
-
-  cams.forEach(cam => {
-    const m = L.marker([cam.Latitude, cam.Longitude], { icon: smallIcon }).addTo(map);
-    m.cam = cam;
-    m.sticky = false;
-    markers.push(m);
-    let hover = null;
-    m.on('mouseover', () => {
-      if (!m.sticky && !hover) {
-        hover = L.tooltip({ permanent:false, interactive:false, opacity:1 })
-          .setLatLng(m.getLatLng())
-          .setContent(makeHtml(cam))
-          .addTo(map);
+    L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: '&copy; Esri',
+        subdomains: 'abcd', maxZoom:20
       }
-    });
-    m.on('mouseout', () => { if (hover) { map.removeLayer(hover); hover = null; } });
-    m.on('click', () => {
-      if (m.sticky) { clearTooltip(m); return; }
-      if (map.getZoom() >= ZOOM_COLLIDE && openTips.length >= MAX_TOOLTIPS) {
-        clearTooltip(openTips.shift());
-      }
-      repositionTooltip(m);
-    });
-  });
-
-  // --- USER DOT: show if available ---
-  if (window.currentGalleryFilterType === 'nearest' && window.nearestUserLocation) {
-    userMarker = L.marker(
-      [window.nearestUserLocation.lat, window.nearestUserLocation.lng],
-      { icon: userDotIcon, interactive: false }
     ).addTo(map);
-  }
-
-  // --- Attach/detach logic for auto-tooltips ---
-  function onMoveEnd() {
-    if (autoTooltipsEnabled) openInView();
-  }
-  function onZoomEnd() {
-    if (!autoTooltipsEnabled) return openTips.slice().forEach(clearTooltip);
-    const z = map.getZoom();
-    if (z >= ZOOM_OPEN) openInView(); else openTips.slice().forEach(clearTooltip);
-    if (z >= ZOOM_COLLIDE) collisionPass();
-  }
-  function attachAutoTooltipListeners() {
-    map.on('moveend', onMoveEnd);
-    map.on('zoomend', onZoomEnd);
-  }
-  function detachAutoTooltipListeners() {
-    map.off('moveend', onMoveEnd);
-    map.off('zoomend', onZoomEnd);
-  }
-
-  let autoTooltipsEnabled = true;
-  const toggleBtn = document.getElementById('toggleAutoTooltips');
-  if (toggleBtn) {
-    function updateToggleBtn() {
-      toggleBtn.textContent = 'Auto Open/Close: ' + (autoTooltipsEnabled ? 'ON' : 'OFF');
-      toggleBtn.setAttribute('aria-pressed', autoTooltipsEnabled ? 'true' : 'false');
-      if (autoTooltipsEnabled) {
-        toggleBtn.classList.remove('off');
-      } else {
-        toggleBtn.classList.add('off');
+    L.tileLayer(
+      'https://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
+        minZoom:0, maxZoom:18,
+        attribution: '&copy; OpenStreetMap',
+        ext:'png'
       }
-    }
-    updateToggleBtn();
-    toggleBtn.onclick = () => {
-      autoTooltipsEnabled = !autoTooltipsEnabled;
-      updateToggleBtn();
-      if (autoTooltipsEnabled) {
-        attachAutoTooltipListeners();
-        openInView();
-      } else {
-        detachAutoTooltipListeners();
-        openTips.slice().forEach(clearTooltip);
-      }
-    };
-    // Initial state: listeners attached
-    attachAutoTooltipListeners();
-  }
-  // --- Open All / Close All buttons always override auto logic ---
-  const openAllBtn = document.getElementById('openAllTips');
-  const closeAllBtn = document.getElementById('closeAllTips');
-  if (openAllBtn) {
-    openAllBtn.onclick = () => {
-      markers.forEach(m => {
-        if (!m.sticky) m.fire('click');
-        m._pinned = true;
+    ).addTo(map);
+
+    cams.forEach(cam => {
+  const m = L.marker([cam.Latitude, cam.Longitude], { icon: smallIcon }).addTo(map);
+  m.cam = cam;
+      m.cam = cam; m.sticky = false;
+      markers.push(m);
+      let hover = null;
+      m.on('mouseover', () => {
+        if (!m.sticky && !hover) {
+          hover = L.tooltip({ permanent:false, interactive:false, opacity:1 })
+            .setLatLng(m.getLatLng())
+            .setContent(makeHtml(cam))
+            .addTo(map);
+        }
       });
-      detachAutoTooltipListeners();
-    };
-  }
-  if (closeAllBtn) {
-    closeAllBtn.onclick = () => {
-      openTips.slice().forEach(clearTooltip);
-      markers.forEach(m => { m._pinned = false; });
-      detachAutoTooltipListeners();
-    };
-  }
+      m.on('mouseout', () => { if (hover) { map.removeLayer(hover); hover = null; } });
+      m.on('click', () => {
+        if (m.sticky) { clearTooltip(m); return; }
+        if (map.getZoom() >= ZOOM_COLLIDE && openTips.length >= MAX_TOOLTIPS) {
+          clearTooltip(openTips.shift());
+        }
+        repositionTooltip(m);
+      });
+    });
 
-  map.invalidateSize();
-  map.fitBounds(bounds, { padding:[10,10], maxZoom:12 });
+    // --- USER DOT: show if available ---
+    if (window.currentGalleryFilterType === 'nearest' && window.nearestUserLocation) {
+      userMarker = L.marker(
+        [window.nearestUserLocation.lat, window.nearestUserLocation.lng],
+        { icon: userDotIcon, interactive: false }
+      ).addTo(map);
+    }
+
+    // --- Attach/detach logic for auto-tooltips ---
+    function onMoveEnd() {
+      if (autoTooltipsEnabled) openInView();
+    }
+    function onZoomEnd() {
+      if (!autoTooltipsEnabled) return openTips.slice().forEach(clearTooltip);
+      const z = map.getZoom();
+      if (z >= ZOOM_OPEN) openInView(); else openTips.slice().forEach(clearTooltip);
+      if (z >= ZOOM_COLLIDE) collisionPass();
+    }
+    function attachAutoTooltipListeners() {
+      map.on('moveend', onMoveEnd);
+      map.on('zoomend', onZoomEnd);
+    }
+    function detachAutoTooltipListeners() {
+      map.off('moveend', onMoveEnd);
+      map.off('zoomend', onZoomEnd);
+    }
+
+    let autoTooltipsEnabled = true;
+    const toggleBtn = document.getElementById('toggleAutoTooltips');
+    if (toggleBtn) {
+      function updateToggleBtn() {
+        toggleBtn.textContent = 'Auto Open/Close: ' + (autoTooltipsEnabled ? 'ON' : 'OFF');
+        toggleBtn.setAttribute('aria-pressed', autoTooltipsEnabled ? 'true' : 'false');
+        if (autoTooltipsEnabled) {
+          toggleBtn.classList.remove('off');
+        } else {
+          toggleBtn.classList.add('off');
+        }
+      }
+      updateToggleBtn();
+      toggleBtn.onclick = () => {
+        autoTooltipsEnabled = !autoTooltipsEnabled;
+        updateToggleBtn();
+        if (autoTooltipsEnabled) {
+          attachAutoTooltipListeners();
+          openInView();
+        } else {
+          detachAutoTooltipListeners();
+          openTips.slice().forEach(clearTooltip);
+        }
+      };
+      // Initial state: listeners attached
+      attachAutoTooltipListeners();
+    }
+    // --- Open All / Close All buttons always override auto logic ---
+    const openAllBtn = document.getElementById('openAllTips');
+    const closeAllBtn = document.getElementById('closeAllTips');
+    if (openAllBtn) {
+      openAllBtn.onclick = () => {
+        markers.forEach(m => {
+          if (!m.sticky) m.fire('click');
+          m._pinned = true;
+        });
+        detachAutoTooltipListeners();
+      };
+    }
+    if (closeAllBtn) {
+      closeAllBtn.onclick = () => {
+        openTips.slice().forEach(clearTooltip);
+        markers.forEach(m => { m._pinned = false; });
+        detachAutoTooltipListeners();
+      };
+    }
+
+    map.invalidateSize();
+    map.fitBounds(bounds, { padding:[10,10], maxZoom:12 });
   });
 
   modal.addEventListener('hidden.bs.modal', () => {

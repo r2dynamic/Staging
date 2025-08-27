@@ -1,83 +1,6 @@
-/**
- * Sets up header control button toggles.
- * The first 4 header buttons toggle on/off. The refresh button is only temporarily active.
- */
-export function setupHeaderButtonToggles() {
-  // IDs of the first 4 header buttons
-  const buttonIds = [
-    'cameraCount',
-    'filterDropdownButton',
-    'routeFilterButton',
-    'searchDropdownButton'
-  ];
-  const buttons = buttonIds.map(id => document.getElementById(id)).filter(Boolean);
-
-  // Helper: deactivate all header buttons
-  function deactivateAll() {
-    buttons.forEach(btn => btn.classList.remove('active'));
-  }
-
-  // Attach click and dropdown events
-  buttons.forEach(btn => {
-    if (btn.classList.contains('dropdown-toggle')) {
-      const parent = btn.closest('.dropdown');
-      if (parent) {
-        // When dropdown is shown, activate this button and deactivate others
-        parent.addEventListener('show.bs.dropdown', () => {
-          deactivateAll();
-          btn.classList.add('active');
-        });
-        // When dropdown is hidden, deactivate this button
-        parent.addEventListener('hide.bs.dropdown', () => {
-          btn.classList.remove('active');
-        });
-        // Do NOT override Bootstrap's click for dropdowns; let Bootstrap handle open/close
-      }
-    } else {
-      // For non-dropdown buttons: toggle active, only one at a time
-      btn.addEventListener('click', () => {
-        if (btn.classList.contains('active')) {
-          btn.classList.remove('active');
-        } else {
-          deactivateAll();
-          btn.classList.add('active');
-        }
-      });
-    }
-  });
-
-  // Refresh button: only show active briefly
-  const refreshBtn = document.getElementById('refreshButton');
-  if (refreshBtn) {
-    refreshBtn.addEventListener('click', function () {
-      refreshBtn.classList.add('active');
-      setTimeout(() => refreshBtn.classList.remove('active'), 400);
-    });
-  }
-}
 // events.js
 import { debounce, getDistance } from './utils.js';
 import { filterImages } from './filters.js';
-// --- Dropdown auto-close on header scroll ---
-export function setupDropdownAutoCloseOnHeaderScroll() {
-  const header = document.querySelector('.header-controls');
-  if (!header) return;
-  const dropdownButtons = document.querySelectorAll('.dropdown-toggle');
-  let lastVisible = true;
-  function checkHeaderVisibility() {
-    const rect = header.getBoundingClientRect();
-    // Close dropdown as soon as header top leaves the viewport (not just bottom)
-    const visible = rect.top >= 0;
-    if (lastVisible && !visible) {
-      dropdownButtons.forEach(btn => {
-        const instance = window.bootstrap?.Dropdown?.getInstance(btn);
-        if (instance) instance.hide();
-      });
-    }
-    lastVisible = visible;
-  }
-  window.addEventListener('scroll', checkHeaderVisibility, { passive: true });
-}
 import { updateURLParameters } from './ui.js';
 import { copyURLToClipboard } from './ui.js';
 
@@ -165,11 +88,11 @@ export function setupSizeSlider() {
     galleryContainer.style.gridTemplateColumns = `repeat(auto-fit, minmax(${n}px, 1fr))`;
     window.userImageSizeOverride = true;
     clearTimeout(sizeSlider.autoHideTimeout);
-    sizeSlider.autoHideTimeout = setTimeout(() => sizeSliderContainer && sizeSliderContainer.classList.remove('active'), 3000);
+    sizeSlider.autoHideTimeout = setTimeout(() => sizeSliderContainer.classList.remove('active'), 3000);
   });
   document.addEventListener('click', e => {
-    if ((sizeControlButton && !sizeControlButton.contains(e.target)) && (sizeSliderContainer && !sizeSliderContainer.contains(e.target))) {
-      if (sizeSliderContainer) sizeSliderContainer.classList.remove('active');
+    if (!sizeControlButton.contains(e.target) && !sizeSliderContainer.contains(e.target)) {
+      sizeSliderContainer.classList.remove('active');
     }
   });
 

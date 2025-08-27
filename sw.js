@@ -1,12 +1,33 @@
 // sw.js - Service Worker
 
-const CACHE_VERSION = 'v53.8';
+const CACHE_VERSION = 'v40';
 const PRECACHE_NAME = `wpa-precache-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `wpa-runtime-${CACHE_VERSION}`;
 
 // List of resources to precache
 const PRECACHE_URLS = [
   '/',
+  '/index.html',
+  '/lottie-player.html',
+  '/stylev11.css',
+  '/manifest.json',
+  '/routes.json',
+  '/cameras.json',
+  '/cameraData.js',
+  '/js/main.js',
+  '/js/geolocation.js',
+  '/js/utils.js',
+  '/js/dataLoader.js',
+  '/js/filters.js',
+  '/js/dropdowns.js',
+  '/js/gallery.js',
+  '/js/modal.js',
+  '/js/customRoute.js',
+  '/js/otherFilters.js',
+  '/js/events.js',
+  '/js/ui.js',
+  '/js/weatherLottieMap.js',
+  '/js/maps.js',
   '/images/mobileSplash.webp',
   '/Icongridbackground3.png',
   '/desktop-splash.mp4'
