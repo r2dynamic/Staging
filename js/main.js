@@ -21,10 +21,6 @@ import {
   setupLocateButton
 } from './geolocation.js';
 
-// Debug imports
-import '../route-debug.js';
-import '../milepost-debug.js';
-
 import {
   updateRegionDropdown,
   updateCountyDropdown,
