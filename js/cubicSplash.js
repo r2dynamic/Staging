@@ -215,14 +215,25 @@ const carouselItems = [];
 
 function renderMobileCarousel() {
   const carouselContainer = document.querySelector('.carousel-3d');
-  if (!carouselContainer) return;
+  console.log('Carousel container found:', carouselContainer);
+  
+  if (!carouselContainer) {
+    console.error('ERROR: .carousel-3d container not found in DOM!');
+    return;
+  }
   
   console.log('Rendering mobile 3D carousel');
+  console.log('Container dimensions:', carouselContainer.offsetWidth, 'x', carouselContainer.offsetHeight);
+  console.log('Container display:', window.getComputedStyle(carouselContainer).display);
+  console.log('Parent display:', window.getComputedStyle(carouselContainer.parentElement).display);
+  
+  // Clear any existing items
+  carouselContainer.innerHTML = '';
+  carouselItems.length = 0;
   
   // Create 5 carousel items
   const itemCount = 5;
-  const angleIncrement = 360 / itemCount;
-  const radius = 250; // Distance from center
+  const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7']; // Debug colors
   
   for (let i = 0; i < itemCount; i++) {
     const item = document.createElement('div');
@@ -231,10 +242,16 @@ function renderMobileCarousel() {
     // Set random image from pool
     const randomImage = SPLASH_IMAGES[Math.floor(Math.random() * SPLASH_IMAGES.length)];
     item.style.backgroundImage = `url('${randomImage}')`;
+    item.style.backgroundColor = colors[i]; // Fallback color
+    
+    console.log(`Created carousel item ${i + 1} with image:`, randomImage);
     
     carouselContainer.appendChild(item);
     carouselItems.push(item);
   }
+  
+  console.log(`Total carousel items created: ${carouselItems.length}`);
+  console.log('First item in DOM:', carouselContainer.children[0]);
   
   updateCarouselPositions();
   startCarouselAnimation();
