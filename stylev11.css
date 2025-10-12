@@ -228,6 +228,126 @@ body {
 }
 
 /* ======================================== 
+   MOBILE CURTAIN MODE
+   ======================================== */
+
+/* Hide carousel on desktop */
+.mobile-carousel-container {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+}
+
+@media (max-width: 768px) and (orientation: portrait) {
+  /* Hide desktop 3D cube on mobile */
+  .inf-grid-hero-container {
+    display: none !important;
+  }
+  
+  /* Show carousel on mobile */
+  .mobile-carousel-container {
+    display: block !important;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    perspective: 1200px;
+    overflow: hidden;
+  }
+  
+  /* 3D Carousel */
+  .carousel-3d {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 400px;
+    height: 50vh;
+    max-height: 350px;
+    transform-style: preserve-3d;
+  }
+  
+  /* Individual carousel cards */
+  .carousel-item {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-color: #333;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    backface-visibility: visible;
+    will-change: transform, opacity;
+  }
+  
+  /* Glass overlay on carousel items */
+  .carousel-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(0px);
+    transition: backdrop-filter 0.6s ease;
+  }
+}
+
+/* Old curtain mode - keeping for reference but hidden */
+@media (max-width: 768px) and (orientation: portrait) {
+  /* Remove 3D perspective for mobile curtain */
+  .inf-grid-hero-container.mobile-curtain-mode {
+    perspective: none;
+  }
+  
+  /* Make bottom wall face forward (no rotation) */
+  .inf-grid-hero-container.mobile-curtain-mode > div.bottom {
+    transform: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    display: grid;
+    place-items: center;
+  }
+  
+  /* Remove 3D transforms from tiles */
+  .inf-grid-hero-container.mobile-curtain-mode > div.bottom > div {
+    transform: none !important;
+  }
+  
+  /* Curtain slides down from top */
+  .inf-grid-hero-container.mobile-curtain-mode > div.bottom::after {
+    background: linear-gradient(180deg, 
+      rgba(255, 255, 255, calc(0.08 * var(--rev-dis) / 100)) 0%,
+      rgba(255, 255, 255, calc(0.08 * var(--rev-dis) / 100)) calc(1% * var(--rev-dis)),
+      transparent calc(1% * var(--rev-dis))
+    );
+    transform: translateY(0);
+  }
+  
+  /* Hide other walls on mobile */
+  .inf-grid-hero-container.mobile-curtain-mode > div.top,
+  .inf-grid-hero-container.mobile-curtain-mode > div.left,
+  .inf-grid-hero-container.mobile-curtain-mode > div.right {
+    display: none;
+  }
+}
+
+/* ======================================== 
    END 3D CUBIC SPLASH SCREEN STYLES
    ======================================== */
 

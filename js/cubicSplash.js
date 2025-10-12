@@ -11,11 +11,21 @@ let pauseBeforeTransition = 0; // Instant transition - no pause!
 
 // Mobile detection and adjustment
 const isMobile = window.innerWidth <= 768;
-if (isMobile) {
-  density = 3; // Even fewer tiles on mobile (3x3 = 9 per wall, 36 total)
-  speed = 30; // Faster on mobile too
-  imageCount = 25; // Fewer images needed
-  console.log('Mobile detected: Using reduced density', density);
+const isPortrait = window.innerHeight > window.innerWidth;
+const useMobileCurtain = isMobile && isPortrait;
+
+if (useMobileCurtain) {
+  density = 4; // 4x4 grid for portrait mobile (16 tiles)
+  speed = 30;
+  imageCount = 20;
+  console.log('Mobile portrait detected: Using curtain mode with', density, 'x', density, 'grid');
+} else if (isMobile) {
+  density = 3; // Landscape mobile
+  speed = 30;
+  imageCount = 25;
+  console.log('Mobile landscape detected: Using reduced density', density);
+} else {
+  console.log('Desktop detected: Using full 3D cubic grid');
 }
 
 // Load configuration from localStorage if testing
@@ -169,6 +179,12 @@ function renderWalls() {
   const gridContainer = document.querySelector('.inf-grid-hero-container');
   if (!gridContainer) return;
   
+  // For mobile portrait, render carousel instead
+  if (useMobileCurtain) {
+    renderMobileCarousel();
+    return;
+  }
+  
   gridContainer.style.setProperty('--grid-sz', density);
   gridContainer.style.setProperty('--rev-dis', distance);
 
@@ -188,6 +204,110 @@ function renderWalls() {
   });
 
   startImageInterval();
+}
+
+/**
+ * Render mobile 3D carousel
+ */
+let carouselRotation = 0;
+let carouselInterval;
+const carouselItems = [];
+
+function renderMobileCarousel() {
+  const carouselContainer = document.querySelector('.carousel-3d');
+  if (!carouselContainer) return;
+  
+  console.log('Rendering mobile 3D carousel');
+  
+  // Create 5 carousel items
+  const itemCount = 5;
+  const angleIncrement = 360 / itemCount;
+  const radius = 250; // Distance from center
+  
+  for (let i = 0; i < itemCount; i++) {
+    const item = document.createElement('div');
+    item.classList.add('carousel-item');
+    
+    // Set random image from pool
+    const randomImage = SPLASH_IMAGES[Math.floor(Math.random() * SPLASH_IMAGES.length)];
+    item.style.backgroundImage = `url('${randomImage}')`;
+    
+    carouselContainer.appendChild(item);
+    carouselItems.push(item);
+  }
+  
+  updateCarouselPositions();
+  startCarouselAnimation();
+}
+
+/**
+ * Update carousel item positions based on rotation
+ */
+function updateCarouselPositions() {
+  const itemCount = carouselItems.length;
+  const angleIncrement = 360 / itemCount;
+  const radius = 300; // Increased for better spacing
+  
+  carouselItems.forEach((item, index) => {
+    const angle = (carouselRotation + (index * angleIncrement)) * Math.PI / 180;
+    const y = Math.sin(angle) * radius;
+    const z = Math.cos(angle) * radius - 100; // Offset to center
+    
+    // Scale and opacity based on z-position
+    const scale = Math.max(0.4, Math.min(1, (z + 400) / 500));
+    const opacity = Math.max(0.3, Math.min(1, (z + 400) / 500));
+    
+    item.style.transform = `translateY(${y}px) translateZ(${z}px) scale(${scale})`;
+    item.style.opacity = opacity;
+    item.style.zIndex = Math.floor(z + 100);
+  });
+}
+
+/**
+ * Start carousel auto-scroll animation
+ */
+function startCarouselAnimation() {
+  let lastTime = performance.now();
+  const rotationSpeed = 30; // degrees per second (increased from 20)
+  
+  function animate(currentTime) {
+    const deltaTime = (currentTime - lastTime) / 1000; // Convert to seconds
+    lastTime = currentTime;
+    
+    carouselRotation += rotationSpeed * deltaTime;
+    
+    // Change images every rotation cycle (every 72 degrees = 5 rotations per full circle)
+    if (Math.floor(carouselRotation / 72) !== Math.floor((carouselRotation - rotationSpeed * deltaTime) / 72)) {
+      // Randomly change one of the carousel items
+      const randomIndex = Math.floor(Math.random() * carouselItems.length);
+      const randomImage = SPLASH_IMAGES[Math.floor(Math.random() * SPLASH_IMAGES.length)];
+      carouselItems[randomIndex].style.backgroundImage = `url('${randomImage}')`;
+    }
+    
+    updateCarouselPositions();
+    
+    carouselInterval = requestAnimationFrame(animate);
+  }
+  
+  carouselInterval = requestAnimationFrame(animate);
+  
+  // Stop after 4 seconds (increased from 3) and transition
+  setTimeout(() => {
+    cancelAnimationFrame(carouselInterval);
+    onMobileCarouselComplete();
+  }, 4000);
+}
+
+/**
+ * Called when mobile carousel animation completes
+ */
+function onMobileCarouselComplete() {
+  console.log('Mobile carousel complete - transitioning to main app');
+  
+  // Fade out splash
+  setTimeout(() => {
+    hideSplashAndRevealApp();
+  }, 500);
 }
 
 /**
@@ -290,12 +410,6 @@ function onAllTilesLoaded() {
   // Pause for a second to let user see the full gallery before revealing
   setTimeout(() => {
     // Keep images rotating - don't stop!
-    
-    // Trigger icon zoom animation
-    const icon = document.querySelector('.splash-center-icon');
-    if (icon) {
-      icon.classList.add('zoom-forward');
-    }
     
     // Animate reveal distance
     animateDistance(100, revealDuration, () => {
