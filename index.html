@@ -30,6 +30,8 @@
   <script type="module" src="validate-migration.js"></script>
   <!-- Route debugging utility -->
   <script type="module" src="route-debug.js"></script>
+  <!-- Cubic splash screen -->
+  <script type="module" src="js/cubicSplash.js"></script>
   <!-- finally your app code -->
   <script type="module" src="js/otherFilters.js"></script>
   <script type="module" src="js/main.js"></script>
@@ -37,26 +39,18 @@
   <!-- Leaflet for Route Overview Map -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-  <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-EEMGV1LKN1"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-EEMGV1LKN1');
-  </script>
 
 </head>
 <body>
-  <!-- Splash Screen -->
-  <div id="splashScreen" class="splash-screen">
-    <!-- Desktop Splash Video -->
-    <video id="desktopVideo" class="splash-video desktop-video" autoplay muted playsinline preload="auto">
-      <source src="desktop-splash.mp4" type="video/mp4">
-      Your browser does not support the video tag.
-    </video>
-    <!-- Mobile Splash Image -->
-    <img id="mobileSplashImage" class="splash-image mobile-splash-image" src="images/mobileSplash.webp" alt="Splash Image">
+  <!-- 3D Cubic Splash Screen -->
+  <div id="cubicSplash" class="cubic-splash-overlay">
+    <!-- 3D Cubic Grid Container -->
+    <section class="inf-grid-hero-container">
+      <div class="right"></div>
+      <div class="bottom"></div>
+      <div class="left"></div>
+      <div class="top"></div>
+    </section>
   </div>
 
   <!-- Selected Filters Container -->

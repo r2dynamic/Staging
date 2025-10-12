@@ -6,6 +6,158 @@ body {
   font-family: Arial, sans-serif;
 }
 
+/* ========================================
+   3D CUBIC SPLASH SCREEN STYLES
+   ======================================== */
+@import url('https://fonts.googleapis.com/css2?family=Mona+Sans:ital,wght@0,200..900;1,200..900&display=swap');
+
+/* Cubic Splash Overlay - Full screen container */
+.cubic-splash-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10000;
+  overflow: hidden;
+  background: #4C4E52;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.cubic-splash-overlay.splash-complete {
+  animation: fadeOutSplash 1s forwards;
+  pointer-events: none;
+}
+
+@keyframes fadeOutSplash {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* 3D Cubic Grid Container */
+.inf-grid-hero-container {
+  height: 100vh;
+  width: 100vw;
+  perspective: 1000px;
+  position: relative;
+  --sz: 1800px;
+  --grid-sz: 0;
+  --rev-dis: 0;
+}
+
+.inf-grid-hero-container > div {
+  position: absolute;
+  width: 100%; 
+  height: 100%;
+  transform-style: preserve-3d;
+  display: grid; 
+  place-items: center;
+  z-index: 1;
+  grid-template-columns: repeat(var(--grid-sz), 1fr);
+  grid-template-rows: repeat(var(--grid-sz), 1fr);
+  gap: 6px;
+}
+
+.inf-grid-hero-container > div::after {
+  content: ''; 
+  display: block;
+  height: 100%;
+  background: #4C4E52;
+  position: absolute; 
+  left: 0; right: 0; top: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.inf-grid-hero-container > div > div {
+  width: 100%; 
+  height: 100%;
+  background-size: cover !important;
+  background-position: center !important;
+  background: repeating-linear-gradient(45deg, #94a4c211 0%, #94a4c211 5%, transparent 5%, transparent 10%);
+  opacity: 0;
+  border-radius: 4px;
+}
+
+.inf-grid-hero-container > div > div.loaded {
+  transition: transform 0.4s ease-out, opacity 0.4s ease-out;
+  transform-style: preserve-3d;
+  opacity: 1;
+  z-index: 2;
+  transform: translate3d(0, 0, -1px) !important;
+}
+
+/* Top wall */
+.inf-grid-hero-container > div.top {
+  top: 0;
+  transform-origin: top center;
+  transform: rotateX(-90deg);
+  height: var(--sz);
+  perspective: 1000px;
+}
+
+.inf-grid-hero-container > div.top::after { 
+  background: linear-gradient(180deg, transparent, #4C4E52 calc(1% * (100 - var(--rev-dis)))); 
+}
+
+.inf-grid-hero-container > div.top > div { 
+  transform: translate3d(0, 0, -100vh); 
+}
+
+/* Left wall */
+.inf-grid-hero-container > div.left {
+  left: 0; 
+  transform-origin: center left;
+  transform: rotateY(90deg); 
+  width: var(--sz);
+}
+
+.inf-grid-hero-container > div.left::after { 
+  background: linear-gradient(90deg, transparent, #4C4E52 calc(1% * (100 - var(--rev-dis)))); 
+}
+
+.inf-grid-hero-container > div.left > div { 
+  transform: translate3d(0, 0, -50vw); 
+}
+
+/* Bottom wall */
+.inf-grid-hero-container > div.bottom {
+  bottom: 0; 
+  transform-origin: bottom center;
+  transform: rotateX(90deg); 
+  height: var(--sz);
+}
+
+.inf-grid-hero-container > div.bottom::after { 
+  background: linear-gradient(0deg, transparent, #4C4E52 calc(1% * (100 - var(--rev-dis)))); 
+}
+
+.inf-grid-hero-container > div.bottom > div { 
+  transform: translate3d(0, 0, -50vh); 
+}
+
+/* Right wall */
+.inf-grid-hero-container > div.right {
+  right: 0; 
+  transform-origin: center right;
+  transform: rotateY(-90deg); 
+  width: var(--sz);
+}
+
+.inf-grid-hero-container > div.right::after { 
+  background: linear-gradient(270deg, transparent, #4C4E52 calc(1% * (100 - var(--rev-dis)))); 
+}
+
+.inf-grid-hero-container > div.right > div { 
+  transform: translate3d(0, 0, -50vw); 
+}
+
+/* ======================================== 
+   END 3D CUBIC SPLASH SCREEN STYLES
+   ======================================== */
+
 /* Hide scrollbars */
 ::-webkit-scrollbar {
   width: 0px;
@@ -64,11 +216,8 @@ body {
   transition: opacity 1s ease-out;
 }
 
-/* Splash Screen Keyframes & Styles */
-@keyframes splashFade {
-  from { opacity: 1; }
-  to { opacity: 0; }
-}
+/* OLD SPLASH SCREEN STYLES - DISABLED (now using cubic-splash.html) */
+/*
 .splash-screen {
   position: fixed;
   top: 0;
@@ -82,8 +231,10 @@ body {
 .splash-screen.fade-out {
   animation: splashFade 1s forwards;
 }
+*/
 
-/* Desktop Splash Video */
+/* Desktop Splash Video - DISABLED */
+/*
 .splash-screen video {
   width: 100%;
   height: 100%;
@@ -94,15 +245,17 @@ body {
   .desktop-video { display: block; }
   .mobile-splash-image { display: none; }
 }
+*/
 
-/* Mobile Splash Image */
+/* Mobile Splash Image - DISABLED */
 html, body {
   height: 100%;
   margin: 0;
   padding: 0;
 }
 
-/* Splash screen container uses the calculated viewport height */
+/* OLD Mobile Splash - DISABLED */
+/*
 .splash-screen {
   position: fixed;
   top: 0;
@@ -113,12 +266,11 @@ html, body {
   z-index: 9999;
 }
 
-/* Mobile splash image fills the container and aligns its top */
 .splash-image.mobile-splash-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center top; /* force alignment of the top edge */
+  object-position: center top;
   animation: fadeIn 1s ease-in forwards;
 }
 
@@ -126,6 +278,7 @@ html, body {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+*/
 
 
 /* Selected Filters Container */

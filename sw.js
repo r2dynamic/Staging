@@ -1,6 +1,6 @@
 // sw.js - Service Worker
 
-const CACHE_VERSION = 'v42';
+const CACHE_VERSION = 'v46';
 const PRECACHE_NAME = `wpa-precache-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `wpa-runtime-${CACHE_VERSION}`;
 
@@ -15,6 +15,7 @@ const PRECACHE_URLS = [
   '/cameras.geojson',
   '/cameraData.js',
   '/js/main.js',
+  '/js/cubicSplash.js',
   '/js/geolocation.js',
   '/js/utils.js',
   '/js/dataLoader.js',
@@ -28,9 +29,9 @@ const PRECACHE_URLS = [
   '/js/ui.js',
   '/js/weatherLottieMap.js',
   '/js/maps.js',
-  '/images/mobileSplash.webp',
-  '/Icongridbackground3.png',
-  '/desktop-splash.mp4'
+  '/Icongridbackground3.png'
+  // CUBIC SPLASH NOW INTEGRATED INTO index.html and stylev11.css
+  // OLD SPLASH ASSETS REMOVED: '/images/mobileSplash.webp', '/desktop-splash.mp4'
 ];
 
 // Install - pre-cache assets
