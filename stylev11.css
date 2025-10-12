@@ -21,9 +21,6 @@ body {
   z-index: 10000;
   overflow: hidden;
   background: #4C4E52;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
 .cubic-splash-overlay.splash-complete {
@@ -250,15 +247,16 @@ body {
   /* Show carousel on mobile */
   .mobile-carousel-container {
     display: block !important;
-    position: absolute;
+    position: fixed !important;
     top: 0;
     left: 0;
     width: 100%;
     height: 100vh;
     perspective: 1200px;
-    overflow: hidden;
-    z-index: 100;
-    background: rgba(76, 78, 82, 0.5); /* Debug background */
+    overflow: visible !important;
+    z-index: 10001 !important;
+    background: #4C4E52;
+    pointer-events: none;
   }
   
   /* 3D Carousel */
@@ -268,30 +266,36 @@ body {
     left: 50%;
     transform: translate(-50%, -50%);
     width: 90%;
-    max-width: 400px;
-    height: 50vh;
+    max-width: 500px;
+    height: 60vh;
     max-height: 350px;
     transform-style: preserve-3d;
-    background: rgba(255, 0, 0, 0.2); /* Debug background - red tint */
+    pointer-events: none;
   }
   
-  /* Individual carousel cards */
+  /* Individual carousel cards - Responsive 16:9 aspect ratio */
   .carousel-item {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    display: block !important;
+    position: absolute !important;
+    top: 50%;
+    left: 50%;
+    /* Responsive sizing - 16:9 aspect ratio */
+    width: min(80vw, 400px);
+    height: calc(min(80vw, 400px) * 9 / 16);
+    margin-top: calc(min(80vw, 400px) * 9 / 16 / -2); /* Center vertically */
+    margin-left: calc(min(80vw, 400px) / -2); /* Center horizontally */
+    background-color: transparent;
     background-size: cover;
     background-position: center;
-    background-color: #333;
-    border-radius: 20px;
+    border-radius: 16px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-    border: 2px solid rgba(255, 255, 255, 0.4);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    transition: none; /* Remove transition for smoother animation */
     overflow: hidden;
     backface-visibility: visible;
     will-change: transform, opacity;
+    transform-origin: center center;
+    pointer-events: auto;
   }
   
   /* Glass overlay on carousel items */
@@ -302,7 +306,7 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.1);
+    background: transparent;
     backdrop-filter: blur(0px);
     transition: backdrop-filter 0.6s ease;
   }

@@ -215,6 +215,7 @@ const carouselItems = [];
 
 function renderMobileCarousel() {
   const carouselContainer = document.querySelector('.carousel-3d');
+  console.log('=== MOBILE CAROUSEL DEBUG ===');
   console.log('Carousel container found:', carouselContainer);
   
   if (!carouselContainer) {
@@ -222,18 +223,22 @@ function renderMobileCarousel() {
     return;
   }
   
+  const parentContainer = carouselContainer.parentElement;
+  console.log('Parent container:', parentContainer);
+  console.log('Parent computed style display:', window.getComputedStyle(parentContainer).display);
+  console.log('Parent computed style z-index:', window.getComputedStyle(parentContainer).zIndex);
+  
   console.log('Rendering mobile 3D carousel');
   console.log('Container dimensions:', carouselContainer.offsetWidth, 'x', carouselContainer.offsetHeight);
   console.log('Container display:', window.getComputedStyle(carouselContainer).display);
-  console.log('Parent display:', window.getComputedStyle(carouselContainer.parentElement).display);
+  console.log('Parent display:', window.getComputedStyle(parentContainer).display);
   
   // Clear any existing items
   carouselContainer.innerHTML = '';
   carouselItems.length = 0;
   
-  // Create 5 carousel items
-  const itemCount = 5;
-  const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7']; // Debug colors
+  // Create 12 carousel items (more images for fuller wheel)
+  const itemCount = 12;
   
   for (let i = 0; i < itemCount; i++) {
     const item = document.createElement('div');
@@ -242,9 +247,12 @@ function renderMobileCarousel() {
     // Set random image from pool
     const randomImage = SPLASH_IMAGES[Math.floor(Math.random() * SPLASH_IMAGES.length)];
     item.style.backgroundImage = `url('${randomImage}')`;
-    item.style.backgroundColor = colors[i]; // Fallback color
+    item.style.backgroundColor = 'transparent'; // Transparent background
     
-    console.log(`Created carousel item ${i + 1} with image:`, randomImage);
+    console.log(`Created carousel item ${i + 1}:`, {
+      image: randomImage,
+      computed: window.getComputedStyle(item)
+    });
     
     carouselContainer.appendChild(item);
     carouselItems.push(item);
@@ -252,6 +260,12 @@ function renderMobileCarousel() {
   
   console.log(`Total carousel items created: ${carouselItems.length}`);
   console.log('First item in DOM:', carouselContainer.children[0]);
+  console.log('First item computed styles:', {
+    display: window.getComputedStyle(carouselContainer.children[0]).display,
+    position: window.getComputedStyle(carouselContainer.children[0]).position,
+    opacity: window.getComputedStyle(carouselContainer.children[0]).opacity,
+    zIndex: window.getComputedStyle(carouselContainer.children[0]).zIndex
+  });
   
   updateCarouselPositions();
   startCarouselAnimation();
@@ -259,33 +273,61 @@ function renderMobileCarousel() {
 
 /**
  * Update carousel item positions based on rotation
+ * Creates a vertical wheel like Price is Right - images rotate upward
  */
 function updateCarouselPositions() {
   const itemCount = carouselItems.length;
   const angleIncrement = 360 / itemCount;
-  const radius = 300; // Increased for better spacing
+  const radius = 200; // Radius of the vertical wheel
   
   carouselItems.forEach((item, index) => {
-    const angle = (carouselRotation + (index * angleIncrement)) * Math.PI / 180;
-    const y = Math.sin(angle) * radius;
-    const z = Math.cos(angle) * radius - 100; // Offset to center
+    // Calculate angle - 0° is center front, rotates upward
+    const angle = (carouselRotation + (index * angleIncrement)) % 360;
+    const angleRad = angle * Math.PI / 180;
     
-    // Scale and opacity based on z-position
-    const scale = Math.max(0.4, Math.min(1, (z + 400) / 500));
-    const opacity = Math.max(0.3, Math.min(1, (z + 400) / 500));
+    // Position on vertical circle (wheel)
+    const y = -Math.sin(angleRad) * radius; // Negative so it rotates upward
+    const z = Math.cos(angleRad) * radius; // Depth
     
-    item.style.transform = `translateY(${y}px) translateZ(${z}px) scale(${scale})`;
-    item.style.opacity = opacity;
-    item.style.zIndex = Math.floor(z + 100);
+    // Rotate card to face forward based on position on wheel
+    const cardRotationX = -angle; // Card rotates with the wheel
+    
+    // Opacity based on position
+    // Front half (z > 0) is visible, back half (z < 0) fades out
+    let opacity = 1;
+    if (z < 0) {
+      // Back side - fade out completely
+      opacity = 0;
+    } else if (y < -radius * 0.7) {
+      // Fading in from top
+      opacity = Math.max(0, (y + radius) / (radius * 0.3));
+    } else if (y > radius * 0.7) {
+      // Fading out at bottom
+      opacity = Math.max(0, (radius - y) / (radius * 0.3));
+    }
+    
+    // Scale based on depth - items at center front (z=radius) are largest
+    const scale = 0.6 + (z / radius) * 0.4; // Scale from 0.6 to 1.0
+    
+    // Apply transforms
+    item.style.transform = `
+      translateY(${y}px) 
+      translateZ(${z}px) 
+      rotateX(${cardRotationX}deg)
+      scale(${scale})
+    `;
+    item.style.opacity = Math.max(0, Math.min(1, opacity));
+    item.style.zIndex = Math.floor(z + 200); // Items closer have higher z-index
   });
 }
 
 /**
  * Start carousel auto-scroll animation
+ * Rotates images upward like a vertical wheel (Price is Right style)
  */
 function startCarouselAnimation() {
   let lastTime = performance.now();
-  const rotationSpeed = 30; // degrees per second (increased from 20)
+  const rotationSpeed = 30; // degrees per second - smooth upward wheel rotation
   
   function animate(currentTime) {
     const deltaTime = (currentTime - lastTime) / 1000; // Convert to seconds
@@ -293,8 +335,8 @@ function startCarouselAnimation() {
     
     carouselRotation += rotationSpeed * deltaTime;
     
-    // Change images every rotation cycle (every 72 degrees = 5 rotations per full circle)
-    if (Math.floor(carouselRotation / 72) !== Math.floor((carouselRotation - rotationSpeed * deltaTime) / 72)) {
+    // Change images every full rotation (360 degrees)
+    if (Math.floor(carouselRotation / 360) !== Math.floor((carouselRotation - rotationSpeed * deltaTime) / 360)) {
       // Randomly change one of the carousel items
       const randomIndex = Math.floor(Math.random() * carouselItems.length);
       const randomImage = SPLASH_IMAGES[Math.floor(Math.random() * SPLASH_IMAGES.length)];
@@ -308,11 +350,12 @@ function startCarouselAnimation() {
   
   carouselInterval = requestAnimationFrame(animate);
   
-  // Stop after 4 seconds (increased from 3) and transition
+  // Stop after 6 seconds
   setTimeout(() => {
+    console.log('Stopping carousel animation');
     cancelAnimationFrame(carouselInterval);
     onMobileCarouselComplete();
-  }, 4000);
+  }, 6000);
 }
 
 /**
@@ -321,10 +364,13 @@ function startCarouselAnimation() {
 function onMobileCarouselComplete() {
   console.log('Mobile carousel complete - transitioning to main app');
   
-  // Fade out splash
+  // Add a longer pause before fade out so you can see the carousel
   setTimeout(() => {
-    hideSplashAndRevealApp();
-  }, 500);
+    // Fade out splash
+    setTimeout(() => {
+      hideSplashAndRevealApp();
+    }, 500);
+  }, 1000); // 1 second pause before starting fade
 }
 
 /**
