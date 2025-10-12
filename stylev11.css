@@ -27,7 +27,7 @@ body {
 }
 
 .cubic-splash-overlay.splash-complete {
-  animation: fadeOutSplash 0.3s ease-out forwards;
+  animation: fadeOutSplash 0.15s forwards;
   pointer-events: none;
 }
 
@@ -45,6 +45,53 @@ body {
   --sz: 1800px;
   --grid-sz: 0;
   --rev-dis: 0;
+}
+
+/* Center App Icon */
+.splash-center-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  animation: fadeInIcon 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes fadeInIcon {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.splash-center-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.5));
+  position: relative;
+  z-index: 1001;
+}
+
+/* Icon zoom animation - triggered when back panel reveals */
+.splash-center-icon.zoom-forward {
+  animation: zoomForward 1.2s ease-out forwards;
+}
+
+@keyframes zoomForward {
+  from {
+    transform: translate(-50%, -50%) scale(1) translateZ(0);
+    opacity: 1;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(3) translateZ(500px);
+    opacity: 0;
+  }
 }
 
 .inf-grid-hero-container > div {
@@ -209,7 +256,7 @@ body {
 .fade-in {
   opacity: 1;
   visibility: visible;
-  transition: opacity 0.3s ease;
+  transition: opacity 1s ease;
 }
 .fade-out {
   opacity: 0;

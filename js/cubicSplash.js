@@ -1,13 +1,13 @@
 // cubicSplash.js
 // UDOT Cameras - 3D Cubic Splash Screen (Integrated Version)
 
-// Default configuration - 6 SECOND TOTAL
+// Default configuration - FAST MODE (6 second total)
 let density = 4; // Grid density (4x4 = 16 tiles per wall, 64 total - bigger tiles!)
 let distance = 0; // Reveal distance (0-100)
 let speed = 25; // Speed of image loading (milliseconds) - 64 tiles × 25ms = 1.6 seconds ⚡
 let imageCount = 40; // Number of images to load (reduced from 50)
 let revealDuration = 1200; // Reveal animation duration (ms)
-let pauseBeforeTransition = 2700; // Pause before hiding splash (ms) - admire the cube! 🎨
+let pauseBeforeTransition = 0; // Instant transition - no pause!
 
 // Mobile detection and adjustment
 const isMobile = window.innerWidth <= 768;
@@ -233,20 +233,22 @@ function startImageInterval() {
 function onAllTilesLoaded() {
   console.log('All cubic tiles loaded');
   
-  // Start revealing the main app underneath NOW (while splash is still visible)
-  const hiddenElements = document.querySelectorAll('.hidden-on-load');
-  hiddenElements.forEach(el => {
-    el.style.opacity = '0';
-    el.style.visibility = 'visible'; // Make visible but transparent
-  });
-  
-  // Animate reveal distance
-  animateDistance(100, revealDuration, () => {
-    // Wait a moment to admire the completed cube, then transition
-    setTimeout(() => {
-      hideSplashAndRevealApp();
-    }, pauseBeforeTransition);
-  });
+  // Pause for a second to let user see the full gallery before revealing
+  setTimeout(() => {
+    // Trigger icon zoom animation
+    const icon = document.querySelector('.splash-center-icon');
+    if (icon) {
+      icon.classList.add('zoom-forward');
+    }
+    
+    // Animate reveal distance
+    animateDistance(100, revealDuration, () => {
+      // Instant transition after back panel is solid
+      setTimeout(() => {
+        hideSplashAndRevealApp();
+      }, pauseBeforeTransition);
+    });
+  }, 1000); // 1 second pause to admire the full splash gallery
 }
 
 /**
@@ -281,25 +283,20 @@ function animateDistance(toValue, duration = 1000, callback) {
  */
 function hideSplashAndRevealApp() {
   const splashOverlay = document.getElementById('cubicSplash');
-  
-  // Fade in main app content (it's already visible underneath, just transparent)
-  const hiddenElements = document.querySelectorAll('.hidden-on-load');
-  hiddenElements.forEach(el => {
-    el.style.transition = 'opacity 0.3s ease';
-    el.style.opacity = '1';
-  });
-  
-  // Simultaneously fade out splash
   if (splashOverlay) {
     splashOverlay.classList.add('splash-complete');
     
-    // After fade out animation completes, remove from DOM
+    // After fade out animation completes, remove from DOM (instant fade = 200ms)
     setTimeout(() => {
       splashOverlay.remove();
-    }, 300);
+    }, 200);
   }
   
-  console.log('Transitioning from splash to main app');
+  // Reveal main app content
+  const hiddenElements = document.querySelectorAll('.hidden-on-load');
+  hiddenElements.forEach(el => el.classList.add('fade-in'));
+  
+  console.log('Main app revealed');
 }
 
 /**
