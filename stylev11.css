@@ -148,7 +148,13 @@ body {
 }
 
 .inf-grid-hero-container > div.top::after { 
-  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, calc(0.1 * var(--rev-dis) / 100)) calc(1% * (100 - var(--rev-dis)))); 
+  background: linear-gradient(180deg, 
+    transparent 0%, 
+    transparent calc(1% * (100 - var(--rev-dis) * 0.9)),
+    rgba(255, 255, 255, calc(0.02 * var(--rev-dis) / 100)) calc(1% * (100 - var(--rev-dis) * 0.7)),
+    rgba(255, 255, 255, calc(0.05 * var(--rev-dis) / 100)) calc(1% * (100 - var(--rev-dis) * 0.5)),
+    rgba(255, 255, 255, calc(0.08 * var(--rev-dis) / 100)) 100%
+  ); 
 }
 
 .inf-grid-hero-container > div.top > div { 
@@ -164,7 +170,13 @@ body {
 }
 
 .inf-grid-hero-container > div.left::after { 
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, calc(0.1 * var(--rev-dis) / 100)) calc(1% * (100 - var(--rev-dis)))); 
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    transparent calc(1% * (100 - var(--rev-dis) * 0.9)),
+    rgba(255, 255, 255, calc(0.02 * var(--rev-dis) / 100)) calc(1% * (100 - var(--rev-dis) * 0.7)),
+    rgba(255, 255, 255, calc(0.05 * var(--rev-dis) / 100)) calc(1% * (100 - var(--rev-dis) * 0.5)),
+    rgba(255, 255, 255, calc(0.08 * var(--rev-dis) / 100)) 100%
+  ); 
 }
 
 .inf-grid-hero-container > div.left > div { 
@@ -180,7 +192,13 @@ body {
 }
 
 .inf-grid-hero-container > div.bottom::after { 
-  background: linear-gradient(0deg, transparent, rgba(255, 255, 255, calc(0.1 * var(--rev-dis) / 100)) calc(1% * (100 - var(--rev-dis)))); 
+  background: linear-gradient(0deg, 
+    transparent 0%, 
+    transparent calc(1% * (100 - var(--rev-dis) * 0.9)),
+    rgba(255, 255, 255, calc(0.02 * var(--rev-dis) / 100)) calc(1% * (100 - var(--rev-dis) * 0.7)),
+    rgba(255, 255, 255, calc(0.05 * var(--rev-dis) / 100)) calc(1% * (100 - var(--rev-dis) * 0.5)),
+    rgba(255, 255, 255, calc(0.08 * var(--rev-dis) / 100)) 100%
+  ); 
 }
 
 .inf-grid-hero-container > div.bottom > div { 
@@ -196,7 +214,13 @@ body {
 }
 
 .inf-grid-hero-container > div.right::after { 
-  background: linear-gradient(270deg, transparent, rgba(255, 255, 255, calc(0.1 * var(--rev-dis) / 100)) calc(1% * (100 - var(--rev-dis)))); 
+  background: linear-gradient(270deg, 
+    transparent 0%, 
+    transparent calc(1% * (100 - var(--rev-dis) * 0.9)),
+    rgba(255, 255, 255, calc(0.02 * var(--rev-dis) / 100)) calc(1% * (100 - var(--rev-dis) * 0.7)),
+    rgba(255, 255, 255, calc(0.05 * var(--rev-dis) / 100)) calc(1% * (100 - var(--rev-dis) * 0.5)),
+    rgba(255, 255, 255, calc(0.08 * var(--rev-dis) / 100)) 100%
+  ); 
 }
 
 .inf-grid-hero-container > div.right > div { 
