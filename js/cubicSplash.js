@@ -131,6 +131,7 @@ let allGridElements = [];
 let intervalId;
 let loadedCount = 0;
 let totalElementsToLoad = 0;
+let rotationIntervals = []; // Store all rotation interval IDs
 
 /**
  * Preload images before displaying
@@ -224,17 +225,72 @@ function startImageInterval() {
     randomElement.style.background = `url('${imageUrl}')`;
     randomElement.classList.add('loaded');
     loadedCount++;
+    
+    // Immediately start rotating this tile's image
+    startTileRotation(randomElement);
   }, speed);
+}
+
+/**
+ * Start rotating images on a single tile
+ */
+function startTileRotation(element) {
+  // Each tile gets a random interval around 250ms (200-300ms for variation)
+  const randomInterval = 200 + Math.random() * 100;
+  
+  const rotateId = setInterval(() => {
+    // Pick a random image from the pool
+    const randomImageUrl = SPLASH_IMAGES[Math.floor(Math.random() * SPLASH_IMAGES.length)];
+    element.style.background = `url('${randomImageUrl}')`;
+  }, randomInterval);
+  
+  rotationIntervals.push(rotateId);
+}
+
+/**
+ * Start rotating images on all tiles (not used anymore - kept for compatibility)
+ */
+function startImageRotation() {
+  // Clear any existing rotation intervals
+  rotationIntervals.forEach(id => clearInterval(id));
+  rotationIntervals = [];
+  
+  allGridElements.forEach((element) => {
+    // Each tile gets a random interval around 250ms
+    const randomInterval = 200 + Math.random() * 100;
+    
+    const rotateId = setInterval(() => {
+      // Pick a random image from the pool
+      const randomImageUrl = SPLASH_IMAGES[Math.floor(Math.random() * SPLASH_IMAGES.length)];
+      element.style.background = `url('${randomImageUrl}')`;
+    }, randomInterval);
+    
+    rotationIntervals.push(rotateId);
+  });
+  
+  console.log('Image rotation started on all tiles');
+}
+
+/**
+ * Stop all image rotation
+ */
+function stopImageRotation() {
+  rotationIntervals.forEach(id => clearInterval(id));
+  rotationIntervals = [];
+  console.log('Image rotation stopped');
 }
 
 /**
  * Called when all tiles are loaded
  */
 function onAllTilesLoaded() {
-  console.log('All cubic tiles loaded');
+  console.log('All cubic tiles loaded - images already rotating');
   
+  // Tiles are already rotating individually, just wait before transition
   // Pause for a second to let user see the full gallery before revealing
   setTimeout(() => {
+    // Keep images rotating - don't stop!
+    
     // Trigger icon zoom animation
     const icon = document.querySelector('.splash-center-icon');
     if (icon) {
@@ -245,6 +301,8 @@ function onAllTilesLoaded() {
     animateDistance(100, revealDuration, () => {
       // Instant transition after back panel is solid
       setTimeout(() => {
+        // Stop rotation right before hiding splash
+        stopImageRotation();
         hideSplashAndRevealApp();
       }, pauseBeforeTransition);
     });
