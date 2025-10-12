@@ -4,7 +4,7 @@
 // Default configuration - FAST MODE (6 second total)
 let density = 4; // Grid density (4x4 = 16 tiles per wall, 64 total - bigger tiles!)
 let distance = 0; // Reveal distance (0-100)
-let speed = 50; // Speed of image loading (milliseconds) - 64 tiles × 50ms = 3.2 seconds
+let speed = 25; // Speed of image loading (milliseconds) - 64 tiles × 25ms = 1.6 seconds ⚡
 let imageCount = 40; // Number of images to load (reduced from 50)
 let revealDuration = 1200; // Reveal animation duration (ms)
 let pauseBeforeTransition = 300; // Pause before hiding splash (ms)
@@ -13,7 +13,7 @@ let pauseBeforeTransition = 300; // Pause before hiding splash (ms)
 const isMobile = window.innerWidth <= 768;
 if (isMobile) {
   density = 3; // Even fewer tiles on mobile (3x3 = 9 per wall, 36 total)
-  speed = 60; // Slightly slower per tile
+  speed = 30; // Faster on mobile too
   imageCount = 25; // Fewer images needed
   console.log('Mobile detected: Using reduced density', density);
 }
@@ -35,7 +35,83 @@ if (localStorage.getItem('cubicSplashConfig')) {
 
 const directions = ['top', 'right', 'bottom', 'left'];
 
-// Sample camera image URLs - will be replaced with actual UDOT camera data
+// Pre-selected UDOT camera images for fast, consistent splash screen loading
+const SPLASH_IMAGES = [
+  "https://udottraffic.utah.gov/1_devices/aux16853.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux16852.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux16346.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux17402.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux14632.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux17401.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux18252.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux14633.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux17955.jpg",
+  "https://udottraffic.utah.gov/1_devices/aux14634.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux16834.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux18476.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux18479.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux18481.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux16516.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux17996.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux16077.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux16076.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux16680.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux17068.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux17069.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux18322.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux17070.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux15822.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux15695.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux17426.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux18336.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux16681.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux17001.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux17002.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux16999.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux17000.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux18012.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux18013.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux18014.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux16171.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux14917.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux16628.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux14860.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux14861.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux14863.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux14864.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux14865.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux14922.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux16339.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux15089.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux14923.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux15965.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux15966.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux18480.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux18212.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux18046.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux18213.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux18226.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux17672.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux17673.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux17967.jpg",
+  "https://udottraffic.utah.gov/1_devices/aux61.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux60.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux14831.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux18383.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux157.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux151.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux152.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux153.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux154.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux155.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux156.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux14770.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux17441.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux18276.jpeg",
+  "https://udottraffic.utah.gov/1_devices/aux17433.jpeg"
+];
+
+// Fallback images (only used if SPLASH_IMAGES fails to load)
 const SAMPLE_IMAGES = [
   "https://picsum.photos/id/106/900/500",
   "https://picsum.photos/id/115/900/500",
@@ -121,6 +197,15 @@ function startImageInterval() {
   loadedCount = 0;
   totalElementsToLoad = allGridElements.length;
 
+  // Create a shuffled array of images to ensure each is used only once
+  const shuffledImages = [...SPLASH_IMAGES];
+  for (let i = shuffledImages.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffledImages[i], shuffledImages[j]] = [shuffledImages[j], shuffledImages[i]];
+  }
+  
+  let imageIndex = 0; // Track which image to use next
+
   intervalId = setInterval(() => {
     const unloadedElements = allGridElements.filter(el => !el.classList.contains('loaded'));
     if (unloadedElements.length === 0) {
@@ -129,9 +214,14 @@ function startImageInterval() {
       return;
     }
 
+    // Pick a random unloaded tile
     const randomElement = unloadedElements[Math.floor(Math.random() * unloadedElements.length)];
-    const randomImage = SAMPLE_IMAGES[Math.floor(Math.random() * SAMPLE_IMAGES.length)];
-    randomElement.style.background = `url('${randomImage}')`;
+    
+    // Use the next image in our shuffled array (ensures each image used once)
+    const imageUrl = shuffledImages[imageIndex % shuffledImages.length];
+    imageIndex++;
+    
+    randomElement.style.background = `url('${imageUrl}')`;
     randomElement.classList.add('loaded');
     loadedCount++;
   }, speed);
@@ -214,19 +304,26 @@ async function loadCameraImages() {
       throw new Error('Invalid GeoJSON format');
     }
     
-    // Extract image URLs from camera data
-    const imageUrls = data.features
-      .map(feature => feature.properties?.ImageUrl)
-      .filter(url => url && url !== "NULL" && url.startsWith('http'))
-      .slice(0, imageCount); // Use configured number of images for splash
+    // Calculate exact number of images needed for the grid
+    const tilesNeeded = density * density * 4; // 4 walls
     
-    // Shuffle array
-    for (let i = imageUrls.length - 1; i > 0; i--) {
+    // Extract ALL valid image URLs from camera data
+    const allImageUrls = data.features
+      .map(feature => feature.properties?.ImageUrl)
+      .filter(url => url && url !== "NULL" && url.startsWith('http'));
+    
+    // Shuffle the entire array
+    for (let i = allImageUrls.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [imageUrls[i], imageUrls[j]] = [imageUrls[j], imageUrls[i]];
+      [allImageUrls[i], allImageUrls[j]] = [allImageUrls[j], allImageUrls[i]];
     }
     
-    return imageUrls.length > 0 ? imageUrls : SAMPLE_IMAGES;
+    // Take exactly the number we need (or slightly more as backup)
+    const selectedImages = allImageUrls.slice(0, Math.max(tilesNeeded, imageCount));
+    
+    console.log(`Selected ${selectedImages.length} unique images for ${tilesNeeded} tiles`);
+    
+    return selectedImages.length > 0 ? selectedImages : SAMPLE_IMAGES;
   } catch (error) {
     console.error('Error loading camera images:', error);
     return SAMPLE_IMAGES; // Fallback to sample images
@@ -237,17 +334,10 @@ async function loadCameraImages() {
  * Initialize the splash screen
  */
 async function initCubicSplash() {
-  // Load camera images
-  const images = await loadCameraImages();
+  // Use pre-selected SPLASH_IMAGES directly - no fetch needed!
+  console.log('Starting cubic splash with', SPLASH_IMAGES.length, 'pre-selected images');
   
-  // Replace sample images with actual camera images
-  SAMPLE_IMAGES.length = 0;
-  SAMPLE_IMAGES.push(...images);
-  
-  // START IMMEDIATELY - no preloading, images will load as they appear
-  console.log('Starting cubic splash with', SAMPLE_IMAGES.length, 'images');
-  
-  // Start rendering the 3D cubic grid right away
+  // Start rendering the 3D cubic grid immediately
   renderWalls();
 }
 
