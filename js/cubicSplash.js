@@ -302,29 +302,117 @@ function stopImageRotation() {
  * Called when all tiles are loaded
  */
 function onAllTilesLoaded() {
-  console.log('All cubic tiles loaded - images already rotating');
+  console.log('All cubic tiles loaded - images rotating, preparing VHS transition');
   
-  // Tiles are already rotating individually, just wait before transition
-  // Pause for a second to let user see the full gallery before revealing
+  // Wait just 500ms to let user see the gallery briefly, then start VHS effect
   setTimeout(() => {
-    // Keep images rotating - don't stop!
-    
-    // Trigger icon zoom animation
-    const icon = document.querySelector('.splash-center-icon');
-    if (icon) {
-      icon.classList.add('zoom-forward');
-    }
-    
-    // Animate reveal distance
-    animateDistance(100, revealDuration, () => {
-      // Instant transition after back panel is solid
-      setTimeout(() => {
-        // Stop rotation right before hiding splash
-        stopImageRotation();
-        hideSplashAndRevealApp();
-      }, pauseBeforeTransition);
+    startVHSTransition();
+  }, 500);
+}
+
+/**
+ * Start the VHS transition effect
+ */
+function startVHSTransition() {
+  console.log('Starting VHS + Glitch transition...');
+  
+  const splashOverlay = document.getElementById('cubicSplash');
+  if (!splashOverlay) return;
+  
+  // Create VHS effect overlays
+  const scanlines = document.createElement('div');
+  scanlines.className = 'vhs-scanlines';
+  document.body.appendChild(scanlines);
+  
+  const staticOverlay = document.createElement('div');
+  staticOverlay.className = 'vhs-static';
+  document.body.appendChild(staticOverlay);
+  
+  const tracking = document.createElement('div');
+  tracking.className = 'vhs-tracking';
+  document.body.appendChild(tracking);
+  
+  // Create GLITCH effect overlays
+  const glitchOverlay = document.createElement('div');
+  glitchOverlay.className = 'glitch-overlay';
+  document.body.appendChild(glitchOverlay);
+  
+  // Add random glitch blocks
+  for (let i = 0; i < 8; i++) {
+    const block = document.createElement('div');
+    block.className = 'glitch-block';
+    block.style.top = `${Math.random() * 80}%`;
+    block.style.left = `${Math.random() * 80}%`;
+    block.style.width = `${20 + Math.random() * 30}%`;
+    block.style.height = `${10 + Math.random() * 20}px`;
+    block.style.background = `rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.3)`;
+    block.style.animationDelay = `${Math.random() * 0.3}s`;
+    glitchOverlay.appendChild(block);
+  }
+  
+  // Add digital tear overlay
+  const glitchTear = document.createElement('div');
+  glitchTear.className = 'glitch-tear';
+  glitchTear.style.background = `linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 0, 0, 0.2) 45%, 
+    rgba(0, 255, 255, 0.2) 55%, 
+    transparent 100%)`;
+  document.body.appendChild(glitchTear);
+  
+  // Add pixelation overlay
+  const pixelate = document.createElement('div');
+  pixelate.className = 'glitch-pixelate';
+  document.body.appendChild(pixelate);
+  
+  // Trigger VHS glitch animation on splash
+  splashOverlay.classList.add('vhs-transition');
+  
+  // Update static opacity dynamically for flicker effect
+  let staticIntensity = 0;
+  const staticInterval = setInterval(() => {
+    staticIntensity += 0.05;
+    staticOverlay.style.setProperty('--static-opacity', Math.min(staticIntensity, 0.8));
+    if (staticIntensity >= 0.8) clearInterval(staticInterval);
+  }, 100);
+  
+  // Randomize glitch blocks positions during transition
+  const glitchInterval = setInterval(() => {
+    const blocks = glitchOverlay.querySelectorAll('.glitch-block');
+    blocks.forEach(block => {
+      if (Math.random() > 0.7) {
+        block.style.top = `${Math.random() * 80}%`;
+        block.style.left = `${Math.random() * 80}%`;
+      }
     });
-  }, 1000); // 1 second pause to admire the full splash gallery
+  }, 150);
+  
+  // Stop image rotation during transition
+  setTimeout(() => {
+    stopImageRotation();
+  }, 900);
+  
+  // Clean up and reveal main app after VHS effect completes
+  setTimeout(() => {
+    clearInterval(glitchInterval);
+    
+    // Remove all overlays
+    scanlines.remove();
+    staticOverlay.remove();
+    tracking.remove();
+    glitchOverlay.remove();
+    glitchTear.remove();
+    pixelate.remove();
+    
+    // Remove splash screen
+    splashOverlay.remove();
+    
+    // Reveal main app
+    const hiddenElements = document.querySelectorAll('.hidden-on-load');
+    hiddenElements.forEach(el => el.classList.add('fade-in'));
+    
+    console.log('VHS + Glitch transition complete - main app revealed');
+  }, 1800); // Match animation duration
 }
 
 /**
