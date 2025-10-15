@@ -304,10 +304,10 @@ function stopImageRotation() {
 function onAllTilesLoaded() {
   console.log('All cubic tiles loaded - images rotating, preparing VHS transition');
   
-  // Wait just 500ms to let user see the gallery briefly, then start VHS effect
+  // Wait 1.5 seconds to let user enjoy the cycling gallery
   setTimeout(() => {
     startVHSTransition();
-  }, 500);
+  }, 1500);
 }
 
 /**
