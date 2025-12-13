@@ -33,6 +33,12 @@ function getGalleryFilterContext() {
     label      = window.selectedRoute;
     isFiltered = true;
   }
+  // Image issues filter
+  else if (window.selectedIssueFilter) {
+    type       = "issue";
+    label      = window.issueFilterLabels?.[window.selectedIssueFilter] || "Image Issues";
+    isFiltered = true;
+  }
   // Region overview
   else if (window.selectedRegion) {
     type       = "region";
@@ -82,6 +88,20 @@ function getGalleryFilterContext() {
 
 export function renderGallery(cameras) {
   galleryContainer.innerHTML = '';
+
+  if (window.selectedIssueFilter) {
+    const disclaimer = document.createElement('div');
+    disclaimer.className = 'issue-disclaimer';
+    disclaimer.textContent = 'Experimental feature: Images are run through a machine vision classification pipeline once every 24 hours.';
+    disclaimer.style.color = '#ffffff';
+    disclaimer.style.textAlign = 'center';
+    disclaimer.style.padding = '8px 12px';
+    disclaimer.style.fontSize = '0.95rem';
+    disclaimer.style.fontWeight = '500';
+    disclaimer.style.background = 'rgba(0,0,0,0.35)';
+    disclaimer.style.borderRadius = '6px';
+    galleryContainer.append(disclaimer);
+  }
 
   // 0) Normalize legacy vs. new format
   // If the first item has no .type, we assume it's a raw camera array.

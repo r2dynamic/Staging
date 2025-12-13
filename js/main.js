@@ -53,7 +53,17 @@ window.selectedCity               = '';
 window.selectedMaintenanceStation = '';
 window.selectedRoute              = 'All';
 window.selectedOtherFilter        = '';
+window.selectedIssueFilter        = '';
 window.searchQuery                = '';
+
+window.issueFilterLabels = {
+  offline: 'Offline',
+  upside_down: 'Upside Down Cameras',
+  grayscale: 'Grayscale',
+  old_timestamp: 'Old Timestamp',
+  poe_error: 'POE Error',
+  poor_road: 'Poor Road View'
+};
 
 window.camerasList    = [];
 window.curatedRoutes  = [];
@@ -74,6 +84,23 @@ window.updateSelectedFilters      = updateSelectedFilters;
 window.resetFilters               = resetFilters;
 window.applyFiltersFromURL        = applyFiltersFromURL;
 window.copyURLToClipboard         = copyURLToClipboard;
+
+function setupIssueFilterDropdown() {
+  const dropdownButton = document.getElementById('issueFilterButton');
+  const options = document.querySelectorAll('#issueFilterMenu .issue-option');
+  if (!dropdownButton || options.length === 0) return;
+
+  options.forEach(item => {
+    item.addEventListener('click', e => {
+      e.preventDefault();
+      window.selectedIssueFilter = item.dataset.value || '';
+      filterImages();
+      updateURLParameters();
+      updateSelectedFilters();
+      bootstrap.Dropdown.getOrCreateInstance(dropdownButton)?.hide();
+    });
+  });
+}
 
 /**
  * Initializes cameras and routes, then applies any URL filters
@@ -148,6 +175,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 4) Other UI Controls
   setupRefreshButton();
   setupSearchListener();
+  setupIssueFilterDropdown();
   setupDropdownHide();
   setupModalLinks();
   // setupOtherFiltersListener();  <-- removed this call

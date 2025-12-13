@@ -58,6 +58,7 @@ export function updateURLParameters() {
   if (window.selectedCounty)             params.set('county', window.selectedCounty);
   if (window.selectedCity)               params.set('city', window.selectedCity);
   if (window.selectedRoute && window.selectedRoute!=='All') params.set('route', window.selectedRoute);
+  if (window.selectedIssueFilter)        params.set('issue', window.selectedIssueFilter);
   if (window.searchQuery)                params.set('search', window.searchQuery);
   if (window.selectedMaintenanceStation) params.set('maintenance', window.selectedMaintenanceStation);
 
@@ -120,6 +121,10 @@ export function updateSelectedFilters() {
   if (window.selectedCity)               badges.append(makeBadge('fas fa-city',   `City: ${window.selectedCity}`));
   if (window.selectedMaintenanceStation) badges.append(makeBadge('fas fa-tools',  `Maintenance: ${window.selectedMaintenanceStation}`));
   if (window.selectedRoute && window.selectedRoute!=='All') badges.append(makeBadge('fas fa-road', `Route: ${window.selectedRoute}`));
+  if (window.selectedIssueFilter) {
+    const lbl = window.issueFilterLabels?.[window.selectedIssueFilter] || window.selectedIssueFilter;
+    badges.append(makeBadge('fas fa-exclamation-triangle', `Image Issue: ${lbl}`));
+  }
   if (window.searchQuery)                badges.append(makeBadge('fas fa-search',`Search: ${window.searchQuery}`));
   if (window.selectedOtherFilter)        badges.append(makeBadge('fas fa-sliders-h',window.selectedOtherFilter));
 
@@ -130,6 +135,7 @@ export function updateSelectedFilters() {
               window.selectedCity ||
               window.selectedMaintenanceStation ||
               (window.selectedRoute && window.selectedRoute!=='All') ||
+              window.selectedIssueFilter ||
               window.searchQuery ||
               window.selectedOtherFilter;
 
@@ -165,6 +171,7 @@ export function resetFilters() {
   window.selectedRoute              = 'All';
   window.selectedMaintenanceStation = '';
   window.selectedOtherFilter        = '';
+  window.selectedIssueFilter        = '';
   window.searchQuery                = '';
   window.customRouteFormData        = [];
 
@@ -241,6 +248,7 @@ export async function applyFiltersFromURL() {
   if (params.has('county'))      window.selectedCounty             = params.get('county');
   if (params.has('city'))        window.selectedCity               = params.get('city');
   if (params.has('route'))       window.selectedRoute              = params.get('route');
+  if (params.has('issue'))       window.selectedIssueFilter        = params.get('issue');
   if (params.has('search')) {
     window.searchQuery = params.get('search');
     const inp = document.getElementById('searchInput');
