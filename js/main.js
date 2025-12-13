@@ -159,19 +159,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupCopyUrlButton();
   setupCustomRouteBuilder();
 
-  // 5) OLD SPLASH SCREEN LOGIC DISABLED - Now using cubic-splash.html
-  // const splash = document.getElementById('splashScreen');
-  // if (splash) {
-  //   const dv = document.getElementById('desktopVideo');
-  //   if (dv) {
-  //     dv.addEventListener('playing', () => setTimeout(fadeOutSplash, 2300));
-  //     dv.addEventListener('error',   () => setTimeout(fadeOutSplash, 2000));
-  //   }
-  //   setTimeout(fadeOutSplash, 3000);
-  // }
-  
-  // Since we're coming from cubic-splash.html, just reveal content immediately
-  revealMainContent();
+  // 5) Splash screen logic
+  const splash = document.getElementById('splashScreen');
+  if (splash) {
+    const dv = document.getElementById('desktopVideo');
+    if (dv) {
+      dv.addEventListener('playing', () => setTimeout(fadeOutSplash, 2300));
+      dv.addEventListener('error',   () => setTimeout(fadeOutSplash, 2000));
+    }
+    setTimeout(fadeOutSplash, 3000);
+  }
 
   // 6) Collapse all filter panels at start
   [
