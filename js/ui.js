@@ -12,6 +12,14 @@ import { applyOtherFilter } from './otherFilters.js';
 function updateIssueDisclaimer() {
   const el = document.getElementById('issueDisclaimer');
   if (!el) return;
+  const splash = document.getElementById('splashScreen');
+  // Always hide while the splash is visible to avoid overlaying the intro screen.
+  if (splash && splash.style.display !== 'none') {
+    el.textContent = '';
+    el.style.display = 'none';
+    return;
+  }
+
   if (window.selectedIssueFilter) {
     el.textContent = 'Experimental feature: Images are run through a machine vision classification pipeline once every 24 hours.';
     el.style.display = 'block';
@@ -42,6 +50,7 @@ export function fadeOutSplash() {
   setTimeout(()=>{
     splash.style.display = 'none';
     updateSelectedFilters();
+    updateIssueDisclaimer();
   },1000);
 }
 
