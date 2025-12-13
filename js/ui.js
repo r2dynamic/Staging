@@ -9,6 +9,18 @@ import {
 } from './customRoute.js';
 import { applyOtherFilter } from './otherFilters.js';
 
+function updateIssueDisclaimer() {
+  const el = document.getElementById('issueDisclaimer');
+  if (!el) return;
+  if (window.selectedIssueFilter) {
+    el.textContent = 'Experimental feature: Images are run through a machine vision classification pipeline once every 24 hours.';
+    el.style.display = 'block';
+  } else {
+    el.textContent = '';
+    el.style.display = 'none';
+  }
+}
+
 /**
  * Reveal the main UI once the splash is done.
  */
@@ -186,6 +198,7 @@ export function resetFilters() {
   resetImageSizeOverride(); // Reset image size override on reset
   window.updateSelectedFilters();
   window.updateURLParameters();
+  updateIssueDisclaimer();
 }
 
 /**
@@ -203,6 +216,7 @@ export function refreshGallery(cameras) {
   renderGallery(unified);
   updateSelectedFilters();
   updateURLParameters();
+  updateIssueDisclaimer();
 }
 
 /**
