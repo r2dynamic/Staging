@@ -150,6 +150,7 @@
       </button>
       <ul class="dropdown-menu glass-dropdown p-2" id="issueFilterMenu" aria-label="Camera Image Issues">
         <li class="dropdown-header text-white fw-bold">Camera Image Issues</li>
+        <li><a class="dropdown-item issue-option" href="#" data-value="disabled">Disabled Cameras</a></li>
         <li><a class="dropdown-item issue-option" href="#" data-value="offline">Offline</a></li>
         <li><a class="dropdown-item issue-option" href="#" data-value="upside_down">Upside Down Cameras</a></li>
         <li><a class="dropdown-item issue-option" href="#" data-value="grayscale">Grayscale</a></li>
@@ -292,18 +293,36 @@
   <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg draggable-modal">
       <div class="modal-content glass-modal">
-        <div class="modal-header">
+        <div class="modal-header modal-header-tight">
           <h5 class="modal-title" id="imageModalLabel">Camera Location</h5>
+          <button type="button" class="btn-close btn-close-white modal-close-top" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body" id="modalBody" style="display: flex; flex-direction: row;">
-          <div id="modalImageContainer" style="width: 100%;">
-            <img id="modalImage" src="" alt="Camera Image">
+        <div class="modal-body modal-body-flex" id="modalBody">
+          <div id="modalCarouselWrapper" class="modal-carousel-wrapper">
+            <div class="carousel-3d" id="modalCarousel">
+              <div class="carousel-3d-track">
+                <div class="carousel-card carousel-card--left" id="carouselPrevCard">
+                  <img id="carouselPrevImage" alt="Previous camera" loading="lazy">
+                </div>
+                <div class="carousel-card carousel-card--center" id="modalImageContainer">
+                  <img id="modalImage" src="" alt="Camera Image">
+                </div>
+                <div class="carousel-card carousel-card--right" id="carouselNextCard">
+                  <img id="carouselNextImage" alt="Next camera" loading="lazy">
+                </div>
+              </div>
+              <div class="carousel-controls">
+                <button class="button ghost" id="carouselPrevButton" type="button" title="Previous camera neighbor">
+                  <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="carousel-dot"></div>
+                <button class="button ghost" id="carouselNextButton" type="button" title="Next camera neighbor">
+                  <i class="fas fa-chevron-right"></i>
+                </button>
+              </div>
+            </div>
           </div>
           <!-- The map container will be injected here dynamically -->
-        </div>
-        <div class="modal-footer">
-          <button id="mapButton" type="button" class="button" title="Show Map">Map</button>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
       </div>
     </div>

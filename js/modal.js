@@ -7,6 +7,12 @@ const modalBody           = document.getElementById('modalBody');
 const modalImageContainer = document.getElementById('modalImageContainer');
 let mapDisplayed          = false;
 
+// Mini-map state
+let modalMiniMap          = null;
+let modalMiniMapMarkers   = [];
+let modalMiniMapContainer = null;
+let lastMiniMapCams       = [];
+
 export function setupModalMapToggle() {
   if (!mapButton) return;
   mapButton.addEventListener('click', () => {
@@ -44,7 +50,144 @@ export function setupModalCleanup() {
       modalImageContainer.style.flex = '1';
       mapButton.textContent          = 'Map';
       mapDisplayed                   = false;
+      resetModalMiniMap();
     });
+}
+
+export function setupModalMiniMapOnShow() {
+  const modalEl = document.getElementById('imageModal');
+  if (!modalEl) return;
+  modalEl.addEventListener('shown.bs.modal', () => {
+    // Give layout a moment, then recalc map size/view
+    requestAnimationFrame(() => refitMiniMap());
+    setTimeout(refitMiniMap, 150);
+  });
+}
+
+// ---- MINI OVERVIEW MAP (desktop only) ----
+function ensureMiniMap() {
+  if (!modalBody) return null;
+  if (!modalMiniMapContainer) {
+    const container = document.createElement('div');
+    container.id = 'modalMiniMap';
+    container.className = 'modal-mini-map';
+    modalBody.append(container);
+    modalMiniMapContainer = container;
+  }
+  if (!modalMiniMap) {
+    modalMiniMap = L.map(modalMiniMapContainer, {
+      attributionControl: false,
+      zoomControl: false,
+      dragging: true,
+      scrollWheelZoom: true,
+      doubleClickZoom: false,
+      touchZoom: true,
+      boxZoom: false,
+      keyboard: false
+    });
+    L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      { maxZoom: 19 }
+    ).addTo(modalMiniMap);
+    // Nudge Leaflet to recalc dimensions once the container is attached
+    requestAnimationFrame(() => modalMiniMap && modalMiniMap.invalidateSize());
+  }
+  return modalMiniMap;
+}
+
+function clearMiniMapMarkers() {
+  if (!modalMiniMap) return;
+  modalMiniMapMarkers.forEach(m => modalMiniMap.removeLayer(m));
+  modalMiniMapMarkers = [];
+  lastMiniMapCams     = [];
+}
+
+function recalcMiniMapView(cams) {
+  if (!modalMiniMap || !cams?.length) return;
+  if (cams.length === 1) {
+    modalMiniMap.setView([cams[0].lat, cams[0].lon], 14);
+  } else {
+    const bounds = L.latLngBounds(cams.map(c => [c.lat, c.lon]));
+    modalMiniMap.fitBounds(bounds, { padding: [14, 14], maxZoom: 16 });
+  }
+}
+
+function refitMiniMap() {
+  if (!lastMiniMapCams.length) return;
+  const map = ensureMiniMap();
+  if (!map) return;
+  map.invalidateSize();
+  recalcMiniMapView(lastMiniMapCams);
+}
+
+export function resetModalMiniMap() {
+  if (modalMiniMap) {
+    modalMiniMap.remove();
+    modalMiniMap = null;
+  }
+  if (modalMiniMapContainer) {
+    modalMiniMapContainer.remove();
+    modalMiniMapContainer = null;
+  }
+  modalMiniMapMarkers = [];
+}
+
+export function updateModalMiniMap(centerCam, prevCam, nextCam) {
+  if (window.innerWidth <= 1024) {
+    resetModalMiniMap();
+    return;
+  }
+  const cams = [centerCam, prevCam, nextCam]
+    .filter(Boolean)
+    .map((cam, idx) => ({
+      cam,
+      lat: Number(cam?.Latitude),
+      lon: Number(cam?.Longitude),
+      isCenter: idx === 0
+    }))
+    .filter(({ lat, lon }) => Number.isFinite(lat) && Number.isFinite(lon));
+
+  if (!cams.length) {
+    resetModalMiniMap();
+    return;
+  }
+
+  const map = ensureMiniMap();
+  if (!map || !modalMiniMapContainer) return;
+
+  clearMiniMapMarkers();
+
+  cams.forEach(({ cam, lat, lon, isCenter }) => {
+    const marker = L.circleMarker([lat, lon], {
+      radius: isCenter ? 8 : 6,
+      fillColor: isCenter ? '#0ddf92' : '#ff7800',
+      color: '#ffffff',
+      weight: isCenter ? 2 : 1.5,
+      opacity: 1,
+      fillOpacity: 1,
+      className: isCenter ? 'mini-map-marker-center' : 'mini-map-marker'
+    }).addTo(map);
+    marker.bindTooltip(cam?.Location || 'Camera', { permanent: false, direction: 'top' });
+    modalMiniMapMarkers.push(marker);
+  });
+
+  recalcMiniMapView(cams);
+
+  lastMiniMapCams = cams;
+
+  // Ensure tiles fill the container after layout settles
+  requestAnimationFrame(() => {
+    if (!modalMiniMap) return;
+    modalMiniMap.invalidateSize();
+    recalcMiniMapView(lastMiniMapCams);
+  });
+  setTimeout(() => {
+    if (!modalMiniMap) return;
+    modalMiniMap.invalidateSize();
+    recalcMiniMapView(lastMiniMapCams);
+  });
+
+  modalMiniMapContainer.style.display = 'block';
 }
 
 export async function shareImageFile(url, info = "") {

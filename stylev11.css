@@ -257,6 +257,163 @@ html, body {
   opacity: 1;
 }
 
+/* Modal carousel layout */
+.modal-body-flex {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.modal-carousel-wrapper {
+  flex: 2;
+  min-width: 280px;
+  padding: 10px 14px 40px;
+}
+
+.carousel-3d {
+  position: relative;
+  width: 100%;
+  perspective: 1400px;
+}
+
+.carousel-3d-track {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  transform-style: preserve-3d;
+}
+
+.carousel-card {
+  position: relative;
+  width: auto;
+  height: auto;
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+  transform-style: preserve-3d;
+  transition: transform 0.35s ease, box-shadow 0.35s ease, opacity 0.35s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carousel-card img {
+  max-width: 100%;
+  max-height: 100%;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.carousel-card--center img {
+  height: 100%;
+  max-height: 100%;
+}
+
+.carousel-card--center {
+  flex: 1 1 44%;
+  min-width: 320px;
+  max-width: 700px;
+  max-height: 58vh;
+  height: auto;
+  transform: translateZ(42px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+  z-index: 2;
+}
+
+.carousel-card--left {
+  flex: 0 0 22vw;
+  min-width: 180px;
+  max-width: 340px;
+  max-height: 320px;
+  transform: rotateY(18deg) translateX(8px) translateZ(0) scale(0.9);
+  opacity: 0.9;
+  z-index: 1;
+}
+
+.carousel-card--right {
+  flex: 0 0 22vw;
+  min-width: 180px;
+  max-width: 340px;
+  max-height: 320px;
+  transform: rotateY(-18deg) translateX(-8px) translateZ(0) scale(0.9);
+  opacity: 0.9;
+  z-index: 1;
+}
+
+.carousel-card:hover {
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+.carousel-card.is-empty {
+  opacity: 0.35;
+  filter: grayscale(1);
+}
+
+.carousel-caption {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(4, 170, 109, 0.85), rgba(4, 170, 109, 0.55));
+  border-radius: 10px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(6px);
+}
+
+.carousel-controls {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.carousel-controls .button.ghost {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35);
+  height: 34px;
+  width: 44px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carousel-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #04AA6D, #0ddf92);
+  box-shadow: 0 0 12px rgba(13, 223, 146, 0.9);
+}
+
+@media (max-width: 768px) {
+  .carousel-card--center {
+    max-width: 100%;
+    min-width: 0;
+    height: auto;
+  }
+  .carousel-card--left,
+  .carousel-card--right {
+    display: none;
+  }
+  .carousel-controls {
+    width: 100%;
+  }
+}
+
 
 
 /* Glassmorphic Modal Style */
@@ -266,6 +423,9 @@ html, body {
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 12px;
   animation: modalFadeIn 0.9s ease-out;
+  width: 99vw;
+  max-width: 1700px;
+  max-height: 97vh;
 }
 @keyframes modalFadeIn {
   from { opacity: 0; transform: scale(0.6); }
@@ -455,12 +615,54 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: calc(100% - 1rem);
+  min-height: 100vh;
+}
+
+.modal.fade.show {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-mini-map {
+  position: absolute;
+  bottom: 18px;
+  right: 18px;
+  width: clamp(240px, 24vw, 360px);
+  height: clamp(160px, 20vw, 260px);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 12px 35px rgba(0,0,0,0.55);
+  border: 1px solid rgba(255,255,255,0.35);
+  backdrop-filter: blur(10px);
+  background: rgba(10, 10, 10, 0.35);
+  z-index: 5;
+}
+
+@media (max-width: 1024px) {
+  .modal-mini-map { display: none !important; }
+}
+
+.modal-dialog.modal-dialog-centered.modal-lg {
+  max-width: 99vw;
 }
 .modal-header,
 .modal-footer {
-  padding: 0.5rem;
+  padding: 0.35rem 0.65rem;
   border: none;
+}
+.modal-header-tight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.modal-header-tight .modal-title {
+  flex: 1;
+  text-align: center;
+  margin: 0;
+}
+.modal-close-top {
+  margin-left: 8px;
 }
 .modal-title {
   margin: 0 auto;
@@ -478,24 +680,31 @@ html, body {
   flex-wrap: nowrap;
   justify-content: center;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.3rem;
   overflow-x: auto;
-  padding: 0.5rem 0.2rem;
+  padding: 0.35rem 0.45rem;
 }
 .modal-body {
-  padding: 0;
+  padding: 12px 16px 32px;
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative;
+  min-height: 82vh;
+}
+#modalBody.modal-body-flex {
+  flex-wrap: nowrap;
 }
 #modalImageContainer, #modalMapContainer {
   flex: 1;
   transition: width 0.3s ease;
 }
 #modalImage {
+  width: 100%;
   max-width: 100%;
-  max-height: 80vh;
-  margin: 10px;
+  max-height: 100%;
+  height: 100%;
+  margin: 0 auto;
   border-radius: 8px;
   object-fit: contain;
   display: block;

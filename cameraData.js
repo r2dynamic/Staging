@@ -36,8 +36,9 @@ export async function getCamerasList() {
         const lat = parseFloat(props.latitude ?? props.Latitude ?? coords[1]);
         const lon = parseFloat(props.longitude ?? props.Longitude ?? coords[0]);
 
-        const route1 = asNull(props.ROUTE_1 ?? props.Route1 ?? props.RoadwayOption1 ?? props.Roadway);
-        const route2 = asNull(props.ROUTE_2 ?? props.Route2 ?? props.RoadwayOption2);
+        // Route names: prefer DOT_RTNAME_* from the new schema, fall back to legacy fields
+        const route1 = asNull(props.DOT_RTNAME_1 ?? props.ROUTE_1 ?? props.Route1 ?? props.RoadwayOption1 ?? props.Roadway);
+        const route2 = asNull(props.DOT_RTNAME_2 ?? props.ROUTE_2 ?? props.Route2 ?? props.RoadwayOption2);
 
         const mile1  = parseMilepost(props.MP_LM_1 ?? props.MilepostOption1);
         const mile2  = parseMilepost(props.MP_LM_2 ?? props.MilepostOption2);

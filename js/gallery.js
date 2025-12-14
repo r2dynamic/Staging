@@ -1,7 +1,9 @@
 // gallery.js (mini map for all filtered views, 50 nearest, zoom-in on user for nearest only)
+import { updateModalMiniMap } from './modal.js';
 const galleryContainer   = document.getElementById('imageGallery');
 const cameraCountElement = document.getElementById('cameraCount');
 let currentIndex = 0;
+let currentModalCamera = null;
 
 /**
  * Determines the current filter context for the gallery,
@@ -283,17 +285,133 @@ export function showImage(index) {
   const item = window.visibleCameras[index];
   if (item.type !== 'camera') return;
   const cam = item.camera;
-  const modalImage = document.getElementById('imageModal').querySelector('img');
-  const modalTitle = document.querySelector('.modal-title');
-  modalImage.src         = cam.Views[0].Url;
-  modalTitle.textContent = cam.Location;
-  modalImage.dataset.latitude  = cam.Latitude;
-  modalImage.dataset.longitude = cam.Longitude;
-  document.querySelectorAll('.aspect-ratio-box')[index]
-    .classList.add('selected');
+  setModalFromCamera(cam, index);
 }
 
 // Expose a reset for the override flag
 export function resetImageSizeOverride() {
   userImageSizeOverride = false;
 }
+
+function setModalFromCamera(cam, indexInVisible) {
+  const modal = document.getElementById('imageModal');
+  if (!modal) return;
+  const modalImage = modal.querySelector('#modalImage');
+  const modalTitle = modal.querySelector('.modal-title');
+  if (!modalImage || !modalTitle) return;
+
+  modalImage.src         = cam?.Views?.[0]?.Url || '';
+  modalTitle.textContent = cam?.Location || 'Camera';
+  modalImage.dataset.latitude  = cam?.Latitude ?? '';
+  modalImage.dataset.longitude = cam?.Longitude ?? '';
+
+  currentModalCamera = cam;
+  const neighbors = setNeighborCards(cam);
+  updateModalMiniMap(
+    cam,
+    neighbors?.neg?.cam || neighbors?.neg?.camera,
+    neighbors?.pos?.cam || neighbors?.pos?.camera
+  );
+
+  if (typeof indexInVisible === 'number') {
+    const tiles = document.querySelectorAll('.aspect-ratio-box');
+    if (tiles[indexInVisible]) tiles[indexInVisible].classList.add('selected');
+  }
+}
+
+function setNeighborCards(cam) {
+  const neighbors = getNeighborEntries(cam);
+  setNeighborCard('Prev', neighbors.neg);
+  setNeighborCard('Next', neighbors.pos);
+  return neighbors;
+}
+
+function setNeighborCard(positionLabel, entry) {
+  const card     = document.getElementById(`carousel${positionLabel}Card`);
+  const img      = document.getElementById(`carousel${positionLabel}Image`);
+  if (!card || !img) return;
+
+  if (entry && entry.imageUrl) {
+    img.src = entry.imageUrl;
+    img.alt = entry.label || 'Neighbor camera';
+    card.classList.remove('is-empty');
+    card.onclick = () => showNeighbor(entry);
+  } else {
+    img.src = '';
+    img.alt = '';
+    card.classList.add('is-empty');
+    card.onclick = null;
+  }
+}
+
+function showNeighbor(entry) {
+  if (!entry?.cam) return;
+  const idx = (window.visibleCameras || []).findIndex(item => item.type === 'camera' && item.camera.Id === entry.cam.Id);
+  if (idx >= 0) {
+    showImage(idx);
+    return;
+  }
+  setModalFromCamera(entry.cam);
+}
+
+function getNeighborEntries(cam) {
+  const meta = cam?._geoJsonMetadata?.neighbors || {};
+  const negMeta = buildNeighbor(meta.route1NegName, meta.route1NegUrl);
+  const posMeta = buildNeighbor(meta.route1PosName, meta.route1PosUrl);
+
+  const adj = findAdjacentNeighbors(cam);
+  const neg = negMeta || adj.prev || null;
+  const pos = posMeta || adj.next || null;
+  return { neg, pos };
+}
+
+function buildNeighbor(name, imageUrl) {
+  if (!name && !imageUrl) return null;
+  const cam = findCameraByUrl(imageUrl);
+  const url = imageUrl || cam?.Views?.[0]?.Url;
+  return { cam, imageUrl: url, label: name || cam?.Location || 'Nearby camera' };
+}
+
+function findAdjacentNeighbors(cam) {
+  const list = window.camerasList || [];
+  const idx = list.findIndex(c => c.Id === cam.Id);
+  if (idx === -1) return { prev: null, next: null };
+
+  const prevCam = list[idx - 1];
+  const nextCam = list[idx + 1];
+
+  const prev = buildNeighborFromCam(prevCam);
+  const next = buildNeighborFromCam(nextCam);
+  return { prev, next };
+}
+
+function buildNeighborFromCam(cam) {
+  if (!cam) return null;
+  const url = cam?.Views?.[0]?.Url;
+  if (!url) return null;
+  return { cam, imageUrl: url, label: cam.Location || 'Nearby camera' };
+}
+
+function findCameraByUrl(url) {
+  if (!url) return null;
+  const normalized = normalizeUrl(url);
+  const fromVisible = (window.visibleCameras || []).find(item => item.type === 'camera' && normalizeUrl(item.camera?.Views?.[0]?.Url) === normalized);
+  if (fromVisible) return fromVisible.camera;
+  return (window.camerasList || []).find(cam => normalizeUrl(cam?.Views?.[0]?.Url) === normalized) || null;
+}
+
+function normalizeUrl(u) {
+  return (u || '').trim();
+}
+
+function navigateNeighbor(direction) {
+  if (!currentModalCamera) return;
+  const neighbors = getNeighborEntries(currentModalCamera);
+  const entry = direction === 'neg' ? neighbors.neg : neighbors.pos;
+  if (entry?.cam) showNeighbor(entry);
+}
+
+const prevBtn = document.getElementById('carouselPrevButton');
+const nextBtn = document.getElementById('carouselNextButton');
+if (prevBtn) prevBtn.addEventListener('click', () => navigateNeighbor('neg'));
+if (nextBtn) nextBtn.addEventListener('click', () => navigateNeighbor('pos'));

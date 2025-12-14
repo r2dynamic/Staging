@@ -5,12 +5,15 @@ import { resetImageSizeOverride } from './gallery.js';
 
 function matchesIssueFilter(cam) {
   if (!window.selectedIssueFilter) return true;
+  const isDisabled = cam.Views?.[0]?.Status === 'Disabled';
   const quality = cam._geoJsonMetadata?.quality || {};
   const classification = quality.classification || cam.classification;
   const poeFailure = quality.poeFailure ?? cam.poeFailure ?? false;
   const timestampIsStale = quality.timestampIsStale ?? cam.timestampIsStale ?? false;
 
   switch (window.selectedIssueFilter) {
+    case 'disabled':
+      return isDisabled;
     case 'offline':
       return classification === 'offline';
     case 'upside_down':
@@ -95,7 +98,8 @@ export function filterImages() {
   }
 
   filtered = cameras.filter(cam => {
-    if (cam.Views?.[0]?.Status === 'Disabled') return false;
+    const isDisabled = cam.Views?.[0]?.Status === 'Disabled';
+    if (window.selectedIssueFilter !== 'disabled' && isDisabled) return false;
     
     // Enhanced search including alternative names from GeoJSON metadata
     let searchText = `${cam.SignalID || ''} ${cam.Location || ''}`;

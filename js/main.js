@@ -32,6 +32,7 @@ import {
 import {
   setupModalMapToggle,
   setupModalCleanup,
+  setupModalMiniMapOnShow,
   setupLongPressShare,
   setupOverviewModal,
   setupWeatherModal
@@ -57,6 +58,7 @@ window.selectedIssueFilter        = '';
 window.searchQuery                = '';
 
 window.issueFilterLabels = {
+  disabled: 'Disabled Cameras',
   offline: 'Offline',
   upside_down: 'Upside Down Cameras',
   grayscale: 'Grayscale',
@@ -182,6 +184,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupSizeSlider();
   setupModalMapToggle();
   setupModalCleanup();
+  setupModalMiniMapOnShow();
   setupOverviewModal();
   setupWeatherModal();
   setupCopyUrlButton();
