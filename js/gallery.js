@@ -335,7 +335,7 @@ function setNeighborCard(positionLabel, entry) {
     img.src = entry.imageUrl;
     img.alt = entry.label || 'Neighbor camera';
     card.classList.remove('is-empty');
-    card.onclick = () => showNeighbor(entry);
+    card.onclick = () => showNeighbor(entry, positionLabel === 'Prev' ? 'neg' : 'pos');
   } else {
     img.src = '';
     img.alt = '';
@@ -344,8 +344,21 @@ function setNeighborCard(positionLabel, entry) {
   }
 }
 
-function showNeighbor(entry) {
+const carouselTrack = document.querySelector('.carousel-3d-track');
+
+function animateCarousel(direction) {
+  if (!carouselTrack) return;
+  const cls = direction === 'neg' ? 'is-flipping-left' : 'is-flipping-right';
+  carouselTrack.classList.remove('is-flipping-left', 'is-flipping-right');
+  // force reflow to restart animation
+  void carouselTrack.offsetWidth;
+  carouselTrack.classList.add(cls);
+  setTimeout(() => carouselTrack.classList.remove(cls), 700);
+}
+
+function showNeighbor(entry, direction) {
   if (!entry?.cam) return;
+  animateCarousel(direction);
   const idx = (window.visibleCameras || []).findIndex(item => item.type === 'camera' && item.camera.Id === entry.cam.Id);
   if (idx >= 0) {
     showImage(idx);
@@ -408,7 +421,7 @@ function navigateNeighbor(direction) {
   if (!currentModalCamera) return;
   const neighbors = getNeighborEntries(currentModalCamera);
   const entry = direction === 'neg' ? neighbors.neg : neighbors.pos;
-  if (entry?.cam) showNeighbor(entry);
+  if (entry?.cam) showNeighbor(entry, direction);
 }
 
 const prevBtn = document.getElementById('carouselPrevButton');
