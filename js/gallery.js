@@ -1,5 +1,5 @@
 // gallery.js (mini map for all filtered views, 50 nearest, zoom-in on user for nearest only)
-import { updateModalMiniMap } from './modal.js';
+import { updateModalMiniMap, updateModalInfoDeck } from './modal.js';
 const galleryContainer   = document.getElementById('imageGallery');
 const cameraCountElement = document.getElementById('cameraCount');
 let currentIndex = 0;
@@ -312,6 +312,7 @@ function setModalFromCamera(cam, indexInVisible) {
     neighbors?.neg?.cam || neighbors?.neg?.camera,
     neighbors?.pos?.cam || neighbors?.pos?.camera
   );
+  updateModalInfoDeck(cam);
 
   if (typeof indexInVisible === 'number') {
     const tiles = document.querySelectorAll('.aspect-ratio-box');
@@ -344,21 +345,38 @@ function setNeighborCard(positionLabel, entry) {
   }
 }
 
-const carouselTrack = document.querySelector('.carousel-3d-track');
+const carouselTrack   = document.querySelector('.carousel-3d-track');
+const CAROUSEL_ANIM_MS = 750;
 
-function animateCarousel(direction) {
-  if (!carouselTrack) return;
-  const cls = direction === 'neg' ? 'is-flipping-left' : 'is-flipping-right';
-  carouselTrack.classList.remove('is-flipping-left', 'is-flipping-right');
+function animateCarousel(direction, entry) {
+  if (!carouselTrack) {
+    if (entry?.cam) setModalFromCamera(entry.cam);
+    return Promise.resolve();
+  }
+
+  const cls = direction === 'neg' ? 'is-sliding-right' : 'is-sliding-left';
+  carouselTrack.classList.remove('is-sliding-left', 'is-sliding-right', 'is-flipping-left', 'is-flipping-right');
   // force reflow to restart animation
   void carouselTrack.offsetWidth;
   carouselTrack.classList.add(cls);
-  setTimeout(() => carouselTrack.classList.remove(cls), 700);
+
+  // Swap the modal image roughly mid-flight so the incoming card feels like it takes over the center.
+  if (entry?.cam) {
+    setTimeout(() => setModalFromCamera(entry.cam), Math.floor(CAROUSEL_ANIM_MS * 0.45));
+  }
+
+  return new Promise(resolve => {
+    const clear = () => {
+      carouselTrack.classList.remove(cls);
+      resolve();
+    };
+    setTimeout(clear, CAROUSEL_ANIM_MS);
+  });
 }
 
-function showNeighbor(entry, direction) {
+async function showNeighbor(entry, direction) {
   if (!entry?.cam) return;
-  animateCarousel(direction);
+  await animateCarousel(direction, entry);
   const idx = (window.visibleCameras || []).findIndex(item => item.type === 'camera' && item.camera.Id === entry.cam.Id);
   if (idx >= 0) {
     showImage(idx);

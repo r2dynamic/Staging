@@ -13,6 +13,11 @@ let modalMiniMapMarkers   = [];
 let modalMiniMapContainer = null;
 let lastMiniMapCams       = [];
 
+// Info deck state
+let infoDeckContainer     = null;
+let infoDeckCards         = [];
+let infoDeckActiveIndex   = 0;
+
 export function setupModalMapToggle() {
   if (!mapButton) return;
   mapButton.addEventListener('click', () => {
@@ -51,6 +56,7 @@ export function setupModalCleanup() {
       mapButton.textContent          = 'Map';
       mapDisplayed                   = false;
       resetModalMiniMap();
+      resetModalInfoDeck();
     });
 }
 
@@ -118,6 +124,165 @@ function refitMiniMap() {
   if (!map) return;
   map.invalidateSize();
   recalcMiniMapView(lastMiniMapCams);
+}
+
+// ---- INFO DECK (bottom-left) ----
+function ensureInfoDeck() {
+  if (!modalBody) return null;
+  if (!infoDeckContainer) {
+    const container = document.createElement('div');
+    container.id = 'modalInfoDeck';
+    container.className = 'modal-info-stack';
+    container.innerHTML = `
+      <div class="info-stack-track">
+        <div class="info-card info-card--meta is-active">
+          <div class="info-card__columns">
+            <div class="info-card__column">
+              <div class="info-card__title">Primary Route</div>
+              <div class="info-field"><span class="label">Route</span><span class="value" data-field="ROUTE_1"></span></div>
+              <div class="info-field"><span class="label">Alt Name</span><span class="value" data-field="ALT_NAME_1A"></span></div>
+              <div class="info-field"><span class="label">Alt Name 2</span><span class="value" data-field="ALT_NAME_1B"></span></div>
+              <div class="info-field"><span class="label">MP (LM)</span><span class="value" data-field="MP_LM_1"></span></div>
+              <div class="info-field"><span class="label">MP (Phys)</span><span class="value" data-field="MP_PHYS_1"></span></div>
+            </div>
+            <div class="info-card__column">
+              <div class="info-card__title">Secondary Route</div>
+              <div class="info-field"><span class="label">Route</span><span class="value" data-field="ROUTE_2"></span></div>
+              <div class="info-field"><span class="label">Alt Name</span><span class="value" data-field="ALT_NAME_2A"></span></div>
+              <div class="info-field"><span class="label">Alt Name 2</span><span class="value" data-field="ALT_NAME_2B"></span></div>
+              <div class="info-field"><span class="label">MP (LM)</span><span class="value" data-field="MP_LM_2"></span></div>
+              <div class="info-field"><span class="label">MP (Phys)</span><span class="value" data-field="MP_PHYS_2"></span></div>
+            </div>
+          </div>
+          <div class="info-card__footer" data-info-footer></div>
+        </div>
+        <div class="info-card info-card--street">
+          <div class="info-card__embed" data-embed-type="street"></div>
+        </div>
+        <div class="info-card info-card--map">
+          <div class="info-card__embed" data-embed-type="map"></div>
+        </div>
+      </div>
+      <div class="info-stack-controls">
+        <button type="button" class="button ghost info-prev" aria-label="Previous info card"><i class="fas fa-chevron-left"></i></button>
+        <div class="info-stack-dot"></div>
+        <button type="button" class="button ghost info-next" aria-label="Next info card"><i class="fas fa-chevron-right"></i></button>
+      </div>
+    `;
+    modalBody.append(container);
+    infoDeckContainer = container;
+
+    const prev = container.querySelector('.info-prev');
+    const next = container.querySelector('.info-next');
+    if (prev) prev.addEventListener('click', () => rotateInfoDeck(-1));
+    if (next) next.addEventListener('click', () => rotateInfoDeck(1));
+    infoDeckCards = Array.from(container.querySelectorAll('.info-card'));
+  }
+  return infoDeckContainer;
+}
+
+function resetModalInfoDeck() {
+  if (infoDeckContainer) {
+    infoDeckContainer.remove();
+    infoDeckContainer = null;
+  }
+  infoDeckCards = [];
+  infoDeckActiveIndex = 0;
+}
+
+function sanitizeValue(val) {
+  if (val === undefined || val === null) return '';
+  if (typeof val === 'string' && val.trim().toUpperCase() === 'NULL') return '';
+  return String(val).trim();
+}
+
+function setInfoCardState(activeIdx) {
+  if (!infoDeckCards.length) return;
+  infoDeckActiveIndex = activeIdx;
+  const total = infoDeckCards.length;
+  const leftIdx  = (activeIdx - 1 + total) % total;
+  const rightIdx = (activeIdx + 1) % total;
+
+  infoDeckCards.forEach((card, idx) => {
+    card.classList.remove('is-active', 'is-left', 'is-right');
+    if (idx === activeIdx) card.classList.add('is-active');
+    else if (idx === leftIdx) card.classList.add('is-left');
+    else if (idx === rightIdx) card.classList.add('is-right');
+  });
+
+  const activeCard = infoDeckCards[activeIdx];
+  const embedType = activeCard?.querySelector('.info-card__embed')?.dataset?.embedType;
+  if (embedType) maybeLoadEmbed(embedType);
+}
+
+function rotateInfoDeck(step) {
+  if (!infoDeckCards.length) return;
+  const total = infoDeckCards.length;
+  const nextIdx = (infoDeckActiveIndex + step + total) % total;
+  setInfoCardState(nextIdx);
+}
+
+function populateMetaCard(cam) {
+  if (!infoDeckContainer) return;
+  const meta = infoDeckContainer.querySelector('.info-card--meta');
+  if (!meta) return;
+
+  const fields = [
+    'ROUTE_1','ALT_NAME_1A','ALT_NAME_1B','MP_LM_1','MP_PHYS_1',
+    'ROUTE_2','ALT_NAME_2A','ALT_NAME_2B','MP_LM_2','MP_PHYS_2'
+  ];
+  fields.forEach(f => {
+    const el = meta.querySelector(`[data-field="${f}"]`);
+    if (el) el.textContent = sanitizeValue(cam?.[f]);
+  });
+
+  const footer = meta.querySelector('[data-info-footer]');
+  if (footer) {
+    const parts = ['City', 'County', 'UDOT_Region']
+      .map(k => sanitizeValue(cam?.[k]))
+      .filter(Boolean);
+    footer.textContent = parts.join(' • ');
+  }
+}
+
+function resetEmbedCard(type, url) {
+  if (!infoDeckContainer) return;
+  const target = infoDeckContainer.querySelector(`.info-card__embed[data-embed-type="${type}"]`);
+  if (!target) return;
+  target.dataset.src = url || '';
+  target.textContent = url ? 'Tap to load' : 'Not available';
+  const existing = target.querySelector('iframe');
+  if (existing) existing.remove();
+}
+
+function maybeLoadEmbed(type) {
+  if (!infoDeckContainer) return;
+  const target = infoDeckContainer.querySelector(`.info-card__embed[data-embed-type="${type}"]`);
+  if (!target) return;
+  const url = target.dataset.src;
+  if (!url || target.querySelector('iframe')) return;
+
+  target.textContent = '';
+  const iframe = document.createElement('iframe');
+  iframe.loading = 'lazy';
+  iframe.src = url;
+  iframe.title = type === 'street' ? 'Street View' : 'Map';
+  iframe.referrerPolicy = 'no-referrer-when-downgrade';
+  iframe.allowFullscreen = true;
+  iframe.setAttribute('aria-label', iframe.title);
+  target.append(iframe);
+}
+
+export function updateModalInfoDeck(cam) {
+  if (window.innerWidth <= 1024) return;
+  const container = ensureInfoDeck();
+  if (!container) return;
+
+  populateMetaCard(cam);
+  resetEmbedCard('street', sanitizeValue(cam?.StreetView_Embed));
+  resetEmbedCard('map', sanitizeValue(cam?.GoogleMaps_Embed));
+
+  setInfoCardState(0);
 }
 
 export function resetModalMiniMap() {
