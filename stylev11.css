@@ -261,7 +261,7 @@ html, body {
 .modal-body-flex {
   display: flex;
   gap: 14px;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   flex-wrap: wrap;
 }
@@ -269,7 +269,7 @@ html, body {
 .modal-carousel-wrapper {
   flex: 2;
   min-width: 280px;
-  padding: 10px 14px 40px;
+  padding: 6px 12px 24px;
 }
 
 .carousel-3d {
@@ -615,7 +615,8 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  min-height: calc(100vh - 32px);
+  margin: 16px auto;
 }
 
 .modal.fade.show {
@@ -626,10 +627,10 @@ html, body {
 
 .modal-mini-map {
   position: absolute;
-  bottom: 18px;
-  right: 18px;
-  width: clamp(240px, 24vw, 360px);
-  height: clamp(160px, 20vw, 260px);
+  bottom: 14px;
+  right: 14px;
+  width: clamp(220px, 21vw, 320px);
+  height: clamp(140px, 18vw, 210px);
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 12px 35px rgba(0,0,0,0.55);
@@ -694,6 +695,11 @@ html, body {
 }
 #modalBody.modal-body-flex {
   flex-wrap: nowrap;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 12px;
+  padding: 10px 16px 16px;
+  min-height: 84vh;
 }
 #modalImageContainer, #modalMapContainer {
   flex: 1;
