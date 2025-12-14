@@ -54,11 +54,11 @@ export async function getCamerasList() {
           MilepostOption1: mile1,
           RoadwayOption2: route2,
           MilepostOption2: mile2,
-          MunicipalBoundary: asNull(props.City) || 'Not available',
-          CountyBoundary: asNull(props.County) || 'Unknown',
+          MunicipalBoundary: asNull(props.City),
+          CountyBoundary: asNull(props.County),
           Region: extractRegionNumber(props.UDOT_Region),
-          MaintenanceStationOption1: asNull(props.Maintenance_Station) || 'Not available',
-          MaintenanceStationOption2: asNull(props.Maintenance_Station_2) || 'Not available',
+          MaintenanceStationOption1: asNull(props.Maintenance_Station),
+          MaintenanceStationOption2: asNull(props.Maintenance_Station_2),
           GoogleMapsURL: asNull(props.GoogleMaps_Embed) || `https://www.google.com/maps?q=${lat},${lon}`,
           ArcGISURL: `https://uplan.maps.arcgis.com/apps/webappviewer/index.html?id=07c3dc8429ca42c4b4066e383631681f&find=${lat},${lon}`,
           Direction: asNull(props.Direction) || asNull(props.Side_Of_Road_1) || 'Unknown',
@@ -78,6 +78,10 @@ export async function getCamerasList() {
             }
           ],
           _geoJsonMetadata: {
+            routes: {
+              route1Code: asNull(props.ROUTE_1),
+              route2Code: asNull(props.ROUTE_2)
+            },
             altNames: {
               route1A: asNull(props.ALT_NAME_1A),
               route1B: asNull(props.ALT_NAME_1B),
@@ -87,6 +91,8 @@ export async function getCamerasList() {
               route2C: asNull(props.ALT_NAME_2C)
             },
             positioning: {
+              logicalMP1: asNull(props.MP_LM_1),
+              logicalMP2: asNull(props.MP_LM_2),
               physicalMP1: asNull(props.MP_PHYS_1),
               physicalMP2: asNull(props.MP_PHYS_2),
               offset1: asNull(props.Offset_1),

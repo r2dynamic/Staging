@@ -18,6 +18,9 @@ let infoDeckContainer     = null;
 let infoDeckCards         = [];
 let infoDeckActiveIndex   = 0;
 
+// Modal logo
+let modalLogo             = null;
+
 export function setupModalMapToggle() {
   if (!mapButton) return;
   mapButton.addEventListener('click', () => {
@@ -57,6 +60,7 @@ export function setupModalCleanup() {
       mapDisplayed                   = false;
       resetModalMiniMap();
       resetModalInfoDeck();
+      removeModalLogo();
     });
 }
 
@@ -64,10 +68,31 @@ export function setupModalMiniMapOnShow() {
   const modalEl = document.getElementById('imageModal');
   if (!modalEl) return;
   modalEl.addEventListener('shown.bs.modal', () => {
+    ensureModalLogo();
     // Give layout a moment, then recalc map size/view
     requestAnimationFrame(() => refitMiniMap());
     setTimeout(refitMiniMap, 150);
   });
+}
+
+// ---- MODAL LOGO (center bottom) ----
+function ensureModalLogo() {
+  if (!modalBody) return;
+  if (!modalLogo) {
+    const logo = document.createElement('img');
+    logo.src = 'Logo GIF.gif';
+    logo.alt = 'App Logo';
+    logo.className = 'modal-logo';
+    modalBody.append(logo);
+    modalLogo = logo;
+  }
+}
+
+function removeModalLogo() {
+  if (modalLogo) {
+    modalLogo.remove();
+    modalLogo = null;
+  }
 }
 
 // ---- MINI OVERVIEW MAP (desktop only) ----
@@ -139,19 +164,19 @@ function ensureInfoDeck() {
           <div class="info-card__columns">
             <div class="info-card__column">
               <div class="info-card__title">Primary Route</div>
-              <div class="info-field"><span class="label">Route</span><span class="value" data-field="ROUTE_1"></span></div>
-              <div class="info-field"><span class="label">Alt Name</span><span class="value" data-field="ALT_NAME_1A"></span></div>
-              <div class="info-field"><span class="label">Alt Name 2</span><span class="value" data-field="ALT_NAME_1B"></span></div>
-              <div class="info-field"><span class="label">MP (LM)</span><span class="value" data-field="MP_LM_1"></span></div>
-              <div class="info-field"><span class="label">MP (Phys)</span><span class="value" data-field="MP_PHYS_1"></span></div>
+              <div class="info-field"><span class="label">Route:</span><span class="value" data-field="ROUTE_1"></span></div>
+              <div class="info-field"><span class="label">Alt Name A:</span><span class="value" data-field="ALT_NAME_1A"></span></div>
+              <div class="info-field"><span class="label">Alt Name B:</span><span class="value" data-field="ALT_NAME_1B"></span></div>
+              <div class="info-field"><span class="label">MP (LM):</span><span class="value" data-field="MP_LM_1"></span></div>
+              <div class="info-field"><span class="label">MP (Phys):</span><span class="value" data-field="MP_PHYS_1"></span></div>
             </div>
             <div class="info-card__column">
               <div class="info-card__title">Secondary Route</div>
-              <div class="info-field"><span class="label">Route</span><span class="value" data-field="ROUTE_2"></span></div>
-              <div class="info-field"><span class="label">Alt Name</span><span class="value" data-field="ALT_NAME_2A"></span></div>
-              <div class="info-field"><span class="label">Alt Name 2</span><span class="value" data-field="ALT_NAME_2B"></span></div>
-              <div class="info-field"><span class="label">MP (LM)</span><span class="value" data-field="MP_LM_2"></span></div>
-              <div class="info-field"><span class="label">MP (Phys)</span><span class="value" data-field="MP_PHYS_2"></span></div>
+              <div class="info-field"><span class="label">Route:</span><span class="value" data-field="ROUTE_2"></span></div>
+              <div class="info-field"><span class="label">Alt Name A:</span><span class="value" data-field="ALT_NAME_2A"></span></div>
+              <div class="info-field"><span class="label">Alt Name B:</span><span class="value" data-field="ALT_NAME_2B"></span></div>
+              <div class="info-field"><span class="label">MP (LM):</span><span class="value" data-field="MP_LM_2"></span></div>
+              <div class="info-field"><span class="label">MP (Phys):</span><span class="value" data-field="MP_PHYS_2"></span></div>
             </div>
           </div>
           <div class="info-card__footer" data-info-footer></div>
@@ -227,20 +252,37 @@ function populateMetaCard(cam) {
   const meta = infoDeckContainer.querySelector('.info-card--meta');
   if (!meta) return;
 
-  const fields = [
-    'ROUTE_1','ALT_NAME_1A','ALT_NAME_1B','MP_LM_1','MP_PHYS_1',
-    'ROUTE_2','ALT_NAME_2A','ALT_NAME_2B','MP_LM_2','MP_PHYS_2'
-  ];
-  fields.forEach(f => {
-    const el = meta.querySelector(`[data-field="${f}"]`);
-    if (el) el.textContent = sanitizeValue(cam?.[f]);
+  const geo = cam?._geoJsonMetadata || {};
+  const routes = geo.routes || {};
+  const alt = geo.altNames || {};
+  const pos = geo.positioning || {};
+
+  // Map data fields to their sources - using raw GeoJSON values
+  const fieldMap = {
+    'ROUTE_1': routes.route1Code,
+    'ALT_NAME_1A': alt.route1A,
+    'ALT_NAME_1B': alt.route1B,
+    'MP_LM_1': pos.logicalMP1,
+    'MP_PHYS_1': pos.physicalMP1,
+    'ROUTE_2': routes.route2Code,
+    'ALT_NAME_2A': alt.route2A,
+    'ALT_NAME_2B': alt.route2B,
+    'MP_LM_2': pos.logicalMP2,
+    'MP_PHYS_2': pos.physicalMP2
+  };
+
+  Object.entries(fieldMap).forEach(([field, value]) => {
+    const el = meta.querySelector(`[data-field="${field}"]`);
+    if (el) el.textContent = sanitizeValue(value);
   });
 
   const footer = meta.querySelector('[data-info-footer]');
   if (footer) {
-    const parts = ['City', 'County', 'UDOT_Region']
-      .map(k => sanitizeValue(cam?.[k]))
-      .filter(Boolean);
+    const parts = [
+      sanitizeValue(cam?.MunicipalBoundary),
+      sanitizeValue(cam?.CountyBoundary),
+      cam?.Region ? `Region ${cam.Region}` : ''
+    ].filter(Boolean);
     footer.textContent = parts.join(' • ');
   }
 }
@@ -279,8 +321,9 @@ export function updateModalInfoDeck(cam) {
   if (!container) return;
 
   populateMetaCard(cam);
-  resetEmbedCard('street', sanitizeValue(cam?.StreetView_Embed));
-  resetEmbedCard('map', sanitizeValue(cam?.GoogleMaps_Embed));
+  const embeds = cam?._geoJsonMetadata?.embeds || {};
+  resetEmbedCard('street', sanitizeValue(embeds.streetView));
+  resetEmbedCard('map', sanitizeValue(embeds.googleMaps));
 
   setInfoCardState(0);
 }
