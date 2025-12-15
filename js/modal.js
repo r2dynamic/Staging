@@ -192,7 +192,11 @@ function ensureInfoDeck() {
       </div>
       <div class="info-stack-controls">
         <button type="button" class="button ghost info-prev" aria-label="Previous info card"><i class="fas fa-chevron-left"></i></button>
-        <div class="info-stack-dot"></div>
+        <div class="info-stack-dots">
+          <div class="info-stack-dot active" data-card-index="0"></div>
+          <div class="info-stack-dot" data-card-index="1"></div>
+          <div class="info-stack-dot" data-card-index="2"></div>
+        </div>
         <button type="button" class="button ghost info-next" aria-label="Next info card"><i class="fas fa-chevron-right"></i></button>
       </div>
     `;
@@ -204,8 +208,58 @@ function ensureInfoDeck() {
     if (prev) prev.addEventListener('click', () => rotateInfoDeck(-1));
     if (next) next.addEventListener('click', () => rotateInfoDeck(1));
     infoDeckCards = Array.from(container.querySelectorAll('.info-card'));
+    
+    // Setup clickable dots
+    const dots = container.querySelectorAll('.info-stack-dot');
+    dots.forEach(dot => {
+      dot.addEventListener('click', () => {
+        const index = parseInt(dot.dataset.cardIndex);
+        if (!isNaN(index)) setInfoCardState(index);
+      });
+    });
+    
+    // Setup swipe for mobile
+    setupInfoDeckSwipe(container);
   }
   return infoDeckContainer;
+}
+
+function setupInfoDeckSwipe(container) {
+  const track = container.querySelector('.info-stack-track');
+  if (!track) return;
+  
+  let startX = 0;
+  let startY = 0;
+  let isDragging = false;
+  
+  track.addEventListener('touchstart', (e) => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    isDragging = true;
+  }, { passive: true });
+  
+  track.addEventListener('touchmove', (e) => {
+    if (!isDragging) return;
+  }, { passive: true });
+  
+  track.addEventListener('touchend', (e) => {
+    if (!isDragging) return;
+    isDragging = false;
+    
+    const endX = e.changedTouches[0].clientX;
+    const endY = e.changedTouches[0].clientY;
+    const deltaX = endX - startX;
+    const deltaY = endY - startY;
+    
+    // Only swipe if horizontal movement is greater than vertical
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+      if (deltaX > 0) {
+        rotateInfoDeck(-1); // Swipe right = previous
+      } else {
+        rotateInfoDeck(1); // Swipe left = next
+      }
+    }
+  }, { passive: true });
 }
 
 function resetModalInfoDeck() {
@@ -236,6 +290,14 @@ function setInfoCardState(activeIdx) {
     else if (idx === leftIdx) card.classList.add('is-left');
     else if (idx === rightIdx) card.classList.add('is-right');
   });
+  
+  // Update dots
+  if (infoDeckContainer) {
+    const dots = infoDeckContainer.querySelectorAll('.info-stack-dot');
+    dots.forEach((dot, idx) => {
+      dot.classList.toggle('active', idx === activeIdx);
+    });
+  }
 
   const activeCard = infoDeckCards[activeIdx];
   const embedType = activeCard?.querySelector('.info-card__embed')?.dataset?.embedType;
@@ -318,7 +380,6 @@ function maybeLoadEmbed(type) {
 }
 
 export function updateModalInfoDeck(cam) {
-  if (window.innerWidth <= 1024) return;
   const container = ensureInfoDeck();
   if (!container) return;
 

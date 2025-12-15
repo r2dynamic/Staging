@@ -5,7 +5,7 @@ let mobileGallery = null;
 let mobileCurrentRotation = 0;
 let mobileTouchStartY = 0;
 
-const RADIUS = 190;
+const RADIUS = 160;
 const NUM_SLIDES = 6;
 const ANGLE_STEP = 360 / NUM_SLIDES; // 60 degrees per slide
 
