@@ -7,7 +7,7 @@ let mobileCurrentRotation = 0;
 let mobileTotal = 0;
 let mobileTouchStartY = 0;
 
-const RADIUS = 200;
+const RADIUS = 140;
 const NUM_SLIDES = 6; // Create full drum with 6 positions
 
 export function initMobileCarousel(centerCam, prevCam, nextCam) {
@@ -112,21 +112,29 @@ function setupMobileTouchEvents() {
   const scene = mobileCarouselContainer;
 
   scene.addEventListener('touchstart', e => {
+    e.stopPropagation(); // Prevent touch from reaching gallery below
     mobileTouchStartY = e.touches[0].clientY;
   }, { passive: true });
 
   scene.addEventListener('touchmove', e => {
+    e.stopPropagation(); // Prevent touch from reaching gallery below
+    e.preventDefault(); // Prevent scrolling
     const deltaY = e.touches[0].clientY - mobileTouchStartY;
     mobileTouchStartY = e.touches[0].clientY;
     mobileCurrentRotation += deltaY * 0.5;
     if (mobileGallery) {
       mobileGallery.style.transform = `rotateX(${mobileCurrentRotation}deg)`;
     }
+  }, { passive: false }); // Must be non-passive to allow preventDefault
+
+  scene.addEventListener('touchend', e => {
+    e.stopPropagation(); // Prevent touch from reaching gallery below
   }, { passive: true });
 
   // Wheel support
   scene.addEventListener('wheel', e => {
     e.preventDefault();
+    e.stopPropagation();
     if (e.deltaY > 0) {
       rotateMobile('down');
     } else {

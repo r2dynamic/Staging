@@ -523,6 +523,7 @@ html, body {
   margin: 20px auto 10px;
   overflow: visible;
   display: none; /* Hidden by default */
+  touch-action: none; /* Prevent scrolling when touching carousel */
 }
 
 @media (max-width: 768px) {
@@ -566,9 +567,6 @@ html, body {
   align-items: center;
   gap: 15px;
   margin-top: 15px;
-}
-  align-items: center;
-  gap: 12px;
   z-index: 10;
 }
 
