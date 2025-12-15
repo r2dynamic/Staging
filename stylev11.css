@@ -516,8 +516,8 @@ html, body {
 
 .mobile-carousel-scene {
   perspective: 1200px;
-  width: 100%;
-  max-width: 320px;
+  width: 95%;
+  max-width: 95%;
   height: 480px;
   position: absolute;
   bottom: 10px;
