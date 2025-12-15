@@ -121,7 +121,7 @@ function setupMobileTouchEvents() {
     e.preventDefault(); // Prevent scrolling
     const deltaY = e.touches[0].clientY - mobileTouchStartY;
     mobileTouchStartY = e.touches[0].clientY;
-    mobileCurrentRotation += deltaY * 0.5;
+    mobileCurrentRotation -= deltaY * 0.5; // Reversed direction
     if (mobileGallery) {
       mobileGallery.style.transform = `rotateX(${mobileCurrentRotation}deg)`;
     }
