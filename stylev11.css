@@ -1061,16 +1061,17 @@ html, body {
 @media (max-width: 768px) {
   .modal-info-stack {
     position: absolute;
-    top: 20px;
+    top: 5px;
     left: 50%;
     transform: translateX(-50%);
     width: 95vw;
-    height: clamp(140px, 18vh, 200px);
+    height: clamp(170px, 22vh, 240px);
     z-index: 5;
   }
   
   .info-stack-controls {
-    top: -18px;
+    top: auto;
+    bottom: -30px;
   }
   
   /* Hide navigation buttons on mobile */
@@ -1080,12 +1081,12 @@ html, body {
   
   /* Adjust dot spacing on mobile */
   .info-stack-dots {
-    gap: 8px;
+    gap: 14px;
   }
   
   .info-stack-dot {
-    width: 8px;
-    height: 8px;
+    width: 12px;
+    height: 12px;
   }
   
   /* Make info cards wider and adjust text size */
@@ -1168,6 +1169,15 @@ html, body {
 }
 .modal-close-top:hover {
   opacity: 1;
+}
+@media (max-width: 768px) {
+  .modal-close-top {
+    bottom: 35px;
+    right: 35px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    padding: 10px 14px;
+  }
 }
 .modal-title {
   margin: 0 auto;
