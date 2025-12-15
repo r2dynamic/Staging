@@ -37,16 +37,21 @@ export function initMobileCarousel(centerCam, prevCam, nextCam) {
   modalBody.appendChild(mobileCarouselContainer);
   mobileGallery = document.getElementById('mobileGallery');
 
-  // Build slides from cameras - create full drum with duplicates
-  // Order: nextCam (top/pos), centerCam (center), prevCam (bottom/neg)
-  const cameras = [nextCam, centerCam, prevCam].filter(Boolean);
+  // Build slides - Fill all 6 positions with the 3 cameras in order
+  // This creates smooth continuous rotation
+  const cameras = [centerCam, nextCam, prevCam].filter(Boolean);
+  const slideCameras = [];
   
-  // Create 6 slides: next, center, prev, next, center, prev
+  // Fill 6 positions: center, next, prev, center, next, prev
   for (let i = 0; i < NUM_SLIDES; i++) {
-    const cam = cameras[i % cameras.length];
+    slideCameras.push(cameras[i % cameras.length]);
+  }
+  
+  slideCameras.forEach((cam, i) => {
     const card = document.createElement('div');
     card.className = 'mobile-slide';
     card.style.transform = `rotateX(${i * ANGLE_STEP}deg) translateZ(${RADIUS}px)`;
+    card.dataset.slideIndex = i;
     
     const img = document.createElement('img');
     img.src = cam?.Views?.[0]?.Url || '';
@@ -55,10 +60,10 @@ export function initMobileCarousel(centerCam, prevCam, nextCam) {
     
     card.appendChild(img);
     mobileGallery.appendChild(card);
-  }
+  });
   
-  // Start at center camera (rotate to show index 1)
-  mobileCurrentRotation = -ANGLE_STEP;
+  // Start at center camera (index 0)
+  mobileCurrentRotation = 0;
   mobileGallery.style.transform = `rotateX(${mobileCurrentRotation}deg)`;
 
   setupMobileControls();
@@ -68,17 +73,26 @@ export function initMobileCarousel(centerCam, prevCam, nextCam) {
 function rotateMobile(direction) {
   if (!mobileGallery) return;
   
+  // Rotate one step (60 degrees)
   mobileCurrentRotation += (direction === 'down' ? -ANGLE_STEP : ANGLE_STEP);
   mobileGallery.style.transform = `rotateX(${mobileCurrentRotation}deg)`;
   
-  // After rotating 2 steps (120 degrees), trigger camera switch
-  const rotationCount = Math.abs(Math.round(mobileCurrentRotation / ANGLE_STEP));
-  if (rotationCount % 2 === 0) {
-    setTimeout(() => {
-      const buttonId = direction === 'up' ? 'carouselNextButton' : 'carouselPrevButton';
-      document.getElementById(buttonId)?.click();
-    }, 100);
-  }
+  // Calculate current position (0-5)
+  const normalizedRotation = ((mobileCurrentRotation % 360) + 360) % 360;
+  const currentSlideIndex = Math.round(normalizedRotation / ANGLE_STEP) % NUM_SLIDES;
+  
+  // Pattern: 0=center, 1=next, 2=prev, 3=center, 4=next, 5=prev
+  // Only switch cameras when landing on specific positions
+  setTimeout(() => {
+    if (currentSlideIndex === 1 || currentSlideIndex === 4) {
+      // At next camera position
+      document.getElementById('carouselNextButton')?.click();
+    } else if (currentSlideIndex === 2 || currentSlideIndex === 5) {
+      // At prev camera position
+      document.getElementById('carouselPrevButton')?.click();
+    }
+    // Positions 0 and 3 are center - no switch needed
+  }, 400); // Wait for rotation animation
 }
 
 function setupMobileControls() {
