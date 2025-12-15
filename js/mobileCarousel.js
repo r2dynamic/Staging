@@ -2,13 +2,12 @@
 
 let mobileCarouselContainer = null;
 let mobileGallery = null;
-let mobileSlides = [];
 let mobileCurrentRotation = 0;
-let mobileTotal = 0;
 let mobileTouchStartY = 0;
 
 const RADIUS = 190;
-const NUM_SLIDES = 6; // Create full drum with 6 positions
+const NUM_SLIDES = 6;
+const ANGLE_STEP = 360 / NUM_SLIDES; // 60 degrees per slide
 
 export function initMobileCarousel(centerCam, prevCam, nextCam) {
   if (window.innerWidth > 768) return; // Only for mobile
@@ -39,16 +38,15 @@ export function initMobileCarousel(centerCam, prevCam, nextCam) {
   mobileGallery = document.getElementById('mobileGallery');
 
   // Build slides from cameras - create full drum with duplicates
-  const cameras = [prevCam, centerCam, nextCam].filter(Boolean);
-  mobileTotal = NUM_SLIDES;
-  const angleStep = 360 / NUM_SLIDES;
+  // Order: nextCam (top/pos), centerCam (center), prevCam (bottom/neg)
+  const cameras = [nextCam, centerCam, prevCam].filter(Boolean);
   
-  // Create 6 slides: prev, center, next, prev, center, next
+  // Create 6 slides: next, center, prev, next, center, prev
   for (let i = 0; i < NUM_SLIDES; i++) {
     const cam = cameras[i % cameras.length];
     const card = document.createElement('div');
     card.className = 'mobile-slide';
-    card.style.transform = `rotateX(${i * angleStep}deg) translateZ(${RADIUS}px)`;
+    card.style.transform = `rotateX(${i * ANGLE_STEP}deg) translateZ(${RADIUS}px)`;
     
     const img = document.createElement('img');
     img.src = cam?.Views?.[0]?.Url || '';
@@ -58,11 +56,9 @@ export function initMobileCarousel(centerCam, prevCam, nextCam) {
     card.appendChild(img);
     mobileGallery.appendChild(card);
   }
-
-  mobileSlides = Array.from(mobileGallery.querySelectorAll('.mobile-slide'));
   
   // Start at center camera (rotate to show index 1)
-  mobileCurrentRotation = -angleStep;
+  mobileCurrentRotation = -ANGLE_STEP;
   mobileGallery.style.transform = `rotateX(${mobileCurrentRotation}deg)`;
 
   setupMobileControls();
@@ -70,28 +66,17 @@ export function initMobileCarousel(centerCam, prevCam, nextCam) {
 }
 
 function rotateMobile(direction) {
-  if (!mobileTotal || !mobileGallery) return;
-
-  // Rotate by 60 degrees (360/6) to show next/prev
-  const angleStep = 360 / NUM_SLIDES;
+  if (!mobileGallery) return;
   
-  if (direction === 'down') {
-    mobileCurrentRotation -= angleStep;
-  } else {
-    mobileCurrentRotation += angleStep;
-  }
-
+  mobileCurrentRotation += (direction === 'down' ? -ANGLE_STEP : ANGLE_STEP);
   mobileGallery.style.transform = `rotateX(${mobileCurrentRotation}deg)`;
   
   // After rotating 2 steps (120 degrees), trigger camera switch
-  const rotationCount = Math.abs(Math.round(mobileCurrentRotation / angleStep));
+  const rotationCount = Math.abs(Math.round(mobileCurrentRotation / ANGLE_STEP));
   if (rotationCount % 2 === 0) {
     setTimeout(() => {
-      if (direction === 'up') {
-        document.getElementById('carouselPrevButton')?.click();
-      } else {
-        document.getElementById('carouselNextButton')?.click();
-      }
+      const buttonId = direction === 'up' ? 'carouselNextButton' : 'carouselPrevButton';
+      document.getElementById(buttonId)?.click();
     }, 100);
   }
 }
@@ -129,6 +114,7 @@ function setupMobileTouchEvents() {
 
   scene.addEventListener('touchend', e => {
     e.stopPropagation(); // Prevent touch from reaching gallery below
+    snapToNearestPosition();
   }, { passive: true });
 
   // Wheel support
@@ -143,6 +129,24 @@ function setupMobileTouchEvents() {
   });
 }
 
+function snapToNearestPosition() {
+  if (!mobileGallery) return;
+  
+  // Find the nearest snap position
+  const nearestStep = Math.round(mobileCurrentRotation / ANGLE_STEP);
+  const targetRotation = nearestStep * ANGLE_STEP;
+  
+  // Smooth transition to snap position
+  mobileGallery.style.transition = 'transform 0.3s ease-out';
+  mobileCurrentRotation = targetRotation;
+  mobileGallery.style.transform = `rotateX(${mobileCurrentRotation}deg)`;
+  
+  // Restore default transition after snap completes
+  setTimeout(() => {
+    if (mobileGallery) mobileGallery.style.transition = 'transform 0.6s ease';
+  }, 300);
+}
+
 export function updateMobileCarousel(centerCam, prevCam, nextCam) {
   if (window.innerWidth > 768) return;
   initMobileCarousel(centerCam, prevCam, nextCam);
@@ -154,7 +158,5 @@ export function removeMobileCarousel() {
     mobileCarouselContainer = null;
   }
   mobileGallery = null;
-  mobileSlides = [];
   mobileCurrentRotation = 0;
-  mobileTotal = 0;
 }
