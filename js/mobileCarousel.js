@@ -7,7 +7,7 @@ let mobileCurrentRotation = 0;
 let mobileTotal = 0;
 let mobileTouchStartY = 0;
 
-const RADIUS = 140;
+const RADIUS = 190;
 const NUM_SLIDES = 6; // Create full drum with 6 positions
 
 export function initMobileCarousel(centerCam, prevCam, nextCam) {

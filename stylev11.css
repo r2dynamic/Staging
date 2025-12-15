@@ -516,11 +516,11 @@ html, body {
 
 .mobile-carousel-scene {
   perspective: 1200px;
-  width: 95%;
-  max-width: 95%;
-  height: 480px;
+  width: 95vw;
+  max-width: 95vw;
+  height: 45vh;
   position: absolute;
-  bottom: 10px;
+  bottom: 60px;
   left: 50%;
   transform: translateX(-50%);
   overflow: visible;
@@ -544,13 +544,16 @@ html, body {
 
 .mobile-slide {
   position: absolute;
-  width: 260px;
-  height: 146px;
+  width: 88%;
+  height: auto;
+  aspect-ratio: 16 / 9;
   border-radius: 12px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
   cursor: pointer;
-  top: 167px;
-  left: 30px;
+  top: 50%;
+  left: 50%;
+  margin-left: -44%; /* Half of width to center horizontally */
+  margin-top: -24.75%; /* Half of height (88% * 9/16 / 2) to center vertically */
   z-index: 1;
   overflow: hidden;
 }
