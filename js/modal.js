@@ -1,5 +1,6 @@
 // js/modal.js
 import { debounce } from './utils.js';
+import { initMobileCarousel, updateMobileCarousel, removeMobileCarousel } from './mobileCarousel.js';
 
 // DOM references
 const mapButton           = document.getElementById('mapButton');
@@ -61,6 +62,7 @@ export function setupModalCleanup() {
       resetModalMiniMap();
       resetModalInfoDeck();
       removeModalLogo();
+      removeMobileCarousel();
     });
 }
 
@@ -341,61 +343,65 @@ export function resetModalMiniMap() {
 }
 
 export function updateModalMiniMap(centerCam, prevCam, nextCam) {
+  // Desktop mini-map
   if (window.innerWidth <= 1024) {
     resetModalMiniMap();
-    return;
+  } else {
+    const cams = [centerCam, prevCam, nextCam]
+      .filter(Boolean)
+      .map((cam, idx) => ({
+        cam,
+        lat: Number(cam?.Latitude),
+        lon: Number(cam?.Longitude),
+        isCenter: idx === 0
+      }))
+      .filter(({ lat, lon }) => Number.isFinite(lat) && Number.isFinite(lon));
+
+    if (!cams.length) {
+      resetModalMiniMap();
+    } else {
+      const map = ensureMiniMap();
+      if (map && modalMiniMapContainer) {
+        clearMiniMapMarkers();
+
+        cams.forEach(({ cam, lat, lon, isCenter }) => {
+          const marker = L.circleMarker([lat, lon], {
+            radius: isCenter ? 8 : 6,
+            fillColor: isCenter ? '#0ddf92' : '#ff7800',
+            color: '#ffffff',
+            weight: isCenter ? 2 : 1.5,
+            opacity: 1,
+            fillOpacity: 1,
+            className: isCenter ? 'mini-map-marker-center' : 'mini-map-marker'
+          }).addTo(map);
+          marker.bindTooltip(cam?.Location || 'Camera', { permanent: false, direction: 'top' });
+          modalMiniMapMarkers.push(marker);
+        });
+
+        recalcMiniMapView(cams);
+        lastMiniMapCams = cams;
+
+        // Ensure tiles fill the container after layout settles
+        requestAnimationFrame(() => {
+          if (!modalMiniMap) return;
+          modalMiniMap.invalidateSize();
+          recalcMiniMapView(lastMiniMapCams);
+        });
+        setTimeout(() => {
+          if (!modalMiniMap) return;
+          modalMiniMap.invalidateSize();
+          recalcMiniMapView(lastMiniMapCams);
+        });
+
+        modalMiniMapContainer.style.display = 'block';
+      }
+    }
   }
-  const cams = [centerCam, prevCam, nextCam]
-    .filter(Boolean)
-    .map((cam, idx) => ({
-      cam,
-      lat: Number(cam?.Latitude),
-      lon: Number(cam?.Longitude),
-      isCenter: idx === 0
-    }))
-    .filter(({ lat, lon }) => Number.isFinite(lat) && Number.isFinite(lon));
-
-  if (!cams.length) {
-    resetModalMiniMap();
-    return;
+  
+  // Mobile vertical carousel
+  if (window.innerWidth <= 768) {
+    updateMobileCarousel(centerCam, prevCam, nextCam);
   }
-
-  const map = ensureMiniMap();
-  if (!map || !modalMiniMapContainer) return;
-
-  clearMiniMapMarkers();
-
-  cams.forEach(({ cam, lat, lon, isCenter }) => {
-    const marker = L.circleMarker([lat, lon], {
-      radius: isCenter ? 8 : 6,
-      fillColor: isCenter ? '#0ddf92' : '#ff7800',
-      color: '#ffffff',
-      weight: isCenter ? 2 : 1.5,
-      opacity: 1,
-      fillOpacity: 1,
-      className: isCenter ? 'mini-map-marker-center' : 'mini-map-marker'
-    }).addTo(map);
-    marker.bindTooltip(cam?.Location || 'Camera', { permanent: false, direction: 'top' });
-    modalMiniMapMarkers.push(marker);
-  });
-
-  recalcMiniMapView(cams);
-
-  lastMiniMapCams = cams;
-
-  // Ensure tiles fill the container after layout settles
-  requestAnimationFrame(() => {
-    if (!modalMiniMap) return;
-    modalMiniMap.invalidateSize();
-    recalcMiniMapView(lastMiniMapCams);
-  });
-  setTimeout(() => {
-    if (!modalMiniMap) return;
-    modalMiniMap.invalidateSize();
-    recalcMiniMapView(lastMiniMapCams);
-  });
-
-  modalMiniMapContainer.style.display = 'block';
 }
 
 export async function shareImageFile(url, info = "") {
