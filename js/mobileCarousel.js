@@ -1,11 +1,14 @@
-// js/mobileCarousel.js - Mobile-specific 3D drum carousel
+// js/mobileCarousel.js - Mobile-specific 3D drum carousel with infinite scroll
 
 let mobileCarouselContainer = null;
 let mobileGallery = null;
 let mobileCurrentRotation = 0;
 let mobileTouchStartY = 0;
+let currentListIndex = 0; // Current camera index in the full camera list
+let isUpdating = false; // Prevent updates during transitions
+let lastSnapPosition = 0; // Track last snapped position to detect movement
 
-const RADIUS = 160;
+const RADIUS = 190;
 const NUM_SLIDES = 6;
 const ANGLE_STEP = 360 / NUM_SLIDES; // 60 degrees per slide
 
@@ -17,6 +20,20 @@ export function initMobileCarousel(centerCam, prevCam, nextCam) {
 
   // Remove any existing mobile carousel
   removeMobileCarousel();
+
+  // Get the full camera list and find starting camera's index
+  const cameraList = window.camerasList || [];
+  if (cameraList.length === 0) {
+    console.log('No cameras in list');
+    return;
+  }
+  
+  const startIndex = cameraList.findIndex(cam => 
+    cam?.Views?.[0]?.Url === centerCam?.Views?.[0]?.Url
+  );
+  
+  currentListIndex = startIndex !== -1 ? startIndex : 0;
+  console.log(`Starting carousel at camera index ${currentListIndex} of ${cameraList.length}`);
 
   // Create mobile carousel container
   mobileCarouselContainer = document.createElement('div');
@@ -37,62 +54,126 @@ export function initMobileCarousel(centerCam, prevCam, nextCam) {
   modalBody.appendChild(mobileCarouselContainer);
   mobileGallery = document.getElementById('mobileGallery');
 
-  // Build slides - Fill all 6 positions with the 3 cameras in order
-  // This creates smooth continuous rotation
-  const cameras = [centerCam, nextCam, prevCam].filter(Boolean);
-  const slideCameras = [];
-  
-  // Fill 6 positions: center, next, prev, center, next, prev
+  // Create 6 physical cards
   for (let i = 0; i < NUM_SLIDES; i++) {
-    slideCameras.push(cameras[i % cameras.length]);
-  }
-  
-  slideCameras.forEach((cam, i) => {
     const card = document.createElement('div');
     card.className = 'mobile-slide';
     card.style.transform = `rotateX(${i * ANGLE_STEP}deg) translateZ(${RADIUS}px)`;
-    card.dataset.slideIndex = i;
+    card.dataset.position = i;
     
     const img = document.createElement('img');
-    img.src = cam?.Views?.[0]?.Url || '';
-    img.alt = cam?.Location || 'Camera';
     img.loading = 'lazy';
-    
     card.appendChild(img);
     mobileGallery.appendChild(card);
-  });
+  }
   
-  // Start at center camera (index 0)
+  // Populate all cards with initial cameras
+  updateAllCards();
+  
+  // Start at center (rotation 0 = position 0)
   mobileCurrentRotation = 0;
+  lastSnapPosition = 0;
   mobileGallery.style.transform = `rotateX(${mobileCurrentRotation}deg)`;
 
   setupMobileControls();
   setupMobileTouchEvents();
 }
 
-function rotateMobile(direction) {
-  if (!mobileGallery) return;
+function updateAllCards() {
+  console.log('=== updateAllCards START ===');
+  console.log('mobileGallery exists:', !!mobileGallery);
   
-  // Rotate one step (60 degrees)
-  mobileCurrentRotation += (direction === 'down' ? -ANGLE_STEP : ANGLE_STEP);
-  mobileGallery.style.transform = `rotateX(${mobileCurrentRotation}deg)`;
+  if (!mobileGallery) {
+    console.log('EXIT: No mobileGallery');
+    return;
+  }
   
-  // Calculate current position (0-5)
-  const normalizedRotation = ((mobileCurrentRotation % 360) + 360) % 360;
-  const currentSlideIndex = Math.round(normalizedRotation / ANGLE_STEP) % NUM_SLIDES;
+  const cameraList = window.camerasList || [];
+  console.log('Camera list length:', cameraList.length);
   
-  // Pattern: 0=center, 1=next, 2=prev, 3=center, 4=next, 5=prev
-  // Only switch cameras when landing on specific positions
-  setTimeout(() => {
-    if (currentSlideIndex === 1 || currentSlideIndex === 4) {
-      // At next camera position
-      document.getElementById('carouselNextButton')?.click();
-    } else if (currentSlideIndex === 2 || currentSlideIndex === 5) {
-      // At prev camera position
-      document.getElementById('carouselPrevButton')?.click();
+  if (cameraList.length === 0) {
+    console.log('EXIT: No cameras in list');
+    return;
+  }
+  
+  const slides = mobileGallery.querySelectorAll('.mobile-slide');
+  console.log('Number of slides found:', slides.length);
+  
+  // Update each physical card to show cameras around the current index
+  // Position 0: current camera (center)
+  // Position 1-3: next cameras (+1, +2, +3)
+  // Position 4-5: previous cameras (-2, -1)
+  const offsets = [0, 1, 2, 3, -2, -1];
+  
+  console.log('Current list index:', currentListIndex);
+  
+  slides.forEach((slide, position) => {
+    const offset = offsets[position];
+    const cameraIndex = (currentListIndex + offset + cameraList.length) % cameraList.length;
+    const camera = cameraList[cameraIndex];
+    
+    console.log(`Position ${position} (offset ${offset}): Camera index ${cameraIndex} - ${camera?.Location}`);
+    
+    const img = slide.querySelector('img');
+    if (img && camera) {
+      const oldSrc = img.src;
+      const newSrc = camera?.Views?.[0]?.Url || '';
+      img.src = newSrc;
+      img.alt = camera?.Location || 'Camera';
+      slide.dataset.cameraIndex = cameraIndex;
+      console.log(`  Updated image: ${oldSrc === newSrc ? 'SAME' : 'CHANGED'}`);
+    } else {
+      console.log(`  SKIP: img=${!!img}, camera=${!!camera}`);
     }
-    // Positions 0 and 3 are center - no switch needed
-  }, 400); // Wait for rotation animation
+  });
+  
+  // Update modal title to show current camera
+  const currentCamera = cameraList[currentListIndex];
+  const modalTitle = document.querySelector('#imageModal .modal-title');
+  if (modalTitle && currentCamera) {
+    modalTitle.textContent = currentCamera?.Location || 'Camera';
+  }
+  
+  console.log(`=== updateAllCards END: Showing camera ${currentListIndex}: ${currentCamera?.Location} ===`);
+}
+
+function rotateMobile(direction) {
+  if (!mobileGallery || isUpdating) return;
+  
+  const cameraList = window.camerasList || [];
+  if (cameraList.length === 0) return;
+  
+  isUpdating = true;
+  
+  // Update camera index FIRST
+  const step = (direction === 'down' ? -1 : 1);
+  currentListIndex = (currentListIndex + step + cameraList.length) % cameraList.length;
+  
+  // Update all cards BEFORE rotating (instantly, no animation)
+  mobileGallery.style.transition = 'none';
+  updateAllCards();
+  
+  // Force a reflow to ensure the update happens
+  mobileGallery.offsetHeight;
+  
+  // Now start the smooth rotation with the correct images already in place
+  requestAnimationFrame(() => {
+    mobileGallery.style.transition = 'transform 0.6s ease';
+    mobileCurrentRotation += (direction === 'down' ? -ANGLE_STEP : ANGLE_STEP);
+    mobileGallery.style.transform = `rotateX(${mobileCurrentRotation}deg)`;
+    
+    // After rotation completes, reset position
+    setTimeout(() => {
+      mobileGallery.style.transition = 'none';
+      mobileCurrentRotation = 0;
+      mobileGallery.style.transform = `rotateX(0deg)`;
+      
+      requestAnimationFrame(() => {
+        mobileGallery.style.transition = 'transform 0.6s ease';
+        isUpdating = false;
+      });
+    }, 620);
+  });
 }
 
 function setupMobileControls() {
@@ -111,27 +192,26 @@ function setupMobileTouchEvents() {
   const scene = mobileCarouselContainer;
 
   scene.addEventListener('touchstart', e => {
-    e.stopPropagation(); // Prevent touch from reaching gallery below
+    e.stopPropagation();
     mobileTouchStartY = e.touches[0].clientY;
   }, { passive: true });
 
   scene.addEventListener('touchmove', e => {
-    e.stopPropagation(); // Prevent touch from reaching gallery below
-    e.preventDefault(); // Prevent scrolling
+    e.stopPropagation();
+    e.preventDefault();
     const deltaY = e.touches[0].clientY - mobileTouchStartY;
     mobileTouchStartY = e.touches[0].clientY;
-    mobileCurrentRotation -= deltaY * 0.5; // Reversed direction
+    mobileCurrentRotation -= deltaY * 0.5;
     if (mobileGallery) {
       mobileGallery.style.transform = `rotateX(${mobileCurrentRotation}deg)`;
     }
-  }, { passive: false }); // Must be non-passive to allow preventDefault
+  }, { passive: false });
 
   scene.addEventListener('touchend', e => {
-    e.stopPropagation(); // Prevent touch from reaching gallery below
+    e.stopPropagation();
     snapToNearestPosition();
   }, { passive: true });
 
-  // Wheel support
   scene.addEventListener('wheel', e => {
     e.preventDefault();
     e.stopPropagation();
@@ -144,21 +224,93 @@ function setupMobileTouchEvents() {
 }
 
 function snapToNearestPosition() {
-  if (!mobileGallery) return;
+  console.log('\n*** snapToNearestPosition ***');
+  console.log('  mobileCurrentRotation:', mobileCurrentRotation);
+  console.log('  isUpdating:', isUpdating);
   
-  // Find the nearest snap position
+  if (!mobileGallery || isUpdating) {
+    console.log('  EXIT: No gallery or updating');
+    return;
+  }
+  
   const nearestStep = Math.round(mobileCurrentRotation / ANGLE_STEP);
   const targetRotation = nearestStep * ANGLE_STEP;
+  const normalizedRotation = ((targetRotation % 360) + 360) % 360;
+  const centeredPosition = Math.round(normalizedRotation / ANGLE_STEP) % NUM_SLIDES;
   
-  // Smooth transition to snap position
+  console.log('  nearestStep:', nearestStep);
+  console.log('  targetRotation:', targetRotation);
+  console.log('  normalizedRotation:', normalizedRotation);
+  console.log('  centeredPosition:', centeredPosition);
+  
   mobileGallery.style.transition = 'transform 0.3s ease-out';
   mobileCurrentRotation = targetRotation;
   mobileGallery.style.transform = `rotateX(${mobileCurrentRotation}deg)`;
   
-  // Restore default transition after snap completes
   setTimeout(() => {
-    if (mobileGallery) mobileGallery.style.transition = 'transform 0.6s ease';
-  }, 300);
+    if (mobileGallery) {
+      mobileGallery.style.transition = 'transform 0.6s ease';
+      console.log('  Calling handleCameraChange with position:', centeredPosition);
+      handleCameraChange(centeredPosition);
+    }
+  }, 350);
+}
+
+function handleCameraChange(centeredPosition) {
+  console.log('\n### handleCameraChange ###');
+  console.log('  centeredPosition:', centeredPosition);
+  console.log('  isUpdating:', isUpdating);
+  
+  if (isUpdating) {
+    console.log('  EXIT: Already updating');
+    return;
+  }
+  
+  const cameraList = window.camerasList || [];
+  console.log('  Camera list length:', cameraList.length);
+  
+  if (cameraList.length === 0) {
+    console.log('  EXIT: No cameras');
+    return;
+  }
+  
+  let stepsFromCenter = centeredPosition;
+  if (stepsFromCenter > 3) {
+    stepsFromCenter = stepsFromCenter - 6;
+  }
+  
+  console.log('  stepsFromCenter:', stepsFromCenter);
+  
+  if (stepsFromCenter === 0) {
+    console.log('  EXIT: Still at center, no change needed');
+    return;
+  }
+  
+  const oldIndex = currentListIndex;
+  currentListIndex = (currentListIndex + stepsFromCenter + cameraList.length) % cameraList.length;
+  
+  console.log(`  ✓ Moved ${stepsFromCenter} steps. Index ${oldIndex} -> ${currentListIndex}`);
+  console.log(`  Old camera: ${cameraList[oldIndex]?.Location}`);
+  console.log(`  New camera: ${cameraList[currentListIndex]?.Location}`);
+  
+  isUpdating = true;
+  updateAllCards();
+  
+  console.log('  Resetting rotation to 0...');
+  mobileGallery.style.transition = 'none';
+  mobileCurrentRotation = 0;
+  lastSnapPosition = 0;
+  mobileGallery.style.transform = `rotateX(0deg)`;
+  
+  requestAnimationFrame(() => {
+    if (mobileGallery) {
+      mobileGallery.style.transition = 'transform 0.6s ease';
+    }
+    setTimeout(() => {
+      console.log('  isUpdating -> false');
+      isUpdating = false;
+    }, 100);
+  });
 }
 
 export function updateMobileCarousel(centerCam, prevCam, nextCam) {
@@ -173,4 +325,7 @@ export function removeMobileCarousel() {
   }
   mobileGallery = null;
   mobileCurrentRotation = 0;
+  currentListIndex = 0;
+  isUpdating = false;
+  lastSnapPosition = 0;
 }

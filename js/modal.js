@@ -57,7 +57,7 @@ export function setupModalCleanup() {
     .addEventListener('hidden.bs.modal', () => {
       document.getElementById('modalMapContainer')?.remove();
       modalImageContainer.style.flex = '1';
-      mapButton.textContent          = 'Map';
+      if (mapButton) mapButton.textContent = 'Map';
       mapDisplayed                   = false;
       resetModalMiniMap();
       resetModalInfoDeck();
@@ -459,9 +459,9 @@ export function updateModalMiniMap(centerCam, prevCam, nextCam) {
     }
   }
   
-  // Mobile vertical carousel
+  // Mobile vertical carousel - ignore neighbor fields, use list order
   if (window.innerWidth <= 768) {
-    updateMobileCarousel(centerCam, prevCam, nextCam);
+    updateMobileCarousel(centerCam, null, null);
   }
 }
 
