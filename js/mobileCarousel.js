@@ -145,35 +145,40 @@ function rotateMobile(direction) {
   
   isUpdating = true;
   
-  // Update camera index FIRST
+  // Update to next camera
   const step = (direction === 'down' ? -1 : 1);
   currentListIndex = (currentListIndex + step + cameraList.length) % cameraList.length;
   
-  // Update all cards BEFORE rotating (instantly, no animation)
-  mobileGallery.style.transition = 'none';
-  updateAllCards();
+  // Calculate which card position will be at center after this rotation
+  mobileCurrentRotation += (direction === 'down' ? -ANGLE_STEP : ANGLE_STEP);
+  const normalizedRotation = ((mobileCurrentRotation % 360) + 360) % 360;
+  const nextCenterPosition = Math.round(normalizedRotation / ANGLE_STEP) % NUM_SLIDES;
   
-  // Force a reflow to ensure the update happens
-  mobileGallery.offsetHeight;
+  // Update ONLY the card that will be at center with the new camera
+  const slides = mobileGallery.querySelectorAll('.mobile-slide');
+  const centerCard = slides[nextCenterPosition];
+  const img = centerCard.querySelector('img');
+  const camera = cameraList[currentListIndex];
   
-  // Now start the smooth rotation with the correct images already in place
-  requestAnimationFrame(() => {
-    mobileGallery.style.transition = 'transform 0.6s ease';
-    mobileCurrentRotation += (direction === 'down' ? -ANGLE_STEP : ANGLE_STEP);
-    mobileGallery.style.transform = `rotateX(${mobileCurrentRotation}deg)`;
-    
-    // After rotation completes, reset position
-    setTimeout(() => {
-      mobileGallery.style.transition = 'none';
-      mobileCurrentRotation = 0;
-      mobileGallery.style.transform = `rotateX(0deg)`;
-      
-      requestAnimationFrame(() => {
-        mobileGallery.style.transition = 'transform 0.6s ease';
-        isUpdating = false;
-      });
-    }, 620);
-  });
+  if (img && camera) {
+    img.src = camera?.Views?.[0]?.Url || '';
+    img.alt = camera?.Location || 'Camera';
+    centerCard.dataset.cameraIndex = currentListIndex;
+  }
+  
+  // Update modal title
+  const modalTitle = document.querySelector('#imageModal .modal-title');
+  if (modalTitle && camera) {
+    modalTitle.textContent = camera?.Location || 'Camera';
+  }
+  
+  // Rotate smoothly
+  mobileGallery.style.transform = `rotateX(${mobileCurrentRotation}deg)`;
+  
+  // Unlock after animation
+  setTimeout(() => {
+    isUpdating = false;
+  }, 650);
 }
 
 function setupMobileControls() {
