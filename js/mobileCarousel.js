@@ -8,7 +8,7 @@ let currentListIndex = 0; // Current camera index in the full camera list
 let isUpdating = false; // Prevent updates during transitions
 let lastSnapPosition = 0; // Track last snapped position to detect movement
 
-const RADIUS = 190;
+const RADIUS = 160;
 const NUM_SLIDES = 6;
 const ANGLE_STEP = 360 / NUM_SLIDES; // 60 degrees per slide
 
