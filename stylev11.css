@@ -548,7 +548,11 @@ html, body {
   height: 100%;
   position: relative;
   transform-style: preserve-3d;
-  transition: transform 0.6s ease;
+  transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+  will-change: transform;
+  -webkit-transform-style: preserve-3d;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 .mobile-slide {
@@ -561,10 +565,14 @@ html, body {
   cursor: pointer;
   top: 50%;
   left: 50%;
-  margin-left: -37.5%; /* Half of width to center horizontally */
-  margin-top: -21.09375%; /* Half of height (75% * 9/16 / 2) to center vertically */
+  margin-left: -37.5%;
+  margin-top: -21.09375%;
   z-index: 1;
   overflow: hidden;
+  will-change: transform;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transform: translateZ(0);
 }
 
 .mobile-slide img {
@@ -573,6 +581,11 @@ html, body {
   object-fit: contain;
   display: block;
   background: #000;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
 }
 
 .mobile-carousel-controls {

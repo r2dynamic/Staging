@@ -100,19 +100,18 @@ function updateAllCards() {
   console.log('Number of slides found:', slides.length);
   console.log('Current list index:', currentListIndex);
   
-  // Map each physical card position to the correct camera in order
-  // Position 0 (0°): Current camera
-  // Position 1 (60°): Next camera (+1)
-  // Position 2 (120°): +2
-  // Position 3 (180°): +3
-  // Position 4 (240°): +4
-  // Position 5 (300°): +5
+  // Correct mapping for drum rotation:
+  // Position 0 (0°, center): Current camera (N)
+  // Position 1 (60°, top): Next camera (N+1) - comes to center when scroll DOWN
+  // Position 5 (300°, bottom): Previous camera (N-1) - comes to center when scroll UP
+  const offsets = [0, 1, 2, 3, -2, -1]; // Position 4 = N-2, Position 5 = N-1
+  
   slides.forEach((slide, position) => {
-    const cameraOffset = position; // Direct mapping: position = offset
-    const cameraIndex = (currentListIndex + cameraOffset) % cameraList.length;
+    const offset = offsets[position];
+    const cameraIndex = (currentListIndex + offset + cameraList.length) % cameraList.length;
     const camera = cameraList[cameraIndex];
     
-    console.log(`Position ${position} (${position * 60}°): Camera index ${cameraIndex} - ${camera?.Location}`);
+    console.log(`Position ${position} (${position * 60}°, offset ${offset}): Camera index ${cameraIndex} - ${camera?.Location}`);
     
     const img = slide.querySelector('img');
     if (img && camera) {
@@ -140,30 +139,49 @@ function rotateMobile(direction) {
   
   isUpdating = true;
   
-  // Start smooth rotation
+  // First, update camera index
+  const step = (direction === 'down' ? 1 : -1);
+  currentListIndex = (currentListIndex + step + cameraList.length) % cameraList.length;
+  
+  // Update all cards BEFORE rotation starts (no animation)
+  const slides = mobileGallery.querySelectorAll('.mobile-slide');
+  const offsets = [0, 1, 2, 3, -2, -1];
+  
+  slides.forEach((slide, position) => {
+    const offset = offsets[position];
+    const cameraIndex = (currentListIndex + offset + cameraList.length) % cameraList.length;
+    const camera = cameraList[cameraIndex];
+    const img = slide.querySelector('img');
+    
+    if (img && camera) {
+      img.src = camera?.Views?.[0]?.Url || '';
+      slide.dataset.cameraIndex = cameraIndex;
+    }
+  });
+  
+  // Update title
+  const modalTitle = document.querySelector('#imageModal .modal-title');
+  if (modalTitle) modalTitle.textContent = cameraList[currentListIndex]?.Location || 'Camera';
+  
+  // Force a reflow to ensure updates complete
+  mobileGallery.offsetHeight;
+  
+  // Now rotate with the correct images already in place
   mobileCurrentRotation += (direction === 'down' ? -ANGLE_STEP : ANGLE_STEP);
-  mobileGallery.style.transition = 'transform 0.6s ease';
+  mobileGallery.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1)';
   mobileGallery.style.transform = `rotateX(${mobileCurrentRotation}deg)`;
   
-  // Halfway through rotation (300ms), update cards while they're rotated away
-  setTimeout(() => {
-    const step = (direction === 'down' ? 1 : -1);
-    currentListIndex = (currentListIndex + step + cameraList.length) % cameraList.length;
-    updateAllCards();
-  }, 300);
-  
-  // After rotation completes (600ms), reset to 0° instantly
+  // After rotation completes, reset to 0° (now invisible since images match)
   setTimeout(() => {
     mobileGallery.style.transition = 'none';
     mobileCurrentRotation = 0;
     mobileGallery.style.transform = `rotateX(0deg)`;
     
     // Restore transition
-    requestAnimationFrame(() => {
-      mobileGallery.style.transition = 'transform 0.6s ease';
-      isUpdating = false;
-    });
-  }, 600);
+    mobileGallery.offsetHeight; // Force reflow
+    mobileGallery.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1)';
+    isUpdating = false;
+  }, 410);
 }
 
 function setupMobileControls() {
