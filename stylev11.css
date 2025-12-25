@@ -935,6 +935,21 @@ html, body {
   overflow: hidden;
 }
 
+/* Hide mobile-only elements on desktop */
+.mobile-only {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .mobile-only {
+    display: block !important;
+  }
+  
+  .info-stack-dot.mobile-only {
+    display: inline-block !important;
+  }
+}
+
 .info-card__columns {
   grid-column: 1 / -1;
   display: grid;
@@ -1220,8 +1235,8 @@ html, body {
 }
 .modal-close-top {
   position: absolute;
-  bottom: 20px;
-  right: 20px;
+  top: 10px;
+  right: 10px;
   z-index: 1060;
   margin: 0;
   opacity: 0.9;
@@ -1232,6 +1247,7 @@ html, body {
 }
 @media (max-width: 768px) {
   .modal-close-top {
+    top: auto;
     bottom: clamp(20px, 8vh, 35px);
     right: clamp(15px, 4vw, 25px);
     font-size: clamp(1.3rem, 4vw, 1.5rem);

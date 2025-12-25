@@ -162,10 +162,7 @@ function ensureInfoDeck() {
     container.className = 'modal-info-stack';
     container.innerHTML = `
       <div class="info-stack-track">
-        <div class="info-card info-card--mini-map is-active">
-          <div class="info-card__map-container" id="mobileInfoMiniMap"></div>
-        </div>
-        <div class="info-card info-card--meta">
+        <div class="info-card info-card--meta is-active">
           <div class="info-card__columns">
             <div class="info-card__column">
               <div class="info-card__title">Primary Route</div>
@@ -192,6 +189,9 @@ function ensureInfoDeck() {
         <div class="info-card info-card--map">
           <div class="info-card__embed" data-embed-type="map"></div>
         </div>
+        <div class="info-card info-card--mini-map mobile-only">
+          <div class="info-card__map-container" id="mobileInfoMiniMap"></div>
+        </div>
       </div>
       <div class="info-stack-controls">
         <button type="button" class="button ghost info-prev" aria-label="Previous info card"><i class="fas fa-chevron-left"></i></button>
@@ -199,7 +199,7 @@ function ensureInfoDeck() {
           <div class="info-stack-dot active" data-card-index="0"></div>
           <div class="info-stack-dot" data-card-index="1"></div>
           <div class="info-stack-dot" data-card-index="2"></div>
-          <div class="info-stack-dot" data-card-index="3"></div>
+          <div class="info-stack-dot mobile-only" data-card-index="3"></div>
         </div>
         <button type="button" class="button ghost info-next" aria-label="Next info card"><i class="fas fa-chevron-right"></i></button>
       </div>
