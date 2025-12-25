@@ -1073,13 +1073,13 @@ html, body {
 /* Mobile positioning for info stack */
 @media (max-width: 768px) {
   .modal-info-stack {
-    position: absolute;
-    top: 5px;
+    position: fixed;
+    top: 60px;
     left: 50%;
     transform: translateX(-50%);
     width: 95vw;
     height: clamp(170px, 22vh, 240px);
-    z-index: 5;
+    z-index: 1060;
   }
   
   .info-stack-controls {

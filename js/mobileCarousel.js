@@ -1,5 +1,7 @@
 // js/mobileCarousel.js - Mobile-specific 3D drum carousel with infinite scroll
 
+import { updateModalInfoDeck } from './modal.js';
+
 let mobileCarouselContainer = null;
 let mobileGallery = null;
 let mobileCurrentRotation = 0;
@@ -97,8 +99,6 @@ function updateAllCards() {
   }
   
   const slides = mobileGallery.querySelectorAll('.mobile-slide');
-  console.log('Number of slides found:', slides.length);
-  console.log('Current list index:', currentListIndex);
   
   // Correct mapping for drum rotation:
   // Position 0 (0°, center): Current camera (N)
@@ -121,14 +121,19 @@ function updateAllCards() {
     }
   });
   
-  // Update modal title to show current camera
+  // Update modal title and info cards to show current camera
   const currentCamera = cameraList[currentListIndex];
   const modalTitle = document.querySelector('#imageModal .modal-title');
   if (modalTitle && currentCamera) {
     modalTitle.textContent = currentCamera?.Location || 'Camera';
   }
   
-  console.log(`=== updateAllCards END: Showing camera ${currentListIndex}: ${currentCamera?.Location} ===`);
+  // Update info cards with current camera data - use RAF to ensure DOM is ready
+  if (currentCamera) {
+    requestAnimationFrame(() => {
+      updateModalInfoDeck(currentCamera);
+    });
+  }
 }
 
 function rotateMobile(direction) {
@@ -143,25 +148,8 @@ function rotateMobile(direction) {
   const step = (direction === 'down' ? 1 : -1);
   currentListIndex = (currentListIndex + step + cameraList.length) % cameraList.length;
   
-  // Update all cards BEFORE rotation starts (no animation)
-  const slides = mobileGallery.querySelectorAll('.mobile-slide');
-  const offsets = [0, 1, 2, 3, -2, -1];
-  
-  slides.forEach((slide, position) => {
-    const offset = offsets[position];
-    const cameraIndex = (currentListIndex + offset + cameraList.length) % cameraList.length;
-    const camera = cameraList[cameraIndex];
-    const img = slide.querySelector('img');
-    
-    if (img && camera) {
-      img.src = camera?.Views?.[0]?.Url || '';
-      slide.dataset.cameraIndex = cameraIndex;
-    }
-  });
-  
-  // Update title
-  const modalTitle = document.querySelector('#imageModal .modal-title');
-  if (modalTitle) modalTitle.textContent = cameraList[currentListIndex]?.Location || 'Camera';
+  // Update all cards BEFORE rotation starts (this also updates info deck)
+  updateAllCards();
   
   // Force a reflow to ensure updates complete
   mobileGallery.offsetHeight;
@@ -287,6 +275,9 @@ function handleCameraChange(centeredPosition) {
     stepsFromCenter = stepsFromCenter - 6;
   }
   
+  // Invert the step direction for touch gestures
+  stepsFromCenter = -stepsFromCenter;
+  
   console.log('  stepsFromCenter:', stepsFromCenter);
   
   if (stepsFromCenter === 0) {
@@ -303,6 +294,12 @@ function handleCameraChange(centeredPosition) {
   
   isUpdating = true;
   updateAllCards();
+  
+  // Update info cards with new camera data
+  const newCamera = cameraList[currentListIndex];
+  if (newCamera) {
+    updateModalInfoDeck(newCamera);
+  }
   
   console.log('  Resetting rotation to 0...');
   mobileGallery.style.transition = 'none';
