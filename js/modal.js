@@ -162,7 +162,10 @@ function ensureInfoDeck() {
     container.className = 'modal-info-stack';
     container.innerHTML = `
       <div class="info-stack-track">
-        <div class="info-card info-card--meta is-active">
+        <div class="info-card info-card--mini-map is-active">
+          <div class="info-card__map-container" id="mobileInfoMiniMap"></div>
+        </div>
+        <div class="info-card info-card--meta">
           <div class="info-card__columns">
             <div class="info-card__column">
               <div class="info-card__title">Primary Route</div>
@@ -196,6 +199,7 @@ function ensureInfoDeck() {
           <div class="info-stack-dot active" data-card-index="0"></div>
           <div class="info-stack-dot" data-card-index="1"></div>
           <div class="info-stack-dot" data-card-index="2"></div>
+          <div class="info-stack-dot" data-card-index="3"></div>
         </div>
         <button type="button" class="button ghost info-next" aria-label="Next info card"><i class="fas fa-chevron-right"></i></button>
       </div>
@@ -405,7 +409,8 @@ export function resetModalMiniMap() {
 
 export function updateModalMiniMap(centerCam, prevCam, nextCam) {
   // Desktop mini-map
-  if (window.innerWidth <= 1024) {
+  if (window.innerWidth > 1024 && window.innerWidth <= 768) {
+    // Never true - keeps desktop logic separate
     resetModalMiniMap();
   } else {
     const cams = [centerCam, prevCam, nextCam]
@@ -463,6 +468,85 @@ export function updateModalMiniMap(centerCam, prevCam, nextCam) {
   if (window.innerWidth <= 768) {
     updateMobileCarousel(centerCam, null, null);
   }
+}
+
+export function updateMobileMiniMap(centerCam, prevCam, nextCam) {
+  if (window.innerWidth > 768) return; // Mobile only
+  
+  const mapContainer = document.getElementById('mobileInfoMiniMap');
+  if (!mapContainer) return;
+  
+  // Remove existing map if any
+  if (mapContainer._leaflet_id) {
+    mapContainer.innerHTML = '';
+    delete mapContainer._leaflet_id;
+  }
+  
+  const cams = [centerCam, prevCam, nextCam]
+    .filter(Boolean)
+    .map((cam, idx) => ({
+      cam,
+      lat: Number(cam?.Latitude),
+      lon: Number(cam?.Longitude),
+      isCenter: idx === 0
+    }))
+    .filter(({ lat, lon }) => Number.isFinite(lat) && Number.isFinite(lon));
+
+  if (!cams.length) return;
+  
+  // Wait for container to be visible
+  requestAnimationFrame(() => {
+    // Create map
+    const map = L.map(mapContainer, {
+      zoomControl: false,
+      attributionControl: false,
+      dragging: false,
+      touchZoom: false,
+      scrollWheelZoom: false,
+      doubleClickZoom: false,
+      boxZoom: false,
+      keyboard: false,
+      tap: false
+    });
+    
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 19
+    }).addTo(map);
+    
+    // Add markers
+    cams.forEach(({ cam, lat, lon, isCenter }) => {
+      L.circleMarker([lat, lon], {
+        radius: isCenter ? 8 : 6,
+        fillColor: isCenter ? '#0ddf92' : '#ff7800',
+        color: '#ffffff',
+        weight: isCenter ? 2 : 1.5,
+        opacity: 1,
+        fillOpacity: 1
+      }).addTo(map).bindTooltip(cam?.Location || 'Camera', { 
+        permanent: false, 
+        direction: 'top' 
+      });
+    });
+    
+    // Fit bounds
+    const bounds = L.latLngBounds(cams.map(({ lat, lon }) => [lat, lon]));
+    map.fitBounds(bounds, { padding: [30, 30] });
+    
+    // Force multiple resize attempts to ensure proper rendering
+    setTimeout(() => {
+      if (map) {
+        map.invalidateSize();
+        map.fitBounds(bounds, { padding: [30, 30] });
+      }
+    }, 100);
+    
+    setTimeout(() => {
+      if (map) {
+        map.invalidateSize();
+        map.fitBounds(bounds, { padding: [30, 30] });
+      }
+    }, 300);
+  });
 }
 
 export async function shareImageFile(url, info = "") {

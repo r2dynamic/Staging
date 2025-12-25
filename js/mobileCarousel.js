@@ -1,6 +1,6 @@
 // js/mobileCarousel.js - Mobile-specific 3D drum carousel with infinite scroll
 
-import { updateModalInfoDeck } from './modal.js';
+import { updateModalInfoDeck, updateMobileMiniMap } from './modal.js';
 
 let mobileCarouselContainer = null;
 let mobileGallery = null;
@@ -132,6 +132,11 @@ function updateAllCards() {
   if (currentCamera) {
     requestAnimationFrame(() => {
       updateModalInfoDeck(currentCamera);
+      
+      // Update mobile mini map with adjacent cameras from list
+      const prevCamera = cameraList[(currentListIndex - 1 + cameraList.length) % cameraList.length];
+      const nextCamera = cameraList[(currentListIndex + 1) % cameraList.length];
+      updateMobileMiniMap(currentCamera, prevCamera, nextCamera);
     });
   }
 }
