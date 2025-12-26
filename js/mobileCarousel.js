@@ -70,14 +70,17 @@ export function initMobileCarousel(centerCam, prevCam, nextCam) {
     mobileGallery.appendChild(card);
   }
   
-  // Populate all cards with initial cameras
-  updateAllCards();
-  
-  // Initialize tracking array - which camera each physical card shows
+  // Populate all cards with initial cameras and initialize tracking
+  // Card positions: 0(0°,center), 1(60°,top), 2(120°,back-top), 3(180°,back), 4(240°,back-bottom), 5(300°,bottom)
+  // Camera offsets from current: Position 0=N, 1=N+1, 2=N+2, 3=N+3, 4=N-2, 5=N-1
   const offsets = [0, 1, 2, 3, -2, -1];
   cardCameraIndices = offsets.map(offset => 
     (currentListIndex + offset + cameraList.length) % cameraList.length
   );
+  
+  console.log('Initial cardCameraIndices:', cardCameraIndices.map((idx, pos) => `P${pos}=C${idx}`).join(', '));
+  
+  updateAllCards();
   
   // Start at center (rotation 0 = position 0)
   mobileCurrentRotation = 0;
@@ -170,50 +173,70 @@ function rotateMobile(direction) {
   mobileGallery.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1)';
   mobileGallery.style.transform = `rotateX(${mobileCurrentRotation}deg)`;
   
-  // After rotation completes, update card tracking and the card that moved to back
+  // After rotation completes, update the card that will soon come into view
   setTimeout(() => {
-    // Rotate the tracking array to match physical card rotation
+    console.log(`\n=== After ${direction} rotation ===`);
+    console.log('Current camera index:', currentListIndex);
+    console.log('mobileCurrentRotation:', mobileCurrentRotation);
+    
+    // With cumulative rotation, calculate which physical card is now at center (0° effective angle)
+    // Physical card i has transform rotateX(i*60°)
+    // Effective angle = (i*60 + mobileCurrentRotation) % 360
+    // We want the card where effective angle ≈ 0°
+    const normalizedRotation = ((mobileCurrentRotation % 360) + 360) % 360;
+    const centerCardIndex = Math.round((360 - normalizedRotation) / 60) % 6;
+    
+    console.log('Physical card at center:', centerCardIndex);
+    console.log('Before update, cardCameraIndices:', cardCameraIndices.map((idx, pos) => `P${pos}=C${idx}`).join(', '));
+    
+    // Update the tracking array: center card should show current camera
+    cardCameraIndices[centerCardIndex] = currentListIndex;
+    
+    // Also update the card that's now far back and will be next to rotate into view
+    // Calculate which card is at the opposite side (180° from center)
+    const backCardIndex = (centerCardIndex + 3) % 6;
+    
     if (direction === 'down') {
-      // Rotating down: first card moves to back, shift array left
-      const temp = cardCameraIndices.shift();
-      cardCameraIndices.push(temp);
-      // Update the card now at back with new camera (3 ahead of current)
-      const newCameraIndex = (currentListIndex + 3 + cameraList.length) % cameraList.length;
-      cardCameraIndices[5] = newCameraIndex;
+      // Next rotation will bring the card at 300° (bottom) to center
+      // That card should show camera N+1 (next in list)
+      const bottomCardIndex = (centerCardIndex + 5) % 6; // 300° from center
+      cardCameraIndices[bottomCardIndex] = (currentListIndex + 1 + cameraList.length) % cameraList.length;
       
-      // Update the physical card at position 5
+      // Update the bottom card's image
       const slides = mobileGallery.querySelectorAll('.mobile-slide');
-      const slideToUpdate = slides[5];
-      const camera = cameraList[newCameraIndex];
+      const slideToUpdate = slides[bottomCardIndex];
+      const camera = cameraList[cardCameraIndices[bottomCardIndex]];
       if (slideToUpdate && camera) {
         const img = slideToUpdate.querySelector('img');
         if (img) {
           img.src = camera?.Views?.[0]?.Url || '';
           img.alt = camera?.Location || 'Camera';
-          slideToUpdate.dataset.cameraIndex = newCameraIndex;
+          slideToUpdate.dataset.cameraIndex = cardCameraIndices[bottomCardIndex];
+          console.log(`Updated P${bottomCardIndex} (bottom, will be next) with C${cardCameraIndices[bottomCardIndex]}: ${camera.Location}`);
         }
       }
     } else {
-      // Rotating up: last card moves to front, shift array right
-      const temp = cardCameraIndices.pop();
-      cardCameraIndices.unshift(temp);
-      // Update the card now at front with new camera (3 behind current)
-      const newCameraIndex = (currentListIndex - 3 + cameraList.length) % cameraList.length;
-      cardCameraIndices[0] = newCameraIndex;
+      // Next rotation will bring the card at 60° (top) to center
+      // That card should show camera N-1 (previous in list)
+      const topCardIndex = (centerCardIndex + 1) % 6; // 60° from center
+      cardCameraIndices[topCardIndex] = (currentListIndex - 1 + cameraList.length) % cameraList.length;
       
-      // Update the physical card at position 0
+      // Update the top card's image
       const slides = mobileGallery.querySelectorAll('.mobile-slide');
-      const slideToUpdate = slides[0];
-      const camera = cameraList[newCameraIndex];
+      const slideToUpdate = slides[topCardIndex];
+      const camera = cameraList[cardCameraIndices[topCardIndex]];
       if (slideToUpdate && camera) {
         const img = slideToUpdate.querySelector('img');
         if (img) {
           img.src = camera?.Views?.[0]?.Url || '';
           img.alt = camera?.Location || 'Camera';
-          slideToUpdate.dataset.cameraIndex = newCameraIndex;
+          slideToUpdate.dataset.cameraIndex = cardCameraIndices[topCardIndex];
+          console.log(`Updated P${topCardIndex} (top, will be next) with C${cardCameraIndices[topCardIndex]}: ${camera.Location}`);
         }
       }
     }
+    
+    console.log('After update, cardCameraIndices:', cardCameraIndices.map((idx, pos) => `P${pos}=C${idx}`).join(', '));
     
     // Update info deck with current camera
     const currentCamera = cameraList[currentListIndex];
