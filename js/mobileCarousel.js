@@ -165,22 +165,36 @@ function rotateMobile(direction) {
   mobileGallery.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1)';
   mobileGallery.style.transform = `rotateX(${mobileCurrentRotation}deg)`;
   
-  // After rotation completes, update the card that moved to back/off-screen
+  // After rotation completes, update card tracking and the card that moved to back
   setTimeout(() => {
-    // Determine which physical card rotated to the far back position
-    // Down rotation: top card (position 1/60°) rotates to back
-    // Up rotation: bottom card (position 5/300°) rotates to back
-    const cardToUpdate = direction === 'down' ? 1 : 5;
+    // With cumulative rotation, determine which card needs updating
+    // When rotating down: card at position 0 moves to back (visually 300°)
+    // When rotating up: card at position 4 moves to back (visually 300°)
+    const cardToUpdate = direction === 'down' ? 0 : 4;
     
-    // Calculate which camera should be on this card now
-    // Down: card needs camera from +3 positions ahead
-    // Up: card needs camera from -3 positions behind
-    const offset = direction === 'down' ? 3 : -3;
-    const newCameraIndex = (currentListIndex + offset + cameraList.length) % cameraList.length;
+    // Rotate the tracking array to match new positions
+    if (direction === 'down') {
+      // Rotating down: shift array left, move first to end
+      const temp = cardCameraIndices.shift();
+      cardCameraIndices.push(temp);
+      // Now update the last position with new camera (3 ahead)
+      const newCameraIndex = (currentListIndex + 3 + cameraList.length) % cameraList.length;
+      cardCameraIndices[5] = newCameraIndex;
+    } else {
+      // Rotating up: shift array right, move last to front
+      const temp = cardCameraIndices.pop();
+      cardCameraIndices.unshift(temp);
+      // Now update the second position with new camera (2 behind)
+      const newCameraIndex = (currentListIndex - 2 + cameraList.length) % cameraList.length;
+      cardCameraIndices[1] = newCameraIndex;
+    }
     
-    // Update only this one card
+    // Update the physical card that's now at the back
     const slides = mobileGallery.querySelectorAll('.mobile-slide');
-    const slideToUpdate = slides[cardToUpdate];
+    const targetCardIndex = direction === 'down' ? 5 : 1;
+    const slideToUpdate = slides[targetCardIndex];
+    const newCameraIndex = cardCameraIndices[targetCardIndex];
+    
     if (slideToUpdate) {
       const img = slideToUpdate.querySelector('img');
       const camera = cameraList[newCameraIndex];
@@ -188,7 +202,6 @@ function rotateMobile(direction) {
         img.src = camera?.Views?.[0]?.Url || '';
         img.alt = camera?.Location || 'Camera';
         slideToUpdate.dataset.cameraIndex = newCameraIndex;
-        cardCameraIndices[cardToUpdate] = newCameraIndex;
       }
     }
     
