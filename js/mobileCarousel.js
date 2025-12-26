@@ -9,6 +9,7 @@ let mobileTouchStartY = 0;
 let currentListIndex = 0; // Current camera index in the full camera list
 let isUpdating = false; // Prevent updates during transitions
 let lastSnapPosition = 0; // Track last snapped position to detect movement
+let cardCameraIndices = [0, 0, 0, 0, 0, 0]; // Track which camera index each physical card (0-5) is showing
 
 const RADIUS = 160;
 const NUM_SLIDES = 6;
@@ -71,6 +72,12 @@ export function initMobileCarousel(centerCam, prevCam, nextCam) {
   
   // Populate all cards with initial cameras
   updateAllCards();
+  
+  // Initialize tracking array - which camera each physical card shows
+  const offsets = [0, 1, 2, 3, -2, -1];
+  cardCameraIndices = offsets.map(offset => 
+    (currentListIndex + offset + cameraList.length) % cameraList.length
+  );
   
   // Start at center (rotation 0 = position 0)
   mobileCurrentRotation = 0;
@@ -149,32 +156,62 @@ function rotateMobile(direction) {
   
   isUpdating = true;
   
-  // First, update camera index
+  // Update current camera index
   const step = (direction === 'down' ? 1 : -1);
   currentListIndex = (currentListIndex + step + cameraList.length) % cameraList.length;
   
-  // Update all cards BEFORE rotation starts (this also updates info deck)
-  updateAllCards();
-  
-  // Force a reflow to ensure updates complete
-  mobileGallery.offsetHeight;
-  
-  // Now rotate with the correct images already in place
+  // Rotate the drum with existing images (true card rotation)
   mobileCurrentRotation += (direction === 'down' ? -ANGLE_STEP : ANGLE_STEP);
   mobileGallery.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1)';
   mobileGallery.style.transform = `rotateX(${mobileCurrentRotation}deg)`;
   
-  // After rotation completes, reset to 0° (now invisible since images match)
+  // After rotation completes, update the card that moved to back/off-screen
   setTimeout(() => {
-    mobileGallery.style.transition = 'none';
-    mobileCurrentRotation = 0;
-    mobileGallery.style.transform = `rotateX(0deg)`;
+    // Determine which physical card rotated to the far back position
+    // Down rotation: top card (position 1/60°) rotates to back
+    // Up rotation: bottom card (position 5/300°) rotates to back
+    const cardToUpdate = direction === 'down' ? 1 : 5;
     
-    // Restore transition
-    mobileGallery.offsetHeight; // Force reflow
-    mobileGallery.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1)';
+    // Calculate which camera should be on this card now
+    // Down: card needs camera from +3 positions ahead
+    // Up: card needs camera from -3 positions behind
+    const offset = direction === 'down' ? 3 : -3;
+    const newCameraIndex = (currentListIndex + offset + cameraList.length) % cameraList.length;
+    
+    // Update only this one card
+    const slides = mobileGallery.querySelectorAll('.mobile-slide');
+    const slideToUpdate = slides[cardToUpdate];
+    if (slideToUpdate) {
+      const img = slideToUpdate.querySelector('img');
+      const camera = cameraList[newCameraIndex];
+      if (img && camera) {
+        img.src = camera?.Views?.[0]?.Url || '';
+        img.alt = camera?.Location || 'Camera';
+        slideToUpdate.dataset.cameraIndex = newCameraIndex;
+        cardCameraIndices[cardToUpdate] = newCameraIndex;
+      }
+    }
+    
+    // Update info deck with current camera
+    const currentCamera = cameraList[currentListIndex];
+    if (currentCamera) {
+      requestAnimationFrame(() => {
+        updateModalInfoDeck(currentCamera);
+        
+        const prevCamera = cameraList[(currentListIndex - 1 + cameraList.length) % cameraList.length];
+        const nextCamera = cameraList[(currentListIndex + 1) % cameraList.length];
+        updateMobileMiniMap(currentCamera, prevCamera, nextCamera);
+      });
+    }
+    
+    // Update modal title
+    const modalTitle = document.querySelector('#imageModal .modal-title');
+    if (modalTitle && currentCamera) {
+      modalTitle.textContent = currentCamera?.Location || 'Camera';
+    }
+    
     isUpdating = false;
-  }, 410);
+  }, 420);
 }
 
 function setupMobileControls() {
@@ -290,37 +327,55 @@ function handleCameraChange(centeredPosition) {
     return;
   }
   
-  const oldIndex = currentListIndex;
-  currentListIndex = (currentListIndex + stepsFromCenter + cameraList.length) % cameraList.length;
-  
-  console.log(`  ✓ Moved ${stepsFromCenter} steps. Index ${oldIndex} -> ${currentListIndex}`);
-  console.log(`  Old camera: ${cameraList[oldIndex]?.Location}`);
-  console.log(`  New camera: ${cameraList[currentListIndex]?.Location}`);
-  
   isUpdating = true;
-  updateAllCards();
+  
+  // Update cameras based on steps moved
+  for (let i = 0; i < Math.abs(stepsFromCenter); i++) {
+    const direction = stepsFromCenter > 0 ? 'down' : 'up';
+    const step = direction === 'down' ? 1 : -1;
+    currentListIndex = (currentListIndex + step + cameraList.length) % cameraList.length;
+    
+    // Update the card that rotated to back
+    const cardToUpdate = direction === 'down' ? 1 : 5;
+    const offset = direction === 'down' ? 3 : -3;
+    const newCameraIndex = (currentListIndex + offset + cameraList.length) % cameraList.length;
+    
+    const slides = mobileGallery.querySelectorAll('.mobile-slide');
+    const slideToUpdate = slides[cardToUpdate];
+    if (slideToUpdate) {
+      const img = slideToUpdate.querySelector('img');
+      const camera = cameraList[newCameraIndex];
+      if (img && camera) {
+        img.src = camera?.Views?.[0]?.Url || '';
+        img.alt = camera?.Location || 'Camera';
+        slideToUpdate.dataset.cameraIndex = newCameraIndex;
+        cardCameraIndices[cardToUpdate] = newCameraIndex;
+      }
+    }
+  }
   
   // Update info cards with new camera data
   const newCamera = cameraList[currentListIndex];
   if (newCamera) {
-    updateModalInfoDeck(newCamera);
+    requestAnimationFrame(() => {
+      updateModalInfoDeck(newCamera);
+      
+      const prevCamera = cameraList[(currentListIndex - 1 + cameraList.length) % cameraList.length];
+      const nextCamera = cameraList[(currentListIndex + 1) % cameraList.length];
+      updateMobileMiniMap(newCamera, prevCamera, nextCamera);
+    });
   }
   
-  console.log('  Resetting rotation to 0...');
-  mobileGallery.style.transition = 'none';
-  mobileCurrentRotation = 0;
-  lastSnapPosition = 0;
-  mobileGallery.style.transform = `rotateX(0deg)`;
+  // Update modal title
+  const modalTitle = document.querySelector('#imageModal .modal-title');
+  if (modalTitle && newCamera) {
+    modalTitle.textContent = newCamera?.Location || 'Camera';
+  }
   
-  requestAnimationFrame(() => {
-    if (mobileGallery) {
-      mobileGallery.style.transition = 'transform 0.6s ease';
-    }
-    setTimeout(() => {
-      console.log('  isUpdating -> false');
-      isUpdating = false;
-    }, 100);
-  });
+  setTimeout(() => {
+    console.log('  isUpdating -> false');
+    isUpdating = false;
+  }, 100);
 }
 
 export function updateMobileCarousel(centerCam, prevCam, nextCam) {

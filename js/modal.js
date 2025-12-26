@@ -162,7 +162,10 @@ function ensureInfoDeck() {
     container.className = 'modal-info-stack';
     container.innerHTML = `
       <div class="info-stack-track">
-        <div class="info-card info-card--meta is-active">
+        <div class="info-card info-card--mini-map mobile-only is-active">
+          <div class="info-card__map-container" id="mobileInfoMiniMap"></div>
+        </div>
+        <div class="info-card info-card--meta">
           <div class="info-card__columns">
             <div class="info-card__column">
               <div class="info-card__title">Primary Route</div>
@@ -188,9 +191,6 @@ function ensureInfoDeck() {
         </div>
         <div class="info-card info-card--map">
           <div class="info-card__embed" data-embed-type="map"></div>
-        </div>
-        <div class="info-card info-card--mini-map mobile-only">
-          <div class="info-card__map-container" id="mobileInfoMiniMap"></div>
         </div>
       </div>
       <div class="info-stack-controls">
