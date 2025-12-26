@@ -137,12 +137,17 @@ function updateAllCards() {
   
   // Update info cards with current camera data - use RAF to ensure DOM is ready
   if (currentCamera) {
+    // Get adjacent cameras in list order for mini map
+    const prevCamera = cameraList[(currentListIndex - 1 + cameraList.length) % cameraList.length];
+    const nextCamera = cameraList[(currentListIndex + 1) % cameraList.length];
+    
+    console.log('Visible cameras in carousel:');
+    console.log('  Bottom (N-1):', prevCamera?.Location);
+    console.log('  Center (N):', currentCamera?.Location);
+    console.log('  Top (N+1):', nextCamera?.Location);
+    
     requestAnimationFrame(() => {
       updateModalInfoDeck(currentCamera);
-      
-      // Update mobile mini map with adjacent cameras from list
-      const prevCamera = cameraList[(currentListIndex - 1 + cameraList.length) % cameraList.length];
-      const nextCamera = cameraList[(currentListIndex + 1) % cameraList.length];
       updateMobileMiniMap(currentCamera, prevCamera, nextCamera);
     });
   }
@@ -167,41 +172,46 @@ function rotateMobile(direction) {
   
   // After rotation completes, update card tracking and the card that moved to back
   setTimeout(() => {
-    // With cumulative rotation, determine which card needs updating
-    // When rotating down: card at position 0 moves to back (visually 300°)
-    // When rotating up: card at position 4 moves to back (visually 300°)
-    const cardToUpdate = direction === 'down' ? 0 : 4;
-    
-    // Rotate the tracking array to match new positions
+    // Rotate the tracking array to match physical card rotation
     if (direction === 'down') {
-      // Rotating down: shift array left, move first to end
+      // Rotating down: first card moves to back, shift array left
       const temp = cardCameraIndices.shift();
       cardCameraIndices.push(temp);
-      // Now update the last position with new camera (3 ahead)
+      // Update the card now at back with new camera (3 ahead of current)
       const newCameraIndex = (currentListIndex + 3 + cameraList.length) % cameraList.length;
       cardCameraIndices[5] = newCameraIndex;
+      
+      // Update the physical card at position 5
+      const slides = mobileGallery.querySelectorAll('.mobile-slide');
+      const slideToUpdate = slides[5];
+      const camera = cameraList[newCameraIndex];
+      if (slideToUpdate && camera) {
+        const img = slideToUpdate.querySelector('img');
+        if (img) {
+          img.src = camera?.Views?.[0]?.Url || '';
+          img.alt = camera?.Location || 'Camera';
+          slideToUpdate.dataset.cameraIndex = newCameraIndex;
+        }
+      }
     } else {
-      // Rotating up: shift array right, move last to front
+      // Rotating up: last card moves to front, shift array right
       const temp = cardCameraIndices.pop();
       cardCameraIndices.unshift(temp);
-      // Now update the second position with new camera (2 behind)
-      const newCameraIndex = (currentListIndex - 2 + cameraList.length) % cameraList.length;
-      cardCameraIndices[1] = newCameraIndex;
-    }
-    
-    // Update the physical card that's now at the back
-    const slides = mobileGallery.querySelectorAll('.mobile-slide');
-    const targetCardIndex = direction === 'down' ? 5 : 1;
-    const slideToUpdate = slides[targetCardIndex];
-    const newCameraIndex = cardCameraIndices[targetCardIndex];
-    
-    if (slideToUpdate) {
-      const img = slideToUpdate.querySelector('img');
+      // Update the card now at front with new camera (3 behind current)
+      const newCameraIndex = (currentListIndex - 3 + cameraList.length) % cameraList.length;
+      cardCameraIndices[0] = newCameraIndex;
+      
+      // Update the physical card at position 0
+      const slides = mobileGallery.querySelectorAll('.mobile-slide');
+      const slideToUpdate = slides[0];
       const camera = cameraList[newCameraIndex];
-      if (img && camera) {
-        img.src = camera?.Views?.[0]?.Url || '';
-        img.alt = camera?.Location || 'Camera';
-        slideToUpdate.dataset.cameraIndex = newCameraIndex;
+      if (slideToUpdate && camera) {
+        const img = slideToUpdate.querySelector('img');
+        if (img) {
+          img.src = camera?.Views?.[0]?.Url || '';
+          img.alt = camera?.Location || 'Camera';
+          slideToUpdate.dataset.cameraIndex = newCameraIndex;
+        }
       }
     }
     
@@ -343,26 +353,47 @@ function handleCameraChange(centeredPosition) {
   isUpdating = true;
   
   // Update cameras based on steps moved
+  const slides = mobileGallery.querySelectorAll('.mobile-slide');
+  
   for (let i = 0; i < Math.abs(stepsFromCenter); i++) {
     const direction = stepsFromCenter > 0 ? 'down' : 'up';
     const step = direction === 'down' ? 1 : -1;
     currentListIndex = (currentListIndex + step + cameraList.length) % cameraList.length;
     
-    // Update the card that rotated to back
-    const cardToUpdate = direction === 'down' ? 1 : 5;
-    const offset = direction === 'down' ? 3 : -3;
-    const newCameraIndex = (currentListIndex + offset + cameraList.length) % cameraList.length;
-    
-    const slides = mobileGallery.querySelectorAll('.mobile-slide');
-    const slideToUpdate = slides[cardToUpdate];
-    if (slideToUpdate) {
-      const img = slideToUpdate.querySelector('img');
+    // Rotate the tracking array to match physical card rotation
+    if (direction === 'down') {
+      const temp = cardCameraIndices.shift();
+      cardCameraIndices.push(temp);
+      // Update card at back (position 5) with camera 3 ahead
+      const newCameraIndex = (currentListIndex + 3 + cameraList.length) % cameraList.length;
+      cardCameraIndices[5] = newCameraIndex;
+      
+      const slideToUpdate = slides[5];
       const camera = cameraList[newCameraIndex];
-      if (img && camera) {
-        img.src = camera?.Views?.[0]?.Url || '';
-        img.alt = camera?.Location || 'Camera';
-        slideToUpdate.dataset.cameraIndex = newCameraIndex;
-        cardCameraIndices[cardToUpdate] = newCameraIndex;
+      if (slideToUpdate && camera) {
+        const img = slideToUpdate.querySelector('img');
+        if (img) {
+          img.src = camera?.Views?.[0]?.Url || '';
+          img.alt = camera?.Location || 'Camera';
+          slideToUpdate.dataset.cameraIndex = newCameraIndex;
+        }
+      }
+    } else {
+      const temp = cardCameraIndices.pop();
+      cardCameraIndices.unshift(temp);
+      // Update card at front (position 0) with camera 3 behind
+      const newCameraIndex = (currentListIndex - 3 + cameraList.length) % cameraList.length;
+      cardCameraIndices[0] = newCameraIndex;
+      
+      const slideToUpdate = slides[0];
+      const camera = cameraList[newCameraIndex];
+      if (slideToUpdate && camera) {
+        const img = slideToUpdate.querySelector('img');
+        if (img) {
+          img.src = camera?.Views?.[0]?.Url || '';
+          img.alt = camera?.Location || 'Camera';
+          slideToUpdate.dataset.cameraIndex = newCameraIndex;
+        }
       }
     }
   }
