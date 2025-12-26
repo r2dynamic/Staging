@@ -531,22 +531,22 @@ html, body {
 @media (max-width: 768px) {
   .mobile-carousel-scene {
     display: block;
-    height: clamp(180px, 28vh, 320px);
-    bottom: clamp(80px, 15vh, 130px);
+    height: clamp(180px, 28svh, 320px);
+    bottom: clamp(80px, 15svh, 130px);
   }
 }
 
 @media (max-width: 768px) and (max-height: 700px) {
   .mobile-carousel-scene {
-    height: clamp(160px, 24vh, 280px);
-    bottom: clamp(70px, 12vh, 110px);
+    height: clamp(160px, 24svh, 280px);
+    bottom: clamp(70px, 12svh, 110px);
   }
 }
 
 @media (max-width: 768px) and (max-height: 600px) {
   .mobile-carousel-scene {
-    height: clamp(140px, 22vh, 240px);
-    bottom: clamp(60px, 10vh, 95px);
+    height: clamp(140px, 22svh, 240px);
+    bottom: clamp(60px, 10svh, 95px);
   }
 }
 
@@ -1109,11 +1109,11 @@ html, body {
 @media (max-width: 768px) {
   .modal-info-stack {
     position: fixed;
-    top: clamp(30px, 8vh, 45px);
+    top: clamp(30px, 8svh, 45px);
     left: 50%;
     transform: translateX(-50%);
     width: min(95vw, 500px);
-    height: clamp(200px, 32vh, 380px);
+    height: clamp(200px, 32svh, 380px);
     z-index: 1060;
   }
   
@@ -1143,15 +1143,15 @@ html, body {
 /* Smaller mobile screens and short screens */
 @media (max-width: 768px) and (max-height: 700px) {
   .modal-info-stack {
-    top: clamp(25px, 6vh, 38px);
-    height: clamp(180px, 28vh, 320px);
+    top: clamp(25px, 6svh, 38px);
+    height: clamp(180px, 28svh, 320px);
   }
 }
 
 @media (max-width: 768px) and (max-height: 600px) {
   .modal-info-stack {
-    top: clamp(22px, 5vh, 32px);
-    height: clamp(160px, 26vh, 280px);
+    top: clamp(22px, 5svh, 32px);
+    height: clamp(160px, 26svh, 280px);
   }
 }
 
@@ -1248,7 +1248,7 @@ html, body {
 @media (max-width: 768px) {
   .modal-close-top {
     top: auto;
-    bottom: clamp(20px, 8vh, 35px);
+    bottom: clamp(20px, 8svh, 35px);
     right: clamp(15px, 4vw, 25px);
     font-size: clamp(1.3rem, 4vw, 1.5rem);
     font-weight: 700;
