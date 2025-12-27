@@ -211,7 +211,12 @@ function ensureInfoDeck() {
     const next = container.querySelector('.info-next');
     if (prev) prev.addEventListener('click', () => rotateInfoDeck(-1));
     if (next) next.addEventListener('click', () => rotateInfoDeck(1));
-    infoDeckCards = Array.from(container.querySelectorAll('.info-card'));
+    
+    // On desktop, exclude mobile-only cards from the deck
+    const allCards = Array.from(container.querySelectorAll('.info-card'));
+    infoDeckCards = window.innerWidth > 768 
+      ? allCards.filter(card => !card.classList.contains('mobile-only'))
+      : allCards;
     
     // Setup clickable dots
     const dots = container.querySelectorAll('.info-stack-dot');
@@ -392,6 +397,7 @@ export function updateModalInfoDeck(cam) {
   resetEmbedCard('street', sanitizeValue(embeds.streetView));
   resetEmbedCard('map', sanitizeValue(embeds.googleMaps));
 
+  // Start with first card (meta on desktop, mini-map on mobile)
   setInfoCardState(0);
 }
 
@@ -430,10 +436,19 @@ export function updateModalMiniMap(centerCam, prevCam, nextCam) {
       if (map && modalMiniMapContainer) {
         clearMiniMapMarkers();
 
-        cams.forEach(({ cam, lat, lon, isCenter }) => {
+        cams.forEach(({ cam, lat, lon, isCenter }, idx) => {
+          let fillColor;
+          if (isCenter) {
+            fillColor = '#FFD700'; // Yellow - center/current
+          } else if (idx === 1) {
+            fillColor = '#00FF88'; // Green - left/behind/NEG (prevCam)
+          } else {
+            fillColor = '#FF4444'; // Red - right/ahead/POS (nextCam)
+          }
+          
           const marker = L.circleMarker([lat, lon], {
             radius: isCenter ? 8 : 6,
-            fillColor: isCenter ? '#0ddf92' : '#ff7800',
+            fillColor: fillColor,
             color: '#ffffff',
             weight: isCenter ? 2 : 1.5,
             opacity: 1,
@@ -488,7 +503,9 @@ export function updateMobileMiniMap(centerCam, prevCam, nextCam) {
       cam,
       lat: Number(cam?.Latitude),
       lon: Number(cam?.Longitude),
-      isCenter: idx === 0
+      isCenter: idx === 0,
+      isNext: idx === 2, // Top/POS neighbor (red)
+      isPrev: idx === 1  // Bottom/NEG neighbor (green)
     }))
     .filter(({ lat, lon }) => Number.isFinite(lat) && Number.isFinite(lon));
 
@@ -513,11 +530,16 @@ export function updateMobileMiniMap(centerCam, prevCam, nextCam) {
       maxZoom: 19
     }).addTo(map);
     
-    // Add markers
-    cams.forEach(({ cam, lat, lon, isCenter }) => {
+    // Add markers with traffic light colors
+    cams.forEach(({ cam, lat, lon, isCenter, isNext, isPrev }) => {
+      let fillColor = '#0ddf92'; // Default fallback
+      if (isCenter) fillColor = '#FFD700'; // Yellow - center/current
+      else if (isNext) fillColor = '#FF4444'; // Red - top/ahead/POS
+      else if (isPrev) fillColor = '#00FF88'; // Green - bottom/behind/NEG
+      
       L.circleMarker([lat, lon], {
         radius: isCenter ? 8 : 6,
-        fillColor: isCenter ? '#0ddf92' : '#ff7800',
+        fillColor: fillColor,
         color: '#ffffff',
         weight: isCenter ? 2 : 1.5,
         opacity: 1,

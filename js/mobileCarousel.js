@@ -182,6 +182,30 @@ function updateAllCards() {
       updateMobileMiniMap(currentCenterCamera, bottomCam, topCam);
     });
   }
+  
+  // Update visible card borders
+  updateVisibleCardBorders();
+}
+
+function updateVisibleCardBorders() {
+  if (!mobileGallery) return;
+  
+  // Calculate which physical cards are currently visible
+  const normalizedRotation = ((mobileCurrentRotation % 360) + 360) % 360;
+  const centerCardIndex = Math.round((360 - normalizedRotation) / 60) % 6;
+  const topCardIndex = (centerCardIndex + 1) % 6;
+  const bottomCardIndex = (centerCardIndex + 5) % 6;
+  
+  // Remove all visible position classes
+  const slides = mobileGallery.querySelectorAll('.mobile-slide');
+  slides.forEach(slide => {
+    slide.classList.remove('visible-center', 'visible-top', 'visible-bottom');
+  });
+  
+  // Add classes to currently visible cards
+  if (slides[centerCardIndex]) slides[centerCardIndex].classList.add('visible-center');
+  if (slides[topCardIndex]) slides[topCardIndex].classList.add('visible-top');
+  if (slides[bottomCardIndex]) slides[bottomCardIndex].classList.add('visible-bottom');
 }
 
 function rotateMobile(direction) {
@@ -278,6 +302,9 @@ function rotateMobile(direction) {
         updateMobileMiniMap(currentCenterCamera, bottomCam, topCam);
       });
     }
+    
+    // Update visible card borders
+    updateVisibleCardBorders();
     
     // Update modal title
     const modalTitle = document.querySelector('#imageModal .modal-title');
@@ -478,6 +505,9 @@ function handleCameraChange(centeredPosition) {
   if (modalTitle && currentCenterCamera) {
     modalTitle.textContent = currentCenterCamera?.Location || 'Camera';
   }
+  
+  // Update visible card borders
+  updateVisibleCardBorders();
   
   setTimeout(() => {
     console.log('  isUpdating -> false');
