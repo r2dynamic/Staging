@@ -212,47 +212,59 @@ function rotateMobile(direction) {
     currentCenterCamera = cardCameras[centerCardIndex];
     console.log('  New center camera:', currentCenterCamera?.Location);
     
-    // Update the card that rotated to far back (180° from center) with next neighbor
+    // Calculate top and bottom card positions relative to center
+    const topCardIndex = (centerCardIndex + 1) % 6;
+    const bottomCardIndex = (centerCardIndex + 5) % 6;
+    
+    // Get the actual neighbor cameras from the current center
+    const topNeighbor = getNeighborCamera(currentCenterCamera, 'pos');
+    const bottomNeighbor = getNeighborCamera(currentCenterCamera, 'neg');
+    
+    // Ensure top and bottom positions have the correct neighbors
+    cardCameras[topCardIndex] = topNeighbor;
+    cardCameras[bottomCardIndex] = bottomNeighbor;
+    
+    console.log('  Set top neighbor (P' + topCardIndex + '):', topNeighbor?.Location || 'null');
+    console.log('  Set bottom neighbor (P' + bottomCardIndex + '):', bottomNeighbor?.Location || 'null');
+    
+    // Update the card at far back (180° from center) with next in chain
     const backCardIndex = (centerCardIndex + 3) % 6;
     
     if (direction === 'down') {
-      // Rotating down: update the card 3 positions ahead with its next POS neighbor
-      const futureTopCard = (centerCardIndex + 2) % 6; // Card that will be top after 2 more rotations
-      const nextNeighbor = cardCameras[futureTopCard] ? getNeighborCamera(cardCameras[futureTopCard], 'pos') : null;
-      cardCameras[backCardIndex] = nextNeighbor;
-      console.log(`  Updated P${backCardIndex} (far back) with: ${nextNeighbor?.Location || 'null'}`);
+      // Chain from top neighbor: get its POS neighbor
+      const nextInChain = topNeighbor ? getNeighborCamera(topNeighbor, 'pos') : null;
+      cardCameras[backCardIndex] = nextInChain;
+      console.log(`  Updated far back (P${backCardIndex}) with: ${nextInChain?.Location || 'null'}`);
     } else {
-      // Rotating up: update the card 3 positions behind with its next NEG neighbor
-      const futureBottomCard = (centerCardIndex + 4) % 6; // Card that will be bottom after 2 more rotations
-      const prevNeighbor = cardCameras[futureBottomCard] ? getNeighborCamera(cardCameras[futureBottomCard], 'neg') : null;
-      cardCameras[backCardIndex] = prevNeighbor;
-      console.log(`  Updated P${backCardIndex} (far back) with: ${prevNeighbor?.Location || 'null'}`);
+      // Chain from bottom neighbor: get its NEG neighbor
+      const prevInChain = bottomNeighbor ? getNeighborCamera(bottomNeighbor, 'neg') : null;
+      cardCameras[backCardIndex] = prevInChain;
+      console.log(`  Updated far back (P${backCardIndex}) with: ${prevInChain?.Location || 'null'}`);
     }
     
-    // Update only the physical card at back that changed
+    // Update the physical cards that changed (top, bottom, and back)
     const slides = mobileGallery.querySelectorAll('.mobile-slide');
-    const slideToUpdate = slides[backCardIndex];
-    if (slideToUpdate) {
-      const img = slideToUpdate.querySelector('img');
-      const camera = cardCameras[backCardIndex];
-      if (img) {
-        if (camera) {
-          img.src = camera?.Views?.[0]?.Url || '';
-          img.alt = camera?.Location || 'Camera';
-        } else {
-          img.src = '';
-          img.alt = '';
+    [topCardIndex, bottomCardIndex, backCardIndex].forEach(idx => {
+      const slide = slides[idx];
+      const camera = cardCameras[idx];
+      if (slide) {
+        const img = slide.querySelector('img');
+        if (img) {
+          if (camera) {
+            img.src = camera?.Views?.[0]?.Url || '';
+            img.alt = camera?.Location || 'Camera';
+          } else {
+            img.src = '';
+            img.alt = '';
+          }
         }
       }
-    }
+    });
     
     console.log('After update - cardCameras:', cardCameras.map((cam, i) => `P${i}: ${cam?.Location || 'null'}`).join(', '));
     
     // Update info deck with current center camera
     if (currentCenterCamera) {
-      // Get the cameras at top and bottom positions (relative to center)
-      const topCardIndex = (centerCardIndex + 1) % 6;
-      const bottomCardIndex = (centerCardIndex + 5) % 6;
       const topCam = cardCameras[topCardIndex];
       const bottomCam = cardCameras[bottomCardIndex];
       
@@ -392,34 +404,42 @@ function handleCameraChange(centeredPosition) {
   console.log(`  Moving ${stepsFromCenter > 0 ? 'down' : 'up'} by ${Math.abs(stepsFromCenter)} steps`);
   console.log('  Before - cardCameras:', cardCameras.map((cam, i) => `P${i}: ${cam?.Location || 'null'}`).join(', '));
   
-  // Update cards based on steps moved
-  for (let i = 0; i < Math.abs(stepsFromCenter); i++) {
-    const direction = stepsFromCenter > 0 ? 'down' : 'up';
-    
-    // Calculate which physical card will be at center after this step
-    const stepRotation = mobileCurrentRotation + ((direction === 'down' ? -ANGLE_STEP : ANGLE_STEP) * (i + 1));
-    const normalizedRotation = ((stepRotation % 360) + 360) % 360;
-    const centerCardIndex = Math.round((360 - normalizedRotation) / 60) % 6;
-    const backCardIndex = (centerCardIndex + 3) % 6;
-    
-    console.log(`    Step ${i+1}: Center will be P${centerCardIndex}, updating P${backCardIndex}`);
-    
-    // Update the card at far back with next neighbor in chain
-    if (direction === 'down') {
-      const futureTopCard = (centerCardIndex + 2) % 6;
-      const nextNeighbor = cardCameras[futureTopCard] ? getNeighborCamera(cardCameras[futureTopCard], 'pos') : null;
-      cardCameras[backCardIndex] = nextNeighbor;
-    } else {
-      const futureBottomCard = (centerCardIndex + 4) % 6;
-      const prevNeighbor = cardCameras[futureBottomCard] ? getNeighborCamera(cardCameras[futureBottomCard], 'neg') : null;
-      cardCameras[backCardIndex] = prevNeighbor;
-    }
-  }
-  
   // Calculate final center card after all rotations
   const normalizedRotation = ((mobileCurrentRotation % 360) + 360) % 360;
   const finalCenterCardIndex = Math.round((360 - normalizedRotation) / 60) % 6;
+  
+  // Update current center camera
   currentCenterCamera = cardCameras[finalCenterCardIndex];
+  
+  // Calculate top and bottom positions relative to new center
+  const topCardIndex = (finalCenterCardIndex + 1) % 6;
+  const bottomCardIndex = (finalCenterCardIndex + 5) % 6;
+  
+  // Get the actual neighbor cameras from the new center
+  const topNeighbor = getNeighborCamera(currentCenterCamera, 'pos');
+  const bottomNeighbor = getNeighborCamera(currentCenterCamera, 'neg');
+  
+  // Update top and bottom with correct neighbors
+  cardCameras[topCardIndex] = topNeighbor;
+  cardCameras[bottomCardIndex] = bottomNeighbor;
+  
+  // Update back cards with chained neighbors
+  const direction = stepsFromCenter > 0 ? 'down' : 'up';
+  
+  // Position 2 cards from center in each direction need updating
+  if (direction === 'down') {
+    // Update cards ahead in rotation direction
+    const card2ahead = (finalCenterCardIndex + 2) % 6;
+    const card3ahead = (finalCenterCardIndex + 3) % 6;
+    cardCameras[card2ahead] = topNeighbor ? getNeighborCamera(topNeighbor, 'pos') : null;
+    cardCameras[card3ahead] = cardCameras[card2ahead] ? getNeighborCamera(cardCameras[card2ahead], 'pos') : null;
+  } else {
+    // Update cards behind in rotation direction
+    const card2behind = (finalCenterCardIndex + 4) % 6;
+    const card3behind = (finalCenterCardIndex + 3) % 6;
+    cardCameras[card2behind] = bottomNeighbor ? getNeighborCamera(bottomNeighbor, 'neg') : null;
+    cardCameras[card3behind] = cardCameras[card2behind] ? getNeighborCamera(cardCameras[card2behind], 'neg') : null;
+  }
   
   console.log('  After updates - cardCameras:', cardCameras.map((cam, i) => `P${i}: ${cam?.Location || 'null'}`).join(', '));
   console.log('  Final center camera (P' + finalCenterCardIndex + '):', currentCenterCamera?.Location);
