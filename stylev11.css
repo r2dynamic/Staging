@@ -269,7 +269,8 @@ html, body {
 .modal-carousel-wrapper {
   flex: 2;
   min-width: 280px;
-  padding: 6px 12px 24px;
+  padding: clamp(8px, 1vh, 12px) clamp(16px, 2vw, 24px);
+  max-width: 100%;
 }
 
 .carousel-3d {
@@ -321,45 +322,45 @@ html, body {
   flex: 1 1 44%;
   min-width: 320px;
   max-width: 720px;
-  max-height: 58vh;
+  max-height: clamp(360px, 58vh, 70vh);
   height: auto;
   transform: translateZ(42px);
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55),
-              0 0 20px rgba(255, 215, 0, 0.6),
-              0 0 40px rgba(255, 215, 0, 0.4);
+              0 0 10px rgba(255, 215, 0, 0.4),
+              0 0 20px rgba(255, 215, 0, 0.2);
   z-index: 2;
   /* Yellow border - center/current */
   border-color: #FFD700;
 }
 
 .carousel-card--left {
-  flex: 0 0 clamp(210px, 26vw, 420px);
-  min-width: 210px;
-  max-width: 420px;
-  max-height: clamp(220px, 26vw, 360px);
+  flex: 0 0 clamp(260px, 30vw, 480px);
+  min-width: 260px;
+  max-width: 480px;
+  max-height: clamp(220px, 30vw, 420px);
   transform: rotateY(35deg) translateX(10px) translateZ(10px) scale(0.95);
   opacity: 0.95;
   z-index: 1;
   /* Green border - left/behind/NEG */
   border-color: #00FF88;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4),
-              0 0 15px rgba(0, 255, 136, 0.4),
-              0 0 30px rgba(0, 255, 136, 0.2);
+              0 0 8px rgba(0, 255, 136, 0.3),
+              0 0 15px rgba(0, 255, 136, 0.15);
 }
 
 .carousel-card--right {
-  flex: 0 0 clamp(210px, 26vw, 420px);
-  min-width: 210px;
-  max-width: 420px;
-  max-height: clamp(220px, 26vw, 360px);
+  flex: 0 0 clamp(260px, 30vw, 480px);
+  min-width: 260px;
+  max-width: 480px;
+  max-height: clamp(220px, 30vw, 420px);
   transform: rotateY(-35deg) translateX(-10px) translateZ(10px) scale(0.95);
   opacity: 0.95;
   z-index: 1;
   /* Red border - right/ahead/POS */
   border-color: #FF4444;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4),
-              0 0 15px rgba(255, 68, 68, 0.4),
-              0 0 30px rgba(255, 68, 68, 0.2);
+              0 0 8px rgba(255, 68, 68, 0.3),
+              0 0 15px rgba(255, 68, 68, 0.15);
 }
 
 .carousel-card:hover {
@@ -415,8 +416,8 @@ html, body {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #04AA6D, #0ddf92);
-  box-shadow: 0 0 12px rgba(13, 223, 146, 0.9);
+  background: linear-gradient(135deg, #E6C200, #FFD700);
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.9);
 }
 
 .carousel-card--center img {
@@ -877,10 +878,10 @@ html, body {
 
 .modal-mini-map {
   position: absolute;
-  bottom: 14px;
-  right: 14px;
-  width: clamp(220px, 34vw, 500px);
-  height: clamp(140px, 18vw, 250px);
+  bottom: clamp(10px, 1.5vh, 18px);
+  right: clamp(10px, 1.5vw, 18px);
+  width: clamp(220px, 30vw, 480px);
+  height: clamp(140px, 16vw, 240px);
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 12px 35px rgba(0,0,0,0.55);
@@ -892,10 +893,10 @@ html, body {
 
 .modal-info-stack {
   position: absolute;
-  bottom: 14px;
-  left: 14px;
-  width: clamp(220px, 34vw, 500px);
-  height: clamp(140px, 18vw, 250px);
+  bottom: clamp(10px, 1.5vh, 18px);
+  left: clamp(10px, 1.5vw, 18px);
+  width: clamp(220px, 30vw, 480px);
+  height: clamp(140px, 16vw, 240px);
   overflow: visible;
   z-index: 5;
   perspective: 1200px;
@@ -1089,7 +1090,7 @@ html, body {
 
 .info-stack-controls {
   position: absolute;
-  top: -44px;
+  top: -25px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -1110,7 +1111,7 @@ html, body {
   height: 34px;
   width: 44px;
   padding: 0;
-  display: inline-flex;
+  display: none;
   align-items: center;
   justify-content: center;
 }
@@ -1141,6 +1142,55 @@ html, body {
   background: rgba(255, 255, 255, 0.5);
   transform: scale(1.1);
 }
+
+/* Overlay arrow buttons for card stack */
+.info-stack-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  width: auto;
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.3s ease;
+  padding: 0;
+  font-size: 2rem;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+.info-stack-arrow:hover {
+  color: rgba(255, 255, 255, 1);
+  transform: translateY(-50%) scale(1.15);
+}
+
+.info-stack-arrow-left {
+  left: 2px;
+}
+
+.info-stack-arrow-right {
+  right: 2px;
+}
+
+@media (max-width: 768px) {
+  .info-stack-arrow {
+    font-size: 1.8rem;
+  }
+  
+  .info-stack-arrow-left {
+    left: 2px;
+  }
+  
+  .info-stack-arrow-right {
+    right: 2px;
+  }
+}
+
 
 @media (max-width: 1024px) {
   .modal-mini-map { display: none !important; }
@@ -1180,6 +1230,13 @@ html, body {
   
   .info-card {
     padding: 6px 8px 10px;
+  }
+  
+  /* Remove padding from embed cards on mobile */
+  .info-card--street,
+  .info-card--map,
+  .info-card--mini-map {
+    padding: 0 !important;
   }
   
   /* Make info cards wider and adjust text size */
@@ -1243,12 +1300,51 @@ html, body {
   }
 }
 
+.modal-logo-container {
+  position: fixed;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  z-index: 1070;
+}
+
 .modal-logo {
-  display: none !important;
+  max-width: 100px;
+  height: auto;
+  opacity: 0.9;
+  transition: opacity 0.3s ease;
+  display: block;
+  margin-bottom: -13px;
 }
 
 .modal-logo:hover {
-  display: none !important;
+  opacity: 1;
+}
+
+.modal-logo-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 1px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  transition: color 0.3s ease;
+  margin-top: -10px;
+  position: relative;
+  z-index: 1;
+}
+
+.modal-logo-container:hover .modal-logo-text {
+  color: rgba(255, 255, 255, 1);
+}
+
+@media (max-width: 768px) {
+  .modal-logo-container {
+    display: none !important;
+  }
 }
 
 .modal-dialog.modal-dialog-centered.modal-lg {
@@ -1301,10 +1397,10 @@ html, body {
 @media (max-width: 768px) {
   .modal-close-top {
     top: auto;
-    bottom: clamp(20px, 8svh, 35px);
-    right: clamp(15px, 4vw, 25px);
-    font-size: clamp(1.3rem, 4vw, 1.5rem);
-    font-weight: 700;
+    bottom: clamp(15px, 8svh, 30px);
+    right: clamp(20px, 4vw, 30px);
+    font-size: clamp(1.2rem, 6vw, 1.5rem);
+    font-weight: 800;
     padding: clamp(4px, 1.5vw, 6px);
   }
 }
@@ -1335,12 +1431,15 @@ html, body {
   }
 }
 .modal-body {
-  padding: 12px 16px 32px;
+  padding: clamp(8px, 1.5vh, 16px) clamp(10px, 2vw, 18px) clamp(18px, 3vh, 30px);
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
-  min-height: 90vh;
+  min-height: 95vh;
+  max-height: 98vh;
+  height: auto;
+  overflow: hidden;
 }
 @media (max-width: 768px) {
   .modal-body {
@@ -1355,9 +1454,12 @@ html, body {
   flex-wrap: nowrap;
   align-items: flex-start;
   justify-content: center;
-  gap: 12px;
-  padding: 10px 16px 16px;
-  min-height: 92vh;
+  gap: clamp(8px, 1.5vw, 16px);
+  padding: clamp(8px, 1.2vh, 12px) clamp(10px, 1.5vw, 20px) clamp(12px, 2vh, 24px);
+  min-height: 85vh;
+  max-height: 96vh;
+  height: auto;
+  overflow: hidden;
 }
 @media (max-width: 768px) {
   #modalBody.modal-body-flex {

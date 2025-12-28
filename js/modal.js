@@ -81,12 +81,22 @@ export function setupModalMiniMapOnShow() {
 function ensureModalLogo() {
   if (!modalBody) return;
   if (!modalLogo) {
+    const container = document.createElement('div');
+    container.className = 'modal-logo-container';
+    
     const logo = document.createElement('img');
-    logo.src = 'Logo GIF.gif';
+    logo.src = 'gifLogo.gif';
     logo.alt = 'App Logo';
     logo.className = 'modal-logo';
-    modalBody.append(logo);
-    modalLogo = logo;
+    
+    const text = document.createElement('div');
+    text.className = 'modal-logo-text';
+    text.textContent = 'udotcameras.com';
+    
+    container.appendChild(logo);
+    container.appendChild(text);
+    modalBody.append(container);
+    modalLogo = container;
   }
 }
 
@@ -203,6 +213,12 @@ function ensureInfoDeck() {
         </div>
         <button type="button" class="button ghost info-next" aria-label="Next info card"><i class="fas fa-chevron-right"></i></button>
       </div>
+      <button type="button" class="info-stack-arrow info-stack-arrow-left" aria-label="Previous card">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      <button type="button" class="info-stack-arrow info-stack-arrow-right" aria-label="Next card">
+        <i class="fas fa-chevron-right"></i>
+      </button>
     `;
     modalBody.append(container);
     infoDeckContainer = container;
@@ -211,6 +227,12 @@ function ensureInfoDeck() {
     const next = container.querySelector('.info-next');
     if (prev) prev.addEventListener('click', () => rotateInfoDeck(-1));
     if (next) next.addEventListener('click', () => rotateInfoDeck(1));
+    
+    // Setup overlay arrow buttons
+    const arrowLeft = container.querySelector('.info-stack-arrow-left');
+    const arrowRight = container.querySelector('.info-stack-arrow-right');
+    if (arrowLeft) arrowLeft.addEventListener('click', () => rotateInfoDeck(-1));
+    if (arrowRight) arrowRight.addEventListener('click', () => rotateInfoDeck(1));
     
     // On desktop, exclude mobile-only cards from the deck
     const allCards = Array.from(container.querySelectorAll('.info-card'));
