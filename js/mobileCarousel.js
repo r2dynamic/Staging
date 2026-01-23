@@ -11,6 +11,7 @@ let isUpdating = false; // Prevent updates during transitions
 let lastSnapPosition = 0; // Track last snapped position to detect movement
 let cardCameras = [null, null, null, null, null, null]; // Track which camera each physical card (0-5) is showing
 let transitionTimeoutId = null; // Track timeout for cleanup
+let borderUpdateThrottle = null; // Throttle border updates during touch
 
 const RADIUS = 160;
 const NUM_SLIDES = 6;
@@ -211,6 +212,10 @@ export function initMobileCarousel(centerCam, prevCam, nextCam) {
 
   setupMobileControls();
   setupMobileTouchEvents();
+  
+  // Initial border update to ensure correct colors on load
+  console.log('=== Initial border setup ===');
+  updateVisibleCardBorders();
 }
 
 function updateAllCards() {
@@ -286,6 +291,14 @@ function updateVisibleCardBorders() {
   const topCardIndex = (centerCardIndex + 1) % 6;
   const bottomCardIndex = (centerCardIndex + 5) % 6;
   
+  console.log('updateVisibleCardBorders:', {
+    rotation: mobileCurrentRotation,
+    normalized: normalizedRotation,
+    center: centerCardIndex,
+    top: topCardIndex,
+    bottom: bottomCardIndex
+  });
+  
   // Remove all visible position classes
   const slides = mobileGallery.querySelectorAll('.mobile-slide');
   slides.forEach(slide => {
@@ -293,9 +306,18 @@ function updateVisibleCardBorders() {
   });
   
   // Add classes to currently visible cards
-  if (slides[centerCardIndex]) slides[centerCardIndex].classList.add('visible-center');
-  if (slides[topCardIndex]) slides[topCardIndex].classList.add('visible-top');
-  if (slides[bottomCardIndex]) slides[bottomCardIndex].classList.add('visible-bottom');
+  if (slides[centerCardIndex]) {
+    slides[centerCardIndex].classList.add('visible-center');
+    console.log('  Added visible-center to slide', centerCardIndex);
+  }
+  if (slides[topCardIndex]) {
+    slides[topCardIndex].classList.add('visible-top');
+    console.log('  Added visible-top to slide', topCardIndex);
+  }
+  if (slides[bottomCardIndex]) {
+    slides[bottomCardIndex].classList.add('visible-bottom');
+    console.log('  Added visible-bottom to slide', bottomCardIndex);
+  }
 }
 
 function rotateMobile(direction) {
@@ -324,31 +346,9 @@ function rotateMobile(direction) {
   mobileGallery.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1)';
   mobileGallery.style.transform = `rotateX(${mobileCurrentRotation}deg)`;
   
-  // Force reflow on iOS to ensure transform applies
-  void mobileGallery.offsetHeight;
-  
+  // Use setTimeout as primary method (more reliable on iOS)
   // After rotation completes, update the card that moved to far back
-  // Use transitionend event instead of setTimeout for iOS reliability
-  let hasExecuted = false;
-  const handleTransitionEnd = (e) => {
-    // iOS can fire transitionend multiple times for different properties
-    // Only handle transform property transitions
-    if (e && e.propertyName && e.propertyName !== 'transform') {
-      return;
-    }
-    
-    // Prevent multiple executions (iOS safety)
-    if (hasExecuted) return;
-    hasExecuted = true;
-    
-    // Clean up
-    if (mobileGallery) {
-      mobileGallery.removeEventListener('transitionend', handleTransitionEnd);
-    }
-    if (transitionTimeoutId) {
-      clearTimeout(transitionTimeoutId);
-      transitionTimeoutId = null;
-    }
+  const handleTransitionEnd = () => {
     
     // Calculate which physical card is now at center (0° effective angle)
     // Use floor instead of round for more predictable behavior on iOS
@@ -451,16 +451,8 @@ function rotateMobile(direction) {
     isUpdating = false;
   };
   
-  // Add event listener for transitionend, with setTimeout fallback for safety
-  mobileGallery.addEventListener('transitionend', handleTransitionEnd);
-  
-  // Fallback timeout in case transitionend doesn't fire (iOS quirk)
-  transitionTimeoutId = setTimeout(() => {
-    if (!hasExecuted && isUpdating) {
-      console.warn('Transitionend did not fire, using timeout fallback');
-      handleTransitionEnd({ propertyName: 'transform' });
-    }
-  }, 500);
+  // Use timeout as primary (more reliable cross-browser)
+  setTimeout(handleTransitionEnd, 450);
 }
 
 function setupMobileControls() {
@@ -491,8 +483,14 @@ function setupMobileTouchEvents() {
     mobileCurrentRotation -= deltaY * 0.5;
     if (mobileGallery) {
       mobileGallery.style.transform = `rotateX(${mobileCurrentRotation}deg)`;
-      // Force redraw on iOS - helps with render synchronization
-      void mobileGallery.offsetHeight;
+      
+      // Throttled border update during drag (iOS performance)
+      if (!borderUpdateThrottle) {
+        borderUpdateThrottle = setTimeout(() => {
+          updateVisibleCardBorders();
+          borderUpdateThrottle = null;
+        }, 100);
+      }
     }
   }, { passive: false });
 
@@ -517,13 +515,15 @@ function snapToNearestPosition() {
   console.log('  mobileCurrentRotation:', mobileCurrentRotation);
   console.log('  isUpdating:', isUpdating);
   
-  if (!mobileGallery || isUpdating) {
-    console.log('  EXIT: No gallery or updating');
+  if (!mobileGallery) {
+    console.log('  EXIT: No gallery');
     return;
   }
   
-  // Prevent snap during button-triggered rotation
-  isUpdating = true;
+  if (isUpdating) {
+    console.log('  SKIP: Already updating');
+    return;
+  }
   
   // Use floor instead of round for more consistent snapping on iOS
   const nearestStep = Math.floor(mobileCurrentRotation / ANGLE_STEP + 0.5);
@@ -541,31 +541,16 @@ function snapToNearestPosition() {
   mobileCurrentRotation = targetRotation;
   mobileGallery.style.transform = `rotateX(${mobileCurrentRotation}deg)`;
   
-  // Use transitionend event instead of setTimeout for iOS reliability
-  let snapExecuted = false;
-  const handleSnapTransitionEnd = (e) => {
-    // iOS safety: check property name and prevent multiple executions
-    if (e && e.propertyName && e.propertyName !== 'transform') return;
-    if (snapExecuted) return;
-    snapExecuted = true;
-    
+  // Use setTimeout for snap completion (more reliable cross-browser)
+  setTimeout(() => {
     if (mobileGallery) {
-      mobileGallery.removeEventListener('transitionend', handleSnapTransitionEnd);
       mobileGallery.style.transition = 'transform 0.6s ease';
       console.log('  Calling handleCameraChange with position:', centeredPosition);
       handleCameraChange(centeredPosition);
+      // Ensure borders update after snap
+      updateVisibleCardBorders();
     }
-  };
-  
-  mobileGallery.addEventListener('transitionend', handleSnapTransitionEnd);
-  
-  // Fallback timeout in case transitionend doesn't fire
-  setTimeout(() => {
-    if (!snapExecuted) {
-      console.warn('Snap transitionend did not fire, using fallback');
-      handleSnapTransitionEnd({ propertyName: 'transform' });
-    }
-  }, 400);
+  }, 350);
 }
 
 function handleCameraChange(centeredPosition) {
@@ -691,11 +676,10 @@ function handleCameraChange(centeredPosition) {
   // Update visible card borders
   updateVisibleCardBorders();
   
-  // Small delay before allowing next interaction (iOS timing)
   setTimeout(() => {
     console.log('  isUpdating -> false');
     isUpdating = false;
-  }, 150);
+  }, 50);
 }
 
 export function updateMobileCarousel(centerCam, prevCam, nextCam) {
