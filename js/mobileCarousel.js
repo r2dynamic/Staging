@@ -152,7 +152,17 @@ function updateAllCards() {
     
     const img = slide.querySelector('img');
     if (img && camera) {
-      img.src = camera?.Views?.[0]?.Url || '';
+      const newSrc = camera?.Views?.[0]?.Url || '';
+      // Only update src if it changed (iOS optimization)
+      if (img.src !== newSrc) {
+        img.src = newSrc;
+        // Force image decode on iOS for smoother rendering
+        if (img.decode) {
+          img.decode().catch(() => {
+            console.warn('Image decode failed for:', camera?.Location);
+          });
+        }
+      }
       img.alt = camera?.Location || 'Camera';
     } else if (img) {
       img.src = '';
@@ -191,8 +201,10 @@ function updateVisibleCardBorders() {
   if (!mobileGallery) return;
   
   // Calculate which physical cards are currently visible
+  // Use floor instead of round for more predictable behavior on iOS
   const normalizedRotation = ((mobileCurrentRotation % 360) + 360) % 360;
-  const centerCardIndex = Math.round((360 - normalizedRotation) / 60) % 6;
+  const rawIndex = (360 - normalizedRotation) / 60;
+  const centerCardIndex = (Math.floor(rawIndex + 0.5)) % 6;
   const topCardIndex = (centerCardIndex + 1) % 6;
   const bottomCardIndex = (centerCardIndex + 5) % 6;
   
@@ -223,10 +235,15 @@ function rotateMobile(direction) {
   mobileGallery.style.transform = `rotateX(${mobileCurrentRotation}deg)`;
   
   // After rotation completes, update the card that moved to far back
-  setTimeout(() => {
+  // Use transitionend event instead of setTimeout for iOS reliability
+  const handleTransitionEnd = () => {
+    mobileGallery.removeEventListener('transitionend', handleTransitionEnd);
+    
     // Calculate which physical card is now at center (0° effective angle)
+    // Use floor instead of round for more predictable behavior on iOS
     const normalizedRotation = ((mobileCurrentRotation % 360) + 360) % 360;
-    const centerCardIndex = Math.round((360 - normalizedRotation) / 60) % 6;
+    const rawIndex = (360 - normalizedRotation) / 60;
+    const centerCardIndex = (Math.floor(rawIndex + 0.5)) % 6;
     
     console.log('After rotation:');
     console.log('  mobileCurrentRotation:', mobileCurrentRotation);
@@ -275,7 +292,15 @@ function rotateMobile(direction) {
         const img = slide.querySelector('img');
         if (img) {
           if (camera) {
-            img.src = camera?.Views?.[0]?.Url || '';
+            const newSrc = camera?.Views?.[0]?.Url || '';
+            // Only update src if it changed (iOS optimization)
+            if (img.src !== newSrc) {
+              img.src = newSrc;
+              // Force image decode on iOS for smoother rendering
+              if (img.decode) {
+                img.decode().catch(() => {});
+              }
+            }
             img.alt = camera?.Location || 'Camera';
           } else {
             img.src = '';
@@ -313,7 +338,18 @@ function rotateMobile(direction) {
     }
     
     isUpdating = false;
-  }, 420);
+  };
+  
+  // Add event listener for transitionend, with setTimeout fallback for safety
+  mobileGallery.addEventListener('transitionend', handleTransitionEnd, { once: true });
+  
+  // Fallback timeout in case transitionend doesn't fire (iOS quirk)
+  setTimeout(() => {
+    if (isUpdating) {
+      console.warn('Transitionend did not fire, using timeout fallback');
+      handleTransitionEnd();
+    }
+  }, 500);
 }
 
 function setupMobileControls() {
@@ -344,6 +380,8 @@ function setupMobileTouchEvents() {
     mobileCurrentRotation -= deltaY * 0.5;
     if (mobileGallery) {
       mobileGallery.style.transform = `rotateX(${mobileCurrentRotation}deg)`;
+      // Force redraw on iOS - helps with render synchronization
+      void mobileGallery.offsetHeight;
     }
   }, { passive: false });
 
@@ -373,10 +411,12 @@ function snapToNearestPosition() {
     return;
   }
   
-  const nearestStep = Math.round(mobileCurrentRotation / ANGLE_STEP);
+  // Use floor instead of round for more consistent snapping on iOS
+  const nearestStep = Math.floor(mobileCurrentRotation / ANGLE_STEP + 0.5);
   const targetRotation = nearestStep * ANGLE_STEP;
   const normalizedRotation = ((targetRotation % 360) + 360) % 360;
-  const centeredPosition = Math.round(normalizedRotation / ANGLE_STEP) % NUM_SLIDES;
+  const rawPosition = normalizedRotation / ANGLE_STEP;
+  const centeredPosition = (Math.floor(rawPosition + 0.5)) % NUM_SLIDES;
   
   console.log('  nearestStep:', nearestStep);
   console.log('  targetRotation:', targetRotation);
@@ -387,13 +427,24 @@ function snapToNearestPosition() {
   mobileCurrentRotation = targetRotation;
   mobileGallery.style.transform = `rotateX(${mobileCurrentRotation}deg)`;
   
-  setTimeout(() => {
+  // Use transitionend event instead of setTimeout for iOS reliability
+  const handleSnapTransitionEnd = () => {
+    mobileGallery.removeEventListener('transitionend', handleSnapTransitionEnd);
     if (mobileGallery) {
       mobileGallery.style.transition = 'transform 0.6s ease';
       console.log('  Calling handleCameraChange with position:', centeredPosition);
       handleCameraChange(centeredPosition);
     }
-  }, 350);
+  };
+  
+  mobileGallery.addEventListener('transitionend', handleSnapTransitionEnd, { once: true });
+  
+  // Fallback timeout in case transitionend doesn't fire
+  setTimeout(() => {
+    if (isUpdating || !mobileGallery) return;
+    mobileGallery.removeEventListener('transitionend', handleSnapTransitionEnd);
+    handleSnapTransitionEnd();
+  }, 400);
 }
 
 function handleCameraChange(centeredPosition) {
@@ -432,8 +483,10 @@ function handleCameraChange(centeredPosition) {
   console.log('  Before - cardCameras:', cardCameras.map((cam, i) => `P${i}: ${cam?.Location || 'null'}`).join(', '));
   
   // Calculate final center card after all rotations
+  // Use floor instead of round for more predictable behavior on iOS
   const normalizedRotation = ((mobileCurrentRotation % 360) + 360) % 360;
-  const finalCenterCardIndex = Math.round((360 - normalizedRotation) / 60) % 6;
+  const rawIndex = (360 - normalizedRotation) / 60;
+  const finalCenterCardIndex = (Math.floor(rawIndex + 0.5)) % 6;
   
   // Update current center camera
   currentCenterCamera = cardCameras[finalCenterCardIndex];
@@ -478,7 +531,15 @@ function handleCameraChange(centeredPosition) {
     const img = slide.querySelector('img');
     if (img) {
       if (camera) {
-        img.src = camera?.Views?.[0]?.Url || '';
+        const newSrc = camera?.Views?.[0]?.Url || '';
+        // Only update src if it changed (iOS optimization)
+        if (img.src !== newSrc) {
+          img.src = newSrc;
+          // Force image decode on iOS for smoother rendering
+          if (img.decode) {
+            img.decode().catch(() => {});
+          }
+        }
         img.alt = camera?.Location || 'Camera';
       } else {
         img.src = '';
