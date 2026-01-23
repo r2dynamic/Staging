@@ -17,44 +17,121 @@ const ANGLE_STEP = 360 / NUM_SLIDES; // 60 degrees per slide
 
 // ---- NEIGHBOR RESOLUTION FUNCTIONS ----
 
+// Normalize URL for comparison (iOS-safe)
+function normalizeUrl(url) {
+  if (!url || typeof url !== 'string') return '';
+  
+  // Trim whitespace
+  let normalized = url.trim();
+  
+  // Remove trailing slash
+  normalized = normalized.replace(/\/$/, '');
+  
+  // Convert to lowercase for case-insensitive comparison
+  normalized = normalized.toLowerCase();
+  
+  // Handle protocol variations (http vs https)
+  normalized = normalized.replace(/^https?:\/\//, '');
+  
+  return normalized;
+}
+
 function findCameraByUrl(url) {
-  if (!url) return null;
-  const normalized = (url || '').trim();
-  return (window.camerasList || []).find(cam => 
-    (cam?.Views?.[0]?.Url || '').trim() === normalized
-  ) || null;
+  if (!url) {
+    console.log('  findCameraByUrl: no URL provided');
+    return null;
+  }
+  
+  const normalizedSearch = normalizeUrl(url);
+  console.log('  Searching for camera with normalized URL:', normalizedSearch);
+  
+  const list = window.camerasList || [];
+  const found = list.find(cam => {
+    const camUrl = cam?.Views?.[0]?.Url;
+    if (!camUrl) return false;
+    const normalizedCam = normalizeUrl(camUrl);
+    return normalizedCam === normalizedSearch;
+  });
+  
+  if (found) {
+    console.log('  ✓ Found camera:', found.Location);
+  } else {
+    console.log('  ✗ Camera not found for URL:', url);
+  }
+  
+  return found || null;
 }
 
 function getAdjacentInList(cam, direction) {
   if (!cam) return null;
+  
   const list = window.camerasList || [];
-  const idx = list.findIndex(c => c?.Views?.[0]?.Url === cam?.Views?.[0]?.Url);
-  if (idx === -1) return null;
+  const camUrl = cam?.Views?.[0]?.Url;
+  if (!camUrl) {
+    console.log('  getAdjacentInList: current camera has no URL');
+    return null;
+  }
+  
+  const normalizedCamUrl = normalizeUrl(camUrl);
+  
+  // Find index using normalized URL comparison
+  const idx = list.findIndex(c => {
+    const url = c?.Views?.[0]?.Url;
+    return url && normalizeUrl(url) === normalizedCamUrl;
+  });
+  
+  console.log('  Current camera index in list:', idx);
+  
+  if (idx === -1) {
+    console.log('  getAdjacentInList: camera not found in list');
+    return null;
+  }
   
   const targetIdx = direction === 'pos' ? idx + 1 : idx - 1;
-  if (targetIdx < 0 || targetIdx >= list.length) return null;
+  console.log(`  Target ${direction} index:`, targetIdx, `(list length: ${list.length})`);
+  
+  if (targetIdx < 0 || targetIdx >= list.length) {
+    console.log(`  getAdjacentInList: index ${targetIdx} out of bounds`);
+    return null;
+  }
+  
   return list[targetIdx];
 }
 
 function getNeighborCamera(cam, direction) {
-  if (!cam) return null;
+  if (!cam) {
+    console.log('getNeighborCamera: no camera provided');
+    return null;
+  }
+  
+  console.log(`\n--- getNeighborCamera(${cam.Location}, ${direction}) ---`);
   
   // Try neighbor field first
   const meta = cam?._geoJsonMetadata?.neighbors;
+  console.log('  Metadata neighbors:', meta);
+  
   const neighborUrl = direction === 'pos' ? meta?.route1PosUrl : meta?.route1NegUrl;
+  console.log(`  ${direction} neighbor URL from metadata:`, neighborUrl);
   
   if (neighborUrl) {
     const neighborCam = findCameraByUrl(neighborUrl);
     if (neighborCam) {
-      console.log(`  Found ${direction} neighbor via metadata:`, neighborCam.Location);
+      console.log(`  ✓ Found ${direction} neighbor via metadata:`, neighborCam.Location);
       return neighborCam;
+    } else {
+      console.log(`  ✗ Neighbor URL found in metadata but camera not found in list`);
     }
+  } else {
+    console.log(`  ✗ No ${direction} neighbor URL in metadata`);
   }
   
   // Fallback to list order
+  console.log('  Attempting fallback to sequential list order...');
   const fallback = getAdjacentInList(cam, direction);
   if (fallback) {
-    console.log(`  Using ${direction} fallback from list:`, fallback.Location);
+    console.log(`  ✓ Using ${direction} fallback from list:`, fallback.Location);
+  } else {
+    console.log(`  ✗ No fallback found (at list boundary)`);
   }
   return fallback;
 }
