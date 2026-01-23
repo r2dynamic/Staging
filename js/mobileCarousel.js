@@ -10,6 +10,7 @@ let currentCenterCamera = null; // Current camera object at center
 let isUpdating = false; // Prevent updates during transitions
 let lastSnapPosition = 0; // Track last snapped position to detect movement
 let cardCameras = [null, null, null, null, null, null]; // Track which camera each physical card (0-5) is showing
+let transitionTimeoutId = null; // Track timeout for cleanup
 
 const RADIUS = 160;
 const NUM_SLIDES = 6;
@@ -298,7 +299,10 @@ function updateVisibleCardBorders() {
 }
 
 function rotateMobile(direction) {
-  if (!mobileGallery || isUpdating) return;
+  if (!mobileGallery || isUpdating) {
+    console.log('Blocked: isUpdating =', isUpdating);
+    return;
+  }
   if (!currentCenterCamera) return;
   
   isUpdating = true;
@@ -308,13 +312,43 @@ function rotateMobile(direction) {
   
   // Rotate the drum with existing images (true card rotation)
   mobileCurrentRotation += (direction === 'down' ? -ANGLE_STEP : ANGLE_STEP);
+  
+  // Normalize rotation to prevent precision loss on iOS (keep between -360 and 360)
+  if (Math.abs(mobileCurrentRotation) > 720) {
+    const normalizedRot = ((mobileCurrentRotation % 360) + 360) % 360;
+    // Adjust to keep the same visual position but smaller number
+    mobileCurrentRotation = normalizedRot > 180 ? normalizedRot - 360 : normalizedRot;
+    console.log('Normalized rotation to:', mobileCurrentRotation);
+  }
+  
   mobileGallery.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1)';
   mobileGallery.style.transform = `rotateX(${mobileCurrentRotation}deg)`;
   
+  // Force reflow on iOS to ensure transform applies
+  void mobileGallery.offsetHeight;
+  
   // After rotation completes, update the card that moved to far back
   // Use transitionend event instead of setTimeout for iOS reliability
-  const handleTransitionEnd = () => {
-    mobileGallery.removeEventListener('transitionend', handleTransitionEnd);
+  let hasExecuted = false;
+  const handleTransitionEnd = (e) => {
+    // iOS can fire transitionend multiple times for different properties
+    // Only handle transform property transitions
+    if (e && e.propertyName && e.propertyName !== 'transform') {
+      return;
+    }
+    
+    // Prevent multiple executions (iOS safety)
+    if (hasExecuted) return;
+    hasExecuted = true;
+    
+    // Clean up
+    if (mobileGallery) {
+      mobileGallery.removeEventListener('transitionend', handleTransitionEnd);
+    }
+    if (transitionTimeoutId) {
+      clearTimeout(transitionTimeoutId);
+      transitionTimeoutId = null;
+    }
     
     // Calculate which physical card is now at center (0° effective angle)
     // Use floor instead of round for more predictable behavior on iOS
@@ -418,13 +452,13 @@ function rotateMobile(direction) {
   };
   
   // Add event listener for transitionend, with setTimeout fallback for safety
-  mobileGallery.addEventListener('transitionend', handleTransitionEnd, { once: true });
+  mobileGallery.addEventListener('transitionend', handleTransitionEnd);
   
   // Fallback timeout in case transitionend doesn't fire (iOS quirk)
-  setTimeout(() => {
-    if (isUpdating) {
+  transitionTimeoutId = setTimeout(() => {
+    if (!hasExecuted && isUpdating) {
       console.warn('Transitionend did not fire, using timeout fallback');
-      handleTransitionEnd();
+      handleTransitionEnd({ propertyName: 'transform' });
     }
   }, 500);
 }
@@ -488,6 +522,9 @@ function snapToNearestPosition() {
     return;
   }
   
+  // Prevent snap during button-triggered rotation
+  isUpdating = true;
+  
   // Use floor instead of round for more consistent snapping on iOS
   const nearestStep = Math.floor(mobileCurrentRotation / ANGLE_STEP + 0.5);
   const targetRotation = nearestStep * ANGLE_STEP;
@@ -505,22 +542,29 @@ function snapToNearestPosition() {
   mobileGallery.style.transform = `rotateX(${mobileCurrentRotation}deg)`;
   
   // Use transitionend event instead of setTimeout for iOS reliability
-  const handleSnapTransitionEnd = () => {
-    mobileGallery.removeEventListener('transitionend', handleSnapTransitionEnd);
+  let snapExecuted = false;
+  const handleSnapTransitionEnd = (e) => {
+    // iOS safety: check property name and prevent multiple executions
+    if (e && e.propertyName && e.propertyName !== 'transform') return;
+    if (snapExecuted) return;
+    snapExecuted = true;
+    
     if (mobileGallery) {
+      mobileGallery.removeEventListener('transitionend', handleSnapTransitionEnd);
       mobileGallery.style.transition = 'transform 0.6s ease';
       console.log('  Calling handleCameraChange with position:', centeredPosition);
       handleCameraChange(centeredPosition);
     }
   };
   
-  mobileGallery.addEventListener('transitionend', handleSnapTransitionEnd, { once: true });
+  mobileGallery.addEventListener('transitionend', handleSnapTransitionEnd);
   
   // Fallback timeout in case transitionend doesn't fire
   setTimeout(() => {
-    if (isUpdating || !mobileGallery) return;
-    mobileGallery.removeEventListener('transitionend', handleSnapTransitionEnd);
-    handleSnapTransitionEnd();
+    if (!snapExecuted) {
+      console.warn('Snap transitionend did not fire, using fallback');
+      handleSnapTransitionEnd({ propertyName: 'transform' });
+    }
   }, 400);
 }
 
@@ -647,10 +691,11 @@ function handleCameraChange(centeredPosition) {
   // Update visible card borders
   updateVisibleCardBorders();
   
+  // Small delay before allowing next interaction (iOS timing)
   setTimeout(() => {
     console.log('  isUpdating -> false');
     isUpdating = false;
-  }, 100);
+  }, 150);
 }
 
 export function updateMobileCarousel(centerCam, prevCam, nextCam) {
