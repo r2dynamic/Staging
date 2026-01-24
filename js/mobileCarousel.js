@@ -19,48 +19,36 @@ const ANGLE_STEP = 360 / NUM_SLIDES; // 60 degrees per slide
 
 // ---- NEIGHBOR RESOLUTION FUNCTIONS ----
 
-// Normalize URL for comparison - keep it simple to avoid mismatches
-function normalizeUrl(url) {
-  if (!url || typeof url !== 'string') return '';
-  
-  // Just trim and ensure consistent protocol (don't strip it entirely)
-  let normalized = url.trim();
-  
-  // Normalize protocol to https consistently
-  normalized = normalized.replace(/^http:\/\//i, 'https://');
-  
-  return normalized;
-}
-
+// Find camera by URL - use exact string match (no normalization)
 function findCameraByUrl(url) {
   if (!url) {
     console.log('  findCameraByUrl: no URL provided');
     return null;
   }
   
-  const normalizedSearch = normalizeUrl(url);
-  console.log('  Searching for normalized URL:', normalizedSearch.substring(0, 80));
-  
   const list = window.camerasList || [];
-  console.log('  Searching in list of', list.length, 'cameras');
+  console.log('  Searching in list of', list.length, 'cameras for URL:', url.substring(0, 60) + '...');
   
-  const found = list.find(cam => {
-    const camUrl = cam?.Views?.[0]?.Url;
-    if (!camUrl) return false;
-    const normalizedCam = normalizeUrl(camUrl);
-    const matches = normalizedCam === normalizedSearch;
-    if (matches) {
-      console.log('  ✓ MATCH FOUND:', cam.Location);
-    }
-    return matches;
-  });
+  // Try exact match first
+  let found = list.find(cam => cam?.Views?.[0]?.Url === url);
   
+  // If no exact match, try trimmed comparison
   if (!found) {
-    console.log('  ✗ NO MATCH - First 3 camera URLs for comparison:');
-    list.slice(0, 3).forEach((cam, i) => {
-      const url = cam?.Views?.[0]?.Url;
-      console.log(`    [${i}] ${normalizeUrl(url).substring(0, 80)}`);
-    });
+    const urlTrimmed = url.trim();
+    found = list.find(cam => cam?.Views?.[0]?.Url?.trim() === urlTrimmed);
+  }
+  
+  if (found) {
+    console.log('  ✓ MATCH FOUND:', found.Location);
+  } else {
+    console.log('  ✗ NO MATCH FOUND');
+    // Show sample for debugging
+    const sample = list[0]?.Views?.[0]?.Url;
+    if (sample) {
+      console.log('  Sample camera URL:', sample.substring(0, 60) + '...');
+      console.log('  URLs match:', sample === url);
+      console.log('  Trimmed match:', sample.trim() === url.trim());
+    }
   }
   
   return found || null;
@@ -70,21 +58,19 @@ function getAdjacentInList(cam, direction) {
   if (!cam) return null;
   
   const list = window.camerasList || [];
-  const camUrl = cam?.Views?.[0]?.Url;
-  if (!camUrl) {
-    console.log('  getAdjacentInList: current camera has no URL');
-    return null;
+  
+  // Use object identity first (fastest and most reliable)
+  let idx = list.indexOf(cam);
+  
+  // Fallback to URL comparison if object identity fails
+  if (idx === -1) {
+    const camUrl = cam?.Views?.[0]?.Url;
+    if (camUrl) {
+      idx = list.findIndex(c => c?.Views?.[0]?.Url === camUrl);
+    }
   }
   
-  const normalizedCamUrl = normalizeUrl(camUrl);
-  
-  // Find index using normalized URL comparison
-  const idx = list.findIndex(c => {
-    const url = c?.Views?.[0]?.Url;
-    return url && normalizeUrl(url) === normalizedCamUrl;
-  });
-  
-  console.log('  Current camera index in list:', idx);
+  console.log('  Current camera index in list:', idx, '/', list.length);
   
   if (idx === -1) {
     console.log('  getAdjacentInList: camera not found in list');
@@ -92,7 +78,7 @@ function getAdjacentInList(cam, direction) {
   }
   
   const targetIdx = direction === 'pos' ? idx + 1 : idx - 1;
-  console.log(`  Target ${direction} index:`, targetIdx, `(list length: ${list.length})`);
+  console.log(`  Target ${direction} index:`, targetIdx);
   
   if (targetIdx < 0 || targetIdx >= list.length) {
     console.log(`  getAdjacentInList: index ${targetIdx} out of bounds`);
@@ -109,48 +95,54 @@ function getNeighborCamera(cam, direction) {
   }
   
   console.log(`\n--- getNeighborCamera(${cam.Location}, ${direction}) ---`);
-  console.log('  Current camera URL:', cam?.Views?.[0]?.Url?.substring(0, 80));
+  console.log('  Current camera URL:', cam?.Views?.[0]?.Url?.substring(0, 60) + '...');
   
   // Try neighbor field first
   const meta = cam?._geoJsonMetadata?.neighbors;
   
   if (!meta) {
-    console.log('  ✗ No _geoJsonMetadata.neighbors object');
+    console.log('  ✗ No _geoJsonMetadata.neighbors object - using fallback');
   } else {
-    console.log('  Metadata neighbors object exists:', {
-      hasPosName: !!meta.route1PosName,
-      hasPosUrl: !!meta.route1PosUrl,
-      hasNegName: !!meta.route1NegName,
-      hasNegUrl: !!meta.route1NegUrl
-    });
-  }
-  
-  const neighborUrl = direction === 'pos' ? meta?.route1PosUrl : meta?.route1NegUrl;
-  const neighborName = direction === 'pos' ? meta?.route1PosName : meta?.route1NegName;
-  
-  console.log(`  ${direction} neighbor from metadata:`, neighborName || 'none');
-  console.log(`  ${direction} neighbor URL:`, neighborUrl?.substring(0, 80) || 'none');
-  
-  if (neighborUrl) {
-    const neighborCam = findCameraByUrl(neighborUrl);
-    if (neighborCam) {
-      console.log(`  ✓ Found ${direction} neighbor via metadata:`, neighborCam.Location);
-      return neighborCam;
+    const neighborUrl = direction === 'pos' ? meta.route1PosUrl : meta.route1NegUrl;
+    const neighborName = direction === 'pos' ? meta.route1PosName : meta.route1NegName;
+    
+    console.log(`  ${direction} neighbor from metadata:`, neighborName || 'none');
+    
+    if (neighborUrl) {
+      console.log(`  ${direction} neighbor URL:`, neighborUrl.substring(0, 60) + '...');
+      const neighborCam = findCameraByUrl(neighborUrl);
+      
+      if (neighborCam) {
+        // Verify we're not returning the same camera
+        if (neighborCam === cam || neighborCam?.Views?.[0]?.Url === cam?.Views?.[0]?.Url) {
+          console.log('  ⚠️ Neighbor is same as current camera - using fallback');
+        } else {
+          console.log(`  ✓ Found ${direction} neighbor via metadata:`, neighborCam.Location);
+          return neighborCam;
+        }
+      } else {
+        console.log(`  ✗ Neighbor URL found but camera lookup failed - using fallback`);
+      }
     } else {
-      console.log(`  ✗ Neighbor URL found in metadata but camera lookup failed`);
+      console.log(`  ✗ No ${direction} neighbor URL in metadata - using fallback`);
     }
-  } else {
-    console.log(`  ✗ No ${direction} neighbor URL in metadata`);
   }
   
   // Fallback to list order
   console.log('  Attempting fallback to sequential list order...');
   const fallback = getAdjacentInList(cam, direction);
+  
   if (fallback) {
+    // Verify fallback is different
+    if (fallback === cam || fallback?.Views?.[0]?.Url === cam?.Views?.[0]?.Url) {
+      console.log('  ⚠️ Fallback returned same camera!');
+      return null;
+    }
     console.log(`  ✓ Using ${direction} fallback from list:`, fallback.Location);
   } else {
-    console.log(`  ✗ No fallback found (at list boundary)`);
+    console.log(`  ✗ No fallback found (at list boundary or list is empty)`);
   }
+  
   return fallback;
 }
 
