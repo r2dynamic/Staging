@@ -594,18 +594,40 @@ function handleCameraChange(centeredPosition) {
   isUpdating = true;
   
   console.log(`  Moving ${stepsFromCenter > 0 ? 'down' : 'up'} by ${Math.abs(stepsFromCenter)} steps`);
+  console.log('  Before - currentCenterCamera:', currentCenterCamera?.Location);
   console.log('  Before - cardCameras:', cardCameras.map((cam, i) => `P${i}: ${cam?.Location || 'null'}`).join(', '));
   
-  // Calculate final center card after all rotations
-  // Use floor instead of round for more predictable behavior on iOS
+  // Move through neighbors step by step to find the new center camera
+  let newCenterCamera = currentCenterCamera;
+  const direction = stepsFromCenter > 0 ? 'pos' : 'neg';
+  const steps = Math.abs(stepsFromCenter);
+  
+  console.log(`  Walking ${steps} steps in ${direction} direction from ${currentCenterCamera?.Location}`);
+  
+  for (let i = 0; i < steps; i++) {
+    const nextCam = getNeighborCamera(newCenterCamera, direction);
+    if (!nextCam) {
+      console.log(`  ⚠️ Hit boundary at step ${i + 1}, stopping`);
+      break;
+    }
+    console.log(`  Step ${i + 1}: ${newCenterCamera?.Location} -> ${nextCam?.Location}`);
+    newCenterCamera = nextCam;
+  }
+  
+  console.log('  New center camera after walking:', newCenterCamera?.Location);
+  
+  // Update currentCenterCamera to the new camera we walked to
+  currentCenterCamera = newCenterCamera;
+  
+  // Now calculate physical card positions
   const normalizedRotation = ((mobileCurrentRotation % 360) + 360) % 360;
   const rawIndex = (360 - normalizedRotation) / 60;
   const finalCenterCardIndex = (Math.floor(rawIndex + 0.5)) % 6;
   
-  // Update current center camera
-  currentCenterCamera = cardCameras[finalCenterCardIndex];
+  console.log('  Physical center card index:', finalCenterCardIndex);
   
-  // Calculate top and bottom positions relative to new center
+  // Update the center card to show the new center camera
+  cardCameras[finalCenterCardIndex] = currentCenterCamera;
   const topCardIndex = (finalCenterCardIndex + 1) % 6;
   const bottomCardIndex = (finalCenterCardIndex + 5) % 6;
   
@@ -618,17 +640,15 @@ function handleCameraChange(centeredPosition) {
   cardCameras[bottomCardIndex] = bottomNeighbor;
   
   // Update back cards with chained neighbors
-  const direction = stepsFromCenter > 0 ? 'down' : 'up';
-  
   // Position 2 cards from center in each direction need updating
-  if (direction === 'down') {
-    // Update cards ahead in rotation direction
+  if (stepsFromCenter > 0) {
+    // Update cards ahead in rotation direction (down/pos)
     const card2ahead = (finalCenterCardIndex + 2) % 6;
     const card3ahead = (finalCenterCardIndex + 3) % 6;
     cardCameras[card2ahead] = topNeighbor ? getNeighborCamera(topNeighbor, 'pos') : null;
     cardCameras[card3ahead] = cardCameras[card2ahead] ? getNeighborCamera(cardCameras[card2ahead], 'pos') : null;
   } else {
-    // Update cards behind in rotation direction
+    // Update cards behind in rotation direction (up/neg)
     const card2behind = (finalCenterCardIndex + 4) % 6;
     const card3behind = (finalCenterCardIndex + 3) % 6;
     cardCameras[card2behind] = bottomNeighbor ? getNeighborCamera(bottomNeighbor, 'neg') : null;
