@@ -3,7 +3,7 @@
 
 import { loadCameras, loadRoutes } from './dataLoader.js';
 import { filterImages }             from './filters.js';
-import { renderOtherFiltersMenu, applyOtherFilter } from './otherFilters.js';
+// import { renderOtherFiltersMenu, applyOtherFilter } from './otherFilters.js';
 
 import {
   setupCopyUrlButton,
@@ -121,31 +121,31 @@ async function initializeApp() {
   updateRouteOptions();
 
   // 3. Build & bind Other-Filters menu
-  const menuRoot = document.getElementById('otherFiltersMenu');
-  renderOtherFiltersMenu(menuRoot);
-  menuRoot.querySelectorAll('.dropdown-item').forEach(item => {
-    item.addEventListener('click', async e => {
-      e.preventDefault();
-      window.selectedOtherFilter = item.dataset.value;
-      await applyOtherFilter(window.selectedOtherFilter);
-      updateURLParameters();
-      bootstrap.Collapse.getOrCreateInstance(
-        document.getElementById('otherFiltersOptions')
-      ).hide();
-    });
-  });
+  // const menuRoot = document.getElementById('otherFiltersMenu');
+  // renderOtherFiltersMenu(menuRoot);
+  // menuRoot.querySelectorAll('.dropdown-item').forEach(item => {
+  //   item.addEventListener('click', async e => {
+  //     e.preventDefault();
+  //     window.selectedOtherFilter = item.dataset.value;
+  //     await applyOtherFilter(window.selectedOtherFilter);
+  //     updateURLParameters();
+  //     bootstrap.Collapse.getOrCreateInstance(
+  //       document.getElementById('otherFiltersOptions')
+  //     ).hide();
+  //   });
+  // });
 
   // 4. Apply URL filters before initial render
   applyFiltersFromURL();
 
   // 5. Initial gallery render
-  if (window.selectedOtherFilter) {
-    await applyOtherFilter(window.selectedOtherFilter);
-  } else {
+  // if (window.selectedOtherFilter) {
+  //   await applyOtherFilter(window.selectedOtherFilter);
+  // } else {
     const params   = new URLSearchParams(window.location.search);
     const hasMulti = params.has('multiRoute');
     if (!hasMulti) filterImages();
-  }
+  // }
 
   // 6. Sync badges/UI
   updateSelectedFilters();
