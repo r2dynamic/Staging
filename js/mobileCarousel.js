@@ -18,74 +18,41 @@ const NUM_SLIDES = 6;
 const ANGLE_STEP = 360 / NUM_SLIDES; // 60 degrees per slide
 
 // ---- NEIGHBOR RESOLUTION FUNCTIONS ----
+// Uses same logic as desktop carousel (gallery.js)
 
-// Find camera by URL - use exact string match (no normalization)
 function findCameraByUrl(url) {
-  if (!url) {
-    console.log('  findCameraByUrl: no URL provided');
-    return null;
-  }
+  if (!url) return null;
   
   const list = window.camerasList || [];
-  console.log('  Searching in list of', list.length, 'cameras for URL:', url.substring(0, 60) + '...');
-  
   // Try exact match first
   let found = list.find(cam => cam?.Views?.[0]?.Url === url);
   
-  // If no exact match, try trimmed comparison
+  // Fallback to trimmed
   if (!found) {
-    const urlTrimmed = url.trim();
-    found = list.find(cam => cam?.Views?.[0]?.Url?.trim() === urlTrimmed);
-  }
-  
-  if (found) {
-    console.log('  ✓ MATCH FOUND:', found.Location);
-  } else {
-    console.log('  ✗ NO MATCH FOUND');
-    // Show sample for debugging
-    const sample = list[0]?.Views?.[0]?.Url;
-    if (sample) {
-      console.log('  Sample camera URL:', sample.substring(0, 60) + '...');
-      console.log('  URLs match:', sample === url);
-      console.log('  Trimmed match:', sample.trim() === url.trim());
-    }
+    const trimmed = url.trim();
+    found = list.find(cam => cam?.Views?.[0]?.Url?.trim() === trimmed);
   }
   
   return found || null;
 }
 
-function getAdjacentInList(cam, direction) {
-  if (!cam) return null;
+function findAdjacentInList(cam) {
+  if (!cam) return { prev: null, next: null };
   
   const list = window.camerasList || [];
   
-  // Use object identity first (fastest and most reliable)
-  let idx = list.indexOf(cam);
-  
-  // Fallback to URL comparison if object identity fails
-  if (idx === -1) {
-    const camUrl = cam?.Views?.[0]?.Url;
-    if (camUrl) {
-      idx = list.findIndex(c => c?.Views?.[0]?.Url === camUrl);
-    }
-  }
-  
-  console.log('  Current camera index in list:', idx, '/', list.length);
+  // Use ID to find camera (same as desktop)
+  const idx = list.findIndex(c => c.Id === cam.Id);
   
   if (idx === -1) {
-    console.log('  getAdjacentInList: camera not found in list');
-    return null;
+    console.log('  Camera not found in list by ID:', cam.Id);
+    return { prev: null, next: null };
   }
   
-  const targetIdx = direction === 'pos' ? idx + 1 : idx - 1;
-  console.log(`  Target ${direction} index:`, targetIdx);
+  const prevCam = idx > 0 ? list[idx - 1] : null;
+  const nextCam = idx < list.length - 1 ? list[idx + 1] : null;
   
-  if (targetIdx < 0 || targetIdx >= list.length) {
-    console.log(`  getAdjacentInList: index ${targetIdx} out of bounds`);
-    return null;
-  }
-  
-  return list[targetIdx];
+  return { prev: prevCam, next: nextCam };
 }
 
 function getNeighborCamera(cam, direction) {
@@ -95,52 +62,31 @@ function getNeighborCamera(cam, direction) {
   }
   
   console.log(`\n--- getNeighborCamera(${cam.Location}, ${direction}) ---`);
-  console.log('  Current camera URL:', cam?.Views?.[0]?.Url?.substring(0, 60) + '...');
   
-  // Try neighbor field first
+  // Try neighbor field first (same as desktop)
   const meta = cam?._geoJsonMetadata?.neighbors;
+  const neighborUrl = direction === 'pos' ? meta?.route1PosUrl : meta?.route1NegUrl;
+  const neighborName = direction === 'pos' ? meta?.route1PosName : meta?.route1NegName;
   
-  if (!meta) {
-    console.log('  ✗ No _geoJsonMetadata.neighbors object - using fallback');
-  } else {
-    const neighborUrl = direction === 'pos' ? meta.route1PosUrl : meta.route1NegUrl;
-    const neighborName = direction === 'pos' ? meta.route1PosName : meta.route1NegName;
+  if (neighborUrl) {
+    console.log(`  ${direction} neighbor from metadata:`, neighborName || neighborUrl.substring(0, 40) + '...');
+    const neighborCam = findCameraByUrl(neighborUrl);
     
-    console.log(`  ${direction} neighbor from metadata:`, neighborName || 'none');
-    
-    if (neighborUrl) {
-      console.log(`  ${direction} neighbor URL:`, neighborUrl.substring(0, 60) + '...');
-      const neighborCam = findCameraByUrl(neighborUrl);
-      
-      if (neighborCam) {
-        // Verify we're not returning the same camera
-        if (neighborCam === cam || neighborCam?.Views?.[0]?.Url === cam?.Views?.[0]?.Url) {
-          console.log('  ⚠️ Neighbor is same as current camera - using fallback');
-        } else {
-          console.log(`  ✓ Found ${direction} neighbor via metadata:`, neighborCam.Location);
-          return neighborCam;
-        }
-      } else {
-        console.log(`  ✗ Neighbor URL found but camera lookup failed - using fallback`);
-      }
-    } else {
-      console.log(`  ✗ No ${direction} neighbor URL in metadata - using fallback`);
+    if (neighborCam) {
+      console.log(`  ✓ Found via metadata:`, neighborCam.Location);
+      return neighborCam;
     }
   }
   
-  // Fallback to list order
-  console.log('  Attempting fallback to sequential list order...');
-  const fallback = getAdjacentInList(cam, direction);
+  // Fallback to adjacent in list (same as desktop)
+  console.log('  Using fallback - adjacent in list...');
+  const adjacent = findAdjacentInList(cam);
+  const fallback = direction === 'pos' ? adjacent.next : adjacent.prev;
   
   if (fallback) {
-    // Verify fallback is different
-    if (fallback === cam || fallback?.Views?.[0]?.Url === cam?.Views?.[0]?.Url) {
-      console.log('  ⚠️ Fallback returned same camera!');
-      return null;
-    }
-    console.log(`  ✓ Using ${direction} fallback from list:`, fallback.Location);
+    console.log(`  ✓ Found via list adjacency:`, fallback.Location);
   } else {
-    console.log(`  ✗ No fallback found (at list boundary or list is empty)`);
+    console.log(`  ✗ No neighbor found (at list boundary)`);
   }
   
   return fallback;
