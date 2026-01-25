@@ -44,6 +44,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
   <!-- LottieFiles player for animated weather icons -->
   <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+  <!-- Chart.js for dashboard charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   
   <!-- Structured Data / JSON-LD for SEO -->
   <script type="application/ld+json">
@@ -445,117 +447,87 @@
               <img src="gifLogo.gif" alt="UDOT Cameras Logo" class="dashboard-logo">
               <h5 class="dashboard-title" id="dashboardLabel">UDOTCameras.com</h5>
             </div>
+            <!-- Dashboard Navigation in Header -->
+            <div class="dashboard-nav-header">
+              <button id="dashNavQuality" class="button active">Quality Report</button>
+              <button id="dashNavIssues" class="button">Image Issues</button>
+              <button id="dashNavStats" class="button">Stats/Counts</button>
+            </div>
             <button type="button" class="btn-close btn-close-white dashboard-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
 
           <!-- Dashboard Content (scrollable) -->
           <div class="dashboard-content">
-            <div class="container-fluid">
-              <!-- Dashboard Summary Cards -->
-              <div class="row g-4 mb-4">
-                <!-- Total Cameras Card -->
-                <div class="col-md-3 col-sm-6">
-                  <div class="dashboard-card">
-                    <div class="dashboard-card-icon" style="background: linear-gradient(135deg, #3e8e41, #2a6b2f);">
-                      <i class="fas fa-camera"></i>
-                    </div>
-                    <div class="dashboard-card-content">
-                      <h6 class="dashboard-card-label">Total Cameras</h6>
-                      <h2 class="dashboard-card-value" id="dashTotalCameras">0</h2>
-                    </div>
-                  </div>
+            
+            <!-- Page 1: Quality Report (CSV Data) -->
+            <div id="dashPageQuality" class="dashboard-page">
+              <div class="container-fluid">
+                
+                <!-- Dynamic Metric Cards Container -->
+                <div class="row g-4 mb-4" id="dashboardMetricsContainer">
+                  <!-- Cards will be dynamically generated from CSV data -->
                 </div>
-
-                <!-- Active Cameras Card -->
-                <div class="col-md-3 col-sm-6">
-                  <div class="dashboard-card">
-                    <div class="dashboard-card-icon" style="background: linear-gradient(135deg, #3e8e41, #2a6b2f);">
-                      <i class="fas fa-check-circle"></i>
-                    </div>
-                    <div class="dashboard-card-content">
-                      <h6 class="dashboard-card-label">Active</h6>
-                      <h2 class="dashboard-card-value" id="dashActiveCameras">0</h2>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Issues Card -->
-                <div class="col-md-3 col-sm-6">
-                  <div class="dashboard-card">
-                    <div class="dashboard-card-icon" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">
-                      <i class="fas fa-exclamation-triangle"></i>
-                    </div>
-                    <div class="dashboard-card-content">
-                      <h6 class="dashboard-card-label">Issues</h6>
-                      <h2 class="dashboard-card-value" id="dashIssueCameras">0</h2>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Disabled Card -->
-                <div class="col-md-3 col-sm-6">
-                  <div class="dashboard-card">
-                    <div class="dashboard-card-icon" style="background: linear-gradient(135deg, #95a5a6, #7f8c8d);">
-                      <i class="fas fa-ban"></i>
-                    </div>
-                    <div class="dashboard-card-content">
-                      <h6 class="dashboard-card-label">Disabled</h6>
-                      <h2 class="dashboard-card-value" id="dashDisabledCameras">0</h2>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Issue Breakdown -->
-              <div class="row g-4">
-                <div class="col-12">
-                  <div class="dashboard-panel">
-                    <h5 class="dashboard-panel-title">
-                      <i class="fas fa-chart-bar me-2" style="color: #3e8e41;"></i>
-                      Issue Breakdown
-                    </h5>
-                    <div class="row g-3 mt-2">
-                      <div class="col-md-4 col-sm-6">
-                        <div class="issue-stat-card">
-                          <div class="issue-stat-label">Offline</div>
-                          <div class="issue-stat-value" id="dashOffline">0</div>
-                        </div>
-                      </div>
-                      <div class="col-md-4 col-sm-6">
-                        <div class="issue-stat-card">
-                          <div class="issue-stat-label">Upside Down</div>
-                          <div class="issue-stat-value" id="dashUpsideDown">0</div>
-                        </div>
-                      </div>
-                      <div class="col-md-4 col-sm-6">
-                        <div class="issue-stat-card">
-                          <div class="issue-stat-label">Grayscale</div>
-                          <div class="issue-stat-value" id="dashGrayscale">0</div>
-                        </div>
-                      </div>
-                      <div class="col-md-4 col-sm-6">
-                        <div class="issue-stat-card">
-                          <div class="issue-stat-label">Old Timestamp</div>
-                          <div class="issue-stat-value" id="dashOldTimestamp">0</div>
-                        </div>
-                      </div>
-                      <div class="col-md-4 col-sm-6">
-                        <div class="issue-stat-card">
-                          <div class="issue-stat-label">POE Error</div>
-                          <div class="issue-stat-value" id="dashPoeError">0</div>
-                        </div>
-                      </div>
-                      <div class="col-md-4 col-sm-6">
-                        <div class="issue-stat-card">
-                          <div class="issue-stat-label">Poor Road View</div>
-                          <div class="issue-stat-value" id="dashPoorRoad">0</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                
               </div>
             </div>
+
+            <!-- Page 2: Image Issues (GeoJSON Classifications) -->
+            <div id="dashPageIssues" class="dashboard-page" style="display: none;">
+              <div class="container-fluid">
+                
+                <!-- Image Issues Cards Container -->
+                <div class="row g-4 mb-4" id="dashboardIssuesContainer">
+                  <!-- Cards will be dynamically generated from GeoJSON data -->
+                </div>
+
+                <!-- Image Issues Charts -->
+                <div class="row g-4">
+                  <div class="col-lg-6">
+                    <div class="dashboard-panel">
+                      <canvas id="dashIssuesChart0" style="max-height: 350px;"></canvas>
+                    </div>
+                  </div>
+                  <div class="col-lg-6">
+                    <div class="dashboard-panel">
+                      <canvas id="dashIssuesChart1" style="max-height: 350px;"></canvas>
+                    </div>
+                  </div>
+                </div>
+                
+              </div>
+            </div>
+
+            <!-- Page 3: Stats/Counts (Charts from CSV) -->
+            <div id="dashPageStats" class="dashboard-page" style="display: none;">
+              <div class="container-fluid">
+                
+                <!-- Charts Section -->
+                <div class="row g-4">
+                  <!-- Regional Distribution Chart -->
+                  <div class="col-lg-4 col-md-6">
+                    <div class="dashboard-panel">
+                      <canvas id="dashChart0" style="max-height: 300px;"></canvas>
+                    </div>
+                  </div>
+                  
+                  <!-- County Distribution Chart -->
+                  <div class="col-lg-4 col-md-6">
+                    <div class="dashboard-panel">
+                      <canvas id="dashChart1" style="max-height: 300px;"></canvas>
+                    </div>
+                  </div>
+                  
+                  <!-- City Distribution Chart -->
+                  <div class="col-lg-4 col-md-12">
+                    <div class="dashboard-panel">
+                      <canvas id="dashChart2" style="max-height: 300px;"></canvas>
+                    </div>
+                  </div>
+                </div>
+                
+              </div>
+            </div>
+
           </div>
 
         </div>

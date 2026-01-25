@@ -1,0 +1,41 @@
+Report_Timestamp,Metric_Category,Metric_Name,Count,Percentage,Details
+1/23/2026 14:33,Report_Info,Report_Generated,1,100,1/23/2026 14:33
+1/23/2026 14:33,General,Total_Cameras,2004,100,2004 cameras in dataset
+1/23/2026 14:33,Regional,UDOT_Region_NULL,1,0.05,1 cameras in Region NULL
+1/23/2026 14:33,Regional,UDOT_Region_Region Four,387,19.31,387 cameras in Region Region Four
+1/23/2026 14:33,Regional,UDOT_Region_Region One,367,18.31,367 cameras in Region Region One
+1/23/2026 14:33,Regional,UDOT_Region_Region Three,544,27.15,544 cameras in Region Region Three
+1/23/2026 14:33,Regional,UDOT_Region_Region Two,705,35.18,705 cameras in Region Region Two
+1/23/2026 14:33,Geographic_County,County_SALT LAKE,607,30.29,607 cameras in SALT LAKE
+1/23/2026 14:33,Geographic_County,County_UTAH,444,22.16,444 cameras in UTAH
+1/23/2026 14:33,Geographic_County,County_DAVIS,165,8.23,165 cameras in DAVIS
+1/23/2026 14:33,Geographic_County,County_WASHINGTON,151,7.53,151 cameras in WASHINGTON
+1/23/2026 14:33,Geographic_County,County_WEBER,85,4.24,85 cameras in WEBER
+1/23/2026 14:33,Geographic_County,County_IRON,49,2.45,49 cameras in IRON
+1/23/2026 14:33,Geographic_County,County_SUMMIT,49,2.45,49 cameras in SUMMIT
+1/23/2026 14:33,Geographic_County,County_BOX ELDER,48,2.4,48 cameras in BOX ELDER
+1/23/2026 14:33,Geographic_County,County_CACHE,47,2.35,47 cameras in CACHE
+1/23/2026 14:33,Geographic_County,County_TOOELE,46,2.3,46 cameras in TOOELE
+1/23/2026 14:33,Geographic_City,City_Salt Lake City,132,6.59,132 cameras in Salt Lake City
+1/23/2026 14:33,Geographic_City,City_St. George,91,4.54,91 cameras in St. George
+1/23/2026 14:33,Geographic_City,City_Provo,90,4.49,90 cameras in Provo
+1/23/2026 14:33,Geographic_City,City_Orem,70,3.49,70 cameras in Orem
+1/23/2026 14:33,Geographic_City,City_Lehi,66,3.29,66 cameras in Lehi
+1/23/2026 14:33,Geographic_City,City_West Valley City,61,3.04,61 cameras in West Valley City
+1/23/2026 14:33,Geographic_City,City_Sandy,48,2.4,48 cameras in Sandy
+1/23/2026 14:33,Geographic_City,City_West Jordan,44,2.2,44 cameras in West Jordan
+1/23/2026 14:33,Geographic_City,City_Spanish Fork,36,1.8,36 cameras in Spanish Fork
+1/23/2026 14:33,Geographic_City,City_Taylorsville,33,1.65,33 cameras in Taylorsville
+1/23/2026 14:33,Status,Status_Disabled,7,0.35,7 cameras with status Disabled
+1/23/2026 14:33,Status,Status_Enabled,1997,99.65,1997 cameras with status Enabled
+1/23/2026 14:33,Duplicates,Duplicate_Location,2,0.1,2 duplicate Location values - see details report
+1/23/2026 14:33,Duplicates,Duplicate_Coordinates,1,0.05,1 coordinate duplicates - see details report
+1/23/2026 14:33,Descriptions,Cameras_With_Description,22,1.1,22 cameras have descriptions
+1/23/2026 14:33,Geometric,Offset_Over_1000ft,3,0.15,3 cameras > 1000ft from route - see details
+1/23/2026 14:33,Geometric,MP_Difference_Over_Half_Mile,25,1.25,25 cameras with MP diff > 2640 ft (0.5 mi) - see details
+1/23/2026 14:33,Naming,Contains_RWIS,95,4.74,95 cameras with RWIS in name
+1/23/2026 14:33,Naming,Missing_At_Separator,12,0.6,12 cameras missing @ - see details
+1/23/2026 14:33,Naming,Missing_Comma,19,0.95,19 cameras missing comma - see details
+1/23/2026 14:33,Naming,Missing_Hyphen_In_Route,1,0.05,1 cameras with route hyphen issues - see details
+1/23/2026 14:33,Naming,Unknown_Abbreviation,8,0.4,8 cameras with unknown abbreviations - see details
+1/23/2026 14:33,Naming,City_County_Mismatch,46,2.3,46 cameras with mismatched city/county - see details
