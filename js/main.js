@@ -4,7 +4,7 @@
 import { loadCameras, loadRoutes } from './dataLoader.js';
 import { filterImages }             from './filters.js';
 // import { renderOtherFiltersMenu, applyOtherFilter } from './otherFilters.js';
-import { initDashboard } from '../dashboard/dashboard.js';
+import { initDashboard } from '../Dashboard/dashboard.js';
 
 import {
   setupCopyUrlButton,
