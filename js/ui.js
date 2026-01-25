@@ -67,7 +67,14 @@ export function updateURLParameters() {
     return;
   }
 
-  // 2) other-filters
+  // 2) dashboard
+  if (window.isDashboardOpen) {
+    params.set('dashboard', 'true');
+    window.history.replaceState({},'',`${window.location.pathname}?${params}`);
+    return;
+  }
+
+  // 3) other-filters
   if (window.selectedOtherFilter) {
     params.set('other', window.selectedOtherFilter);
     window.history.replaceState({},'',`${window.location.pathname}?${params}`);
@@ -108,6 +115,22 @@ export function updateSelectedFilters() {
     d.innerHTML = `<i class="${icon}"></i> ${txt}`;
     return d;
   };
+
+  // dashboard badge
+  if (window.isDashboardOpen) {
+    badges.append(makeBadge('fas fa-chart-line', 'Dashboard'));
+    cont.append(badges);
+    const actions = document.createElement('div');
+    actions.className = 'actions';
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'action-button';
+    copyBtn.innerHTML = '<i class="fas fa-link"></i> Copy URL';
+    copyBtn.addEventListener('click', () => window.copyURLToClipboard());
+    actions.append(copyBtn);
+    cont.append(actions);
+    cont.style.display = 'flex';
+    return;
+  }
 
   // custom-route badges
   if (window.customRouteFormData?.length) {
@@ -258,6 +281,15 @@ export async function applyFiltersFromURL() {
   if (params.has('multiRoute')) {
     parseMultiRouteFromURL();
     applyCustomRouteFilter();
+    return;
+  }
+
+  if (params.has('dashboard')) {
+    window.isDashboardOpen = true;
+    setTimeout(() => {
+      const dashboardModal = new bootstrap.Modal(document.getElementById('cameraIssuesDashboard'));
+      dashboardModal.show();
+    }, 500);
     return;
   }
 

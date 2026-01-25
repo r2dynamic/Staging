@@ -443,7 +443,7 @@
           <div class="dashboard-header">
             <div class="dashboard-header-content">
               <img src="gifLogo.gif" alt="UDOT Cameras Logo" class="dashboard-logo">
-              <h5 class="dashboard-title" id="dashboardLabel">UDOTCameras.com Dashboard</h5>
+              <h5 class="dashboard-title" id="dashboardLabel">UDOTCameras.com</h5>
             </div>
             <button type="button" class="btn-close btn-close-white dashboard-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
@@ -607,11 +607,23 @@
   <script>
   document.addEventListener('DOMContentLoaded', () => {
     const dashboardMenuItem = document.getElementById('dashboardMenuItem');
+    const dashboardModalEl = document.getElementById('cameraIssuesDashboard');
+    
     if (dashboardMenuItem) {
       dashboardMenuItem.addEventListener('click', (e) => {
         e.preventDefault();
-        const dashboardModal = new bootstrap.Modal(document.getElementById('cameraIssuesDashboard'));
+        window.isDashboardOpen = true;
+        window.updateURLParameters();
+        const dashboardModal = new bootstrap.Modal(dashboardModalEl);
         dashboardModal.show();
+      });
+    }
+    
+    // Clear dashboard state when modal is closed
+    if (dashboardModalEl) {
+      dashboardModalEl.addEventListener('hidden.bs.modal', () => {
+        window.isDashboardOpen = false;
+        window.updateURLParameters();
       });
     }
   });
