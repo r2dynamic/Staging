@@ -4,6 +4,7 @@
 import { loadCameras, loadRoutes } from './dataLoader.js';
 import { filterImages }             from './filters.js';
 // import { renderOtherFiltersMenu, applyOtherFilter } from './otherFilters.js';
+import { initDashboard } from '../dashboard/dashboard.js';
 
 import {
   setupCopyUrlButton,
@@ -182,6 +183,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupModalLinks();
   // setupOtherFiltersListener();  <-- removed this call
   setupSizeSlider();
+  
+  // 5) Initialize Dashboard
+  initDashboard();
   setupModalMapToggle();
   setupModalCleanup();
   setupModalMiniMapOnShow();

@@ -143,6 +143,8 @@
       </button>
       <ul class="dropdown-menu glass-dropdown p-2" id="issueFilterMenu" aria-label="Camera Image Issues">
         <li class="dropdown-header text-white fw-bold">Camera Image Issues</li>
+        <li><a class="dropdown-item" href="#" id="dashboardMenuItem">Dashboard</a></li>
+        <li><hr class="dropdown-divider" style="border-color: rgba(255,255,255,0.2);"></li>
         <li><a class="dropdown-item issue-option" href="#" data-value="disabled">Disabled Cameras</a></li>
         <li><a class="dropdown-item issue-option" href="#" data-value="offline">Offline</a></li>
         <li><a class="dropdown-item issue-option" href="#" data-value="upside_down">Upside Down Cameras</a></li>
@@ -429,6 +431,138 @@
     </div>
   </div>
 
+  <!-- Camera Issues Dashboard Modal -->
+  <div class="modal fade" id="cameraIssuesDashboard" tabindex="-1" aria-labelledby="dashboardLabel" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+      <div class="modal-content" style="background: url('dashboard/DashBackground.jpg') center/cover no-repeat; position: relative; overflow: hidden;">
+        
+        <!-- Full-screen glassmorphic overlay -->
+        <div class="dashboard-glass-overlay">
+          
+          <!-- Dashboard Header (on top of glass overlay) -->
+          <div class="dashboard-header">
+            <div class="dashboard-header-content">
+              <img src="gifLogo.gif" alt="UDOT Cameras Logo" class="dashboard-logo">
+              <h5 class="dashboard-title" id="dashboardLabel">UDOTCameras.com Dashboard</h5>
+            </div>
+            <button type="button" class="btn-close btn-close-white dashboard-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+
+          <!-- Dashboard Content (scrollable) -->
+          <div class="dashboard-content">
+            <div class="container-fluid">
+              <!-- Dashboard Summary Cards -->
+              <div class="row g-4 mb-4">
+                <!-- Total Cameras Card -->
+                <div class="col-md-3 col-sm-6">
+                  <div class="dashboard-card">
+                    <div class="dashboard-card-icon" style="background: linear-gradient(135deg, #3e8e41, #2a6b2f);">
+                      <i class="fas fa-camera"></i>
+                    </div>
+                    <div class="dashboard-card-content">
+                      <h6 class="dashboard-card-label">Total Cameras</h6>
+                      <h2 class="dashboard-card-value" id="dashTotalCameras">0</h2>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Active Cameras Card -->
+                <div class="col-md-3 col-sm-6">
+                  <div class="dashboard-card">
+                    <div class="dashboard-card-icon" style="background: linear-gradient(135deg, #3e8e41, #2a6b2f);">
+                      <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="dashboard-card-content">
+                      <h6 class="dashboard-card-label">Active</h6>
+                      <h2 class="dashboard-card-value" id="dashActiveCameras">0</h2>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Issues Card -->
+                <div class="col-md-3 col-sm-6">
+                  <div class="dashboard-card">
+                    <div class="dashboard-card-icon" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">
+                      <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="dashboard-card-content">
+                      <h6 class="dashboard-card-label">Issues</h6>
+                      <h2 class="dashboard-card-value" id="dashIssueCameras">0</h2>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Disabled Card -->
+                <div class="col-md-3 col-sm-6">
+                  <div class="dashboard-card">
+                    <div class="dashboard-card-icon" style="background: linear-gradient(135deg, #95a5a6, #7f8c8d);">
+                      <i class="fas fa-ban"></i>
+                    </div>
+                    <div class="dashboard-card-content">
+                      <h6 class="dashboard-card-label">Disabled</h6>
+                      <h2 class="dashboard-card-value" id="dashDisabledCameras">0</h2>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Issue Breakdown -->
+              <div class="row g-4">
+                <div class="col-12">
+                  <div class="dashboard-panel">
+                    <h5 class="dashboard-panel-title">
+                      <i class="fas fa-chart-bar me-2" style="color: #3e8e41;"></i>
+                      Issue Breakdown
+                    </h5>
+                    <div class="row g-3 mt-2">
+                      <div class="col-md-4 col-sm-6">
+                        <div class="issue-stat-card">
+                          <div class="issue-stat-label">Offline</div>
+                          <div class="issue-stat-value" id="dashOffline">0</div>
+                        </div>
+                      </div>
+                      <div class="col-md-4 col-sm-6">
+                        <div class="issue-stat-card">
+                          <div class="issue-stat-label">Upside Down</div>
+                          <div class="issue-stat-value" id="dashUpsideDown">0</div>
+                        </div>
+                      </div>
+                      <div class="col-md-4 col-sm-6">
+                        <div class="issue-stat-card">
+                          <div class="issue-stat-label">Grayscale</div>
+                          <div class="issue-stat-value" id="dashGrayscale">0</div>
+                        </div>
+                      </div>
+                      <div class="col-md-4 col-sm-6">
+                        <div class="issue-stat-card">
+                          <div class="issue-stat-label">Old Timestamp</div>
+                          <div class="issue-stat-value" id="dashOldTimestamp">0</div>
+                        </div>
+                      </div>
+                      <div class="col-md-4 col-sm-6">
+                        <div class="issue-stat-card">
+                          <div class="issue-stat-label">POE Error</div>
+                          <div class="issue-stat-value" id="dashPoeError">0</div>
+                        </div>
+                      </div>
+                      <div class="col-md-4 col-sm-6">
+                        <div class="issue-stat-card">
+                          <div class="issue-stat-label">Poor Road View</div>
+                          <div class="issue-stat-value" id="dashPoorRoad">0</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Weather Modal -->
 <div class="modal fade" id="weatherModal" tabindex="-1" aria-labelledby="weatherModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered">
@@ -469,6 +603,20 @@
     document.addEventListener('DOMContentLoaded', setVh);
   })();
 </script>
+  <!-- Dashboard Menu Item Handler -->
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const dashboardMenuItem = document.getElementById('dashboardMenuItem');
+    if (dashboardMenuItem) {
+      dashboardMenuItem.addEventListener('click', (e) => {
+        e.preventDefault();
+        const dashboardModal = new bootstrap.Modal(document.getElementById('cameraIssuesDashboard'));
+        dashboardModal.show();
+      });
+    }
+  });
+  </script>
+
   <!-- Service Worker Registration -->
   <script>
   if ('serviceWorker' in navigator) {

@@ -2269,6 +2269,217 @@ html, body {
   flex: 0 0 auto;
 }
 
+/* ========================================
+   DASHBOARD STYLES
+   ======================================== */
+
+/* Full-screen glassmorphic overlay */
+.dashboard-glass-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(20, 20, 30, 0.20);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Dashboard Header */
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 25px 35px;
+  position: relative;
+  z-index: 10;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dashboard-header-content {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.dashboard-logo {
+  height: 50px;
+  width: auto;
+  object-fit: contain;
+}
+
+.dashboard-title {
+  color: white;
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.dashboard-close {
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+
+.dashboard-close:hover {
+  opacity: 1;
+}
+
+/* Dashboard Content (scrollable area) */
+.dashboard-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 35px;
+}
+
+/* Dashboard Card */
+.dashboard-card {
+  background: rgba(255, 255, 255, 0.20);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(62, 142, 65, 0.2);
+  border-color: rgba(62, 142, 65, 0.4);
+}
+
+.dashboard-card-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: white;
+  flex-shrink: 0;
+}
+
+.dashboard-card-content {
+  flex: 1;
+}
+
+.dashboard-card-label {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin: 0 0 5px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dashboard-card-value {
+  color: white;
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1;
+}
+
+/* Dashboard Panel */
+.dashboard-panel {
+  background: rgba(255, 255, 255, 0.20);
+  backdrop-filter: blur(30px);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.dashboard-panel-title {
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Issue Stat Card */
+.issue-stat-card {
+  background: rgba(255, 255, 255, 0.20);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.issue-stat-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(62, 142, 65, 0.3);
+  transform: translateY(-2px);
+}
+
+.issue-stat-label {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.issue-stat-value {
+  color: white;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #3e8e41;
+}
+
+/* Responsive adjustments for dashboard */
+@media (max-width: 768px) {
+  .dashboard-header {
+    padding: 20px;
+  }
+  
+  .dashboard-logo {
+    height: 35px;
+  }
+  
+  .dashboard-title {
+    font-size: 1.25rem;
+  }
+  
+  .dashboard-content {
+    padding: 20px;
+  }
+  
+  .dashboard-card {
+    padding: 15px;
+  }
+  
+  .dashboard-card-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+  }
+  
+  .dashboard-card-value {
+    font-size: 1.5rem;
+  }
+  
+  .dashboard-panel {
+    padding: 20px;
+  }
+  
+  .issue-stat-value {
+    font-size: 1.5rem;
+  }
+}
+
 
 
 
