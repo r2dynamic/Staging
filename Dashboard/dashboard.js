@@ -5,9 +5,8 @@
  * Configuration for dashboard metrics - easy to update as CSV structure changes
  */
 const DASHBOARD_CONFIG = {
-  // Metrics to display as cards (from cctv_quality_report_summary)
+  // Metrics to display as cards on Data Issues page (from cctv_quality_report_summary)
   cardMetrics: [
-    { category: 'General', name: 'Total_Cameras', label: 'Total Cameras', icon: 'camera', color: 'green' },
     { category: 'Duplicates', name: 'Duplicate_Location', label: 'Duplicate Location', icon: 'copy', color: 'orange' },
     { category: 'Duplicates', name: 'Duplicate_Coordinates', label: 'Duplicate Coords', icon: 'map-pin', color: 'orange' },
     { category: 'Geometric', name: 'Offset_Over_1000ft', label: 'Offset >1000ft', icon: 'map-marked', color: 'red' },
@@ -18,6 +17,9 @@ const DASHBOARD_CONFIG = {
     { category: 'Naming', name: 'Unknown_Abbreviation', label: 'Unknown Abbrev', icon: 'question-circle', color: 'yellow' },
     { category: 'Naming', name: 'City_County_Mismatch', label: 'City/County Mismatch', icon: 'exclamation-triangle', color: 'red' }
   ],
+  
+  // Card to display on Stats/Counts page
+  statsCardMetric: { category: 'General', name: 'Total_Cameras', label: 'Total Cameras', icon: 'camera', color: 'green' },
   
   // Categories to display as charts
   chartCategories: [
@@ -171,20 +173,25 @@ function updateMetricCards() {
       
       card.innerHTML = `
         <div class="dashboard-card">
-          <div class="dashboard-card-icon" style="background: ${colors.bg};">
-            <i class="fas fa-${metric.icon}"></i>
-          </div>
-          <div class="dashboard-card-content">
-            <h6 class="dashboard-card-label">${metric.label}</h6>
-            <h2 class="dashboard-card-value">${value}</h2>
-            <div style="margin-top: 10px; font-size: 0.85rem; color: rgba(255,255,255,0.8);">
-              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                <span><i class="fas fa-check-circle" style="color: #3e8e41; margin-right: 5px;"></i>Enabled:</span>
-                <strong>${enabledCount}</strong>
-              </div>
-              <div style="display: flex; justify-content: space-between;">
-                <span><i class="fas fa-times-circle" style="color: #e74c3c; margin-right: 5px;"></i>Disabled:</span>
-                <strong>${disabledCount}</strong>
+          <div class="liquidGlass-effect"></div>
+          <div class="liquidGlass-tint"></div>
+          <div class="liquidGlass-shine"></div>
+          <div class="liquidGlass-content">
+            <div class="dashboard-card-icon" style="background: ${colors.bg};">
+              <i class="fas fa-${metric.icon}"></i>
+            </div>
+            <div class="dashboard-card-content">
+              <h6 class="dashboard-card-label">${metric.label}</h6>
+              <h2 class="dashboard-card-value">${value}</h2>
+              <div style="margin-top: 10px; font-size: 0.85rem; color: rgba(255,255,255,0.8);">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                  <span><i class="fas fa-check-circle" style="color: #3e8e41; margin-right: 5px;"></i>Enabled:</span>
+                  <strong>${enabledCount}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span><i class="fas fa-times-circle" style="color: #e74c3c; margin-right: 5px;"></i>Disabled:</span>
+                  <strong>${disabledCount}</strong>
+                </div>
               </div>
             </div>
           </div>
@@ -193,12 +200,17 @@ function updateMetricCards() {
     } else {
       card.innerHTML = `
         <div class="dashboard-card">
-          <div class="dashboard-card-icon" style="background: ${colors.bg};">
-            <i class="fas fa-${metric.icon}"></i>
-          </div>
-          <div class="dashboard-card-content">
-            <h6 class="dashboard-card-label">${metric.label}</h6>
-            <h2 class="dashboard-card-value">${value}</h2>
+          <div class="liquidGlass-effect"></div>
+          <div class="liquidGlass-tint"></div>
+          <div class="liquidGlass-shine"></div>
+          <div class="liquidGlass-content">
+            <div class="dashboard-card-icon" style="background: ${colors.bg};">
+              <i class="fas fa-${metric.icon}"></i>
+            </div>
+            <div class="dashboard-card-content">
+              <h6 class="dashboard-card-label">${metric.label}</h6>
+              <h2 class="dashboard-card-value">${value}</h2>
+            </div>
           </div>
         </div>
       `;
@@ -235,9 +247,9 @@ function createChart(canvasId, config) {
       data: limitedMetrics.map(m => m.count),
       backgroundColor: config.type === 'pie' ? 
         generateColors(limitedMetrics.length) :
-        'rgba(62, 142, 65, 0.7)',
+        'rgba(62, 142, 65, 1)',
       borderColor: config.type === 'pie' ?
-        'rgba(255, 255, 255, 0.8)' :
+        'rgba(255, 255, 255, 1)' :
         'rgba(62, 142, 65, 1)',
       borderWidth: 2
     }]
@@ -250,7 +262,28 @@ function createChart(canvasId, config) {
       legend: {
         display: config.type === 'pie',
         position: 'right',
-        labels: { color: 'white', font: { size: 12 } }
+        labels: { 
+          color: 'white', 
+          font: { size: 12 },
+          generateLabels: function(chart) {
+            const data = chart.data;
+            if (data.labels.length && data.datasets.length) {
+              return data.labels.map((label, i) => {
+                const value = data.datasets[0].data[i];
+                return {
+                  text: `${label}: ${value}`,
+                  fillStyle: data.datasets[0].backgroundColor[i],
+                  strokeStyle: data.datasets[0].borderColor,
+                  lineWidth: data.datasets[0].borderWidth,
+                  hidden: false,
+                  index: i,
+                  fontColor: 'white'
+                };
+              });
+            }
+            return [];
+          }
+        }
       },
       title: {
         display: true,
@@ -284,16 +317,16 @@ function createChart(canvasId, config) {
  */
 function generateColors(count) {
   const baseColors = [
-    'rgba(62, 142, 65, 0.8)',   // green
-    'rgba(52, 152, 219, 0.8)',  // blue
-    'rgba(243, 156, 18, 0.8)',  // orange
-    'rgba(231, 76, 60, 0.8)',   // red
-    'rgba(155, 89, 182, 0.8)',  // purple
-    'rgba(241, 196, 15, 0.8)',  // yellow
-    'rgba(26, 188, 156, 0.8)',  // turquoise
-    'rgba(230, 126, 34, 0.8)',  // dark orange
-    'rgba(149, 165, 166, 0.8)', // gray
-    'rgba(192, 57, 43, 0.8)'    // dark red
+    'rgba(62, 142, 65, 1)',   // green
+    'rgba(52, 152, 219, 1)',  // blue
+    'rgba(243, 156, 18, 1)',  // orange
+    'rgba(231, 76, 60, 1)',   // red
+    'rgba(155, 89, 182, 1)',  // purple
+    'rgba(241, 196, 15, 1)',  // yellow
+    'rgba(26, 188, 156, 1)',  // turquoise
+    'rgba(230, 126, 34, 1)',  // dark orange
+    'rgba(149, 165, 166, 1)', // gray
+    'rgba(192, 57, 43, 1)'    // dark red
   ];
   
   const colors = [];
@@ -306,7 +339,76 @@ function generateColors(count) {
 /**
  * Update all charts
  */
-function updateCharts() {
+/**
+ * Update Stats/Counts page with Total Cameras card and charts
+ */
+async function updateStatsPage() {
+  // Ensure CSV data is loaded
+  if (summaryData.length === 0) {
+    await loadCSVData();
+  }
+  
+  // Add Total Cameras card at the top
+  const statsCardsContainer = document.getElementById('dashboardStatsCardsContainer');
+  if (statsCardsContainer) {
+    const metric = DASHBOARD_CONFIG.statsCardMetric;
+    const value = getMetricValue(metric.category, metric.name);
+    const colors = METRIC_COLORS[metric.color] || METRIC_COLORS.gray;
+    
+    // Debug: Show all metrics in the Status category
+    const statusMetrics = summaryData.filter(r => r.Metric_Category === 'Status');
+    console.log('All Status category metrics:', statusMetrics);
+    
+    // Get enabled/disabled counts - search for any metric containing "enable" or "disable"
+    let enabledCount = 0;
+    let disabledCount = 0;
+    
+    // Search through all Status metrics for enabled/disabled
+    statusMetrics.forEach(metric => {
+      const name = metric.Metric_Name.toLowerCase();
+      console.log(`Checking metric: ${metric.Metric_Name} = ${metric.Count}`);
+      if (name.includes('enable') && !name.includes('disable')) {
+        enabledCount = parseInt(metric.Count || 0);
+        console.log(`Found enabled count: ${enabledCount}`);
+      } else if (name.includes('disable')) {
+        disabledCount = parseInt(metric.Count || 0);
+        console.log(`Found disabled count: ${disabledCount}`);
+      }
+    });
+    
+    const card = document.createElement('div');
+    card.className = 'col-12';
+    card.innerHTML = `
+      <div class="dashboard-card">
+        <div class="liquidGlass-effect"></div>
+        <div class="liquidGlass-tint"></div>
+        <div class="liquidGlass-shine"></div>
+        <div class="liquidGlass-content">
+          <div class="dashboard-card-icon" style="background: ${colors.bg};">
+            <i class="fas fa-${metric.icon}"></i>
+          </div>
+          <div class="dashboard-card-content">
+            <h6 class="dashboard-card-label">${metric.label}</h6>
+            <h2 class="dashboard-card-value">${value}</h2>
+            <div style="margin-top: 10px; font-size: 0.85rem; color: rgba(255,255,255,0.8);">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span><i class="fas fa-check-circle" style="color: #3e8e41; margin-right: 5px;"></i>Enabled:</span>
+                <strong>${enabledCount}</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span><i class="fas fa-times-circle" style="color: #e74c3c; margin-right: 5px;"></i>Disabled:</span>
+                <strong>${disabledCount}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    statsCardsContainer.innerHTML = '';
+    statsCardsContainer.appendChild(card);
+  }
+  
+  // Update charts
   DASHBOARD_CONFIG.chartCategories.forEach((config, index) => {
     createChart(`dashChart${index}`, config);
   });
@@ -345,13 +447,17 @@ function getIssuesCounts() {
 function getIssuesByRegion() {
   if (!geojsonData) return {};
   
+  // Only count these 7 specific classification types
+  const validClassifications = ['disabled', 'offline', 'upside_down', 'grayscale', 'old_timestamp', 'poe_error', 'poor_road'];
+  
   const regions = {};
   
   geojsonData.features.forEach(feature => {
     const classification = feature.properties.classification;
     const region = feature.properties.UDOT_Region || 'Unknown';
     
-    if (classification && classification !== '') {
+    // Only count if it's one of the 7 valid classifications
+    if (classification && validClassifications.includes(classification)) {
       if (!regions[region]) {
         regions[region] = 0;
       }
@@ -419,12 +525,17 @@ function updateIssuesCards() {
     card.className = 'col-lg-3 col-md-4 col-sm-6';
     card.innerHTML = `
       <div class="dashboard-card">
-        <div class="dashboard-card-icon" style="background: ${colors.bg};">
-          <i class="fas fa-${config.icon}"></i>
-        </div>
-        <div class="dashboard-card-content">
-          <h6 class="dashboard-card-label">${config.label}</h6>
-          <h2 class="dashboard-card-value">${value}</h2>
+        <div class="liquidGlass-effect"></div>
+        <div class="liquidGlass-tint"></div>
+        <div class="liquidGlass-shine"></div>
+        <div class="liquidGlass-content">
+          <div class="dashboard-card-icon" style="background: ${colors.bg};">
+            <i class="fas fa-${config.icon}"></i>
+          </div>
+          <div class="dashboard-card-content">
+            <h6 class="dashboard-card-label">${config.label}</h6>
+            <h2 class="dashboard-card-value">${value}</h2>
+          </div>
         </div>
       </div>
     `;
@@ -447,7 +558,7 @@ function updateIssuesCharts() {
     });
   }
   
-  // Chart 2: Issues by Region (Bar)
+  // Chart 2: Issues by Region (Pie)
   const issuesByRegion = getIssuesByRegion();
   const regionData = Object.keys(issuesByRegion)
     .map(region => ({
@@ -460,14 +571,14 @@ function updateIssuesCharts() {
     createChart('dashIssuesChart1', {
       category: 'custom',
       label: 'Issues by Region',
-      type: 'bar',
+      type: 'pie',
       data: regionData
     });
   }
 }
 
 /**
- * Main update function for Quality Report page
+ * Main update function for Data Issues page
  */
 export async function updateDashboardStats() {
   // Show loading state
@@ -518,7 +629,7 @@ async function updateIssuesPage() {
 /**
  * Switch between dashboard pages
  */
-function switchDashboardPage(pageName) {
+async function switchDashboardPage(pageName) {
   const qualityPage = document.getElementById('dashPageQuality');
   const issuesPage = document.getElementById('dashPageIssues');
   const statsPage = document.getElementById('dashPageStats');
@@ -537,14 +648,15 @@ function switchDashboardPage(pageName) {
   if (pageName === 'quality') {
     qualityPage.style.display = 'block';
     qualityBtn.classList.add('active');
+    await updateDashboardStats();
   } else if (pageName === 'issues') {
     issuesPage.style.display = 'block';
     issuesBtn.classList.add('active');
-    updateIssuesPage();
+    await updateIssuesPage();
   } else if (pageName === 'stats') {
     statsPage.style.display = 'block';
     statsBtn.classList.add('active');
-    updateCharts();
+    await updateStatsPage();
   }
 }
 
@@ -556,7 +668,7 @@ export function initDashboard() {
   
   if (dashboardModal) {
     dashboardModal.addEventListener('shown.bs.modal', async () => {
-      await updateDashboardStats();
+      await updateIssuesPage();
     });
   }
   
