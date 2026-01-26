@@ -476,33 +476,40 @@
             <div id="dashPageIssues" class="dashboard-page">
               <div class="container-fluid">
                 
-                <!-- Image Issues Cards Container -->
-                <div class="row g-4 mb-4" id="dashboardIssuesContainer">
-                  <!-- Cards will be dynamically generated from GeoJSON data -->
-                </div>
-
-                <!-- Image Issues Charts -->
                 <div class="row g-4">
+                  <!-- Left Column: Metric Cards -->
                   <div class="col-lg-6">
-                    <div class="dashboard-card dashboard-card-chart">
-                      <div class="liquidGlass-effect"></div>
-                      <div class="liquidGlass-tint"></div>
-                      <div class="liquidGlass-shine"></div>
-                      <div class="liquidGlass-content">
-                        <canvas id="dashIssuesChart0" style="max-height: 350px;"></canvas>
+                    <div class="row g-4" id="dashboardIssuesContainer">
+                      <!-- Cards will be dynamically generated from GeoJSON data -->
+                    </div>
+                  </div>
+                  
+                  <!-- Right Column: Charts -->
+                  <div class="col-lg-6">
+                    <div class="row g-4">
+                      <div class="col-12">
+                        <div class="dashboard-card dashboard-card-chart">
+                          <div class="liquidGlass-effect"></div>
+                          <div class="liquidGlass-tint"></div>
+                          <div class="liquidGlass-shine"></div>
+                          <div class="liquidGlass-content">
+                            <canvas id="dashIssuesChart0"></canvas>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-12">
+                        <div class="dashboard-card dashboard-card-chart">
+                          <div class="liquidGlass-effect"></div>
+                          <div class="liquidGlass-tint"></div>
+                          <div class="liquidGlass-shine"></div>
+                          <div class="liquidGlass-content">
+                            <canvas id="dashIssuesChart1"></canvas>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <div class="col-lg-6">
-                    <div class="dashboard-card dashboard-card-chart">
-                      <div class="liquidGlass-effect"></div>
-                      <div class="liquidGlass-tint"></div>
-                      <div class="liquidGlass-shine"></div>
-                      <div class="liquidGlass-content">
-                        <canvas id="dashIssuesChart1" style="max-height: 350px;"></canvas>
-                      </div>
-                    </div>
-                  </div>
+                </div>
                 </div>
                 
               </div>
@@ -538,7 +545,7 @@
                       <div class="liquidGlass-tint"></div>
                       <div class="liquidGlass-shine"></div>
                       <div class="liquidGlass-content">
-                        <canvas id="dashChart0" style="max-height: 300px;"></canvas>
+                        <canvas id="dashChart0"></canvas>
                       </div>
                     </div>
                   </div>
@@ -550,7 +557,7 @@
                       <div class="liquidGlass-tint"></div>
                       <div class="liquidGlass-shine"></div>
                       <div class="liquidGlass-content">
-                        <canvas id="dashChart1" style="max-height: 300px;"></canvas>
+                        <canvas id="dashChart1"></canvas>
                       </div>
                     </div>
                   </div>
@@ -562,7 +569,7 @@
                       <div class="liquidGlass-tint"></div>
                       <div class="liquidGlass-shine"></div>
                       <div class="liquidGlass-content">
-                        <canvas id="dashChart2" style="max-height: 300px;"></canvas>
+                        <canvas id="dashChart2"></canvas>
                       </div>
                     </div>
                   </div>
