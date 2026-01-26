@@ -2433,7 +2433,7 @@ html, body {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: clamp(0.75rem, 2vw, 1.25rem) clamp(1rem, 2vw, 1.5rem);
+  padding: clamp(1.25rem, 4vw, 2.1875rem);
   z-index: 1;
   transform-style: preserve-3d;
   -webkit-transform-style: preserve-3d;
