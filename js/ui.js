@@ -121,11 +121,12 @@ export function updateSelectedFilters() {
     badges.append(makeBadge('fas fa-chart-line', 'Dashboard'));
     cont.append(badges);
     const actions = document.createElement('div');
-    actions.className = 'actions';
+    actions.className = 'action-buttons';
     const copyBtn = document.createElement('button');
-    copyBtn.className = 'action-button';
-    copyBtn.innerHTML = '<i class="fas fa-link"></i> Copy URL';
-    copyBtn.addEventListener('click', () => window.copyURLToClipboard());
+    copyBtn.className = 'reset-button';
+    copyBtn.title = 'Copy Link';
+    copyBtn.innerHTML = '<i class="fas fa-link"></i>';
+    copyBtn.addEventListener('click', () => window.copyURLToClipboard().then(() => alert('URL copied!')));
     actions.append(copyBtn);
     cont.append(actions);
     cont.style.display = 'flex';

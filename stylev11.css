@@ -2365,6 +2365,62 @@ html, body {
   transform: translateY(-1px);
 }
 
+/* Mobile Menu for Dashboard */
+.dashboard-mobile-menu {
+  display: none;
+  flex-shrink: 0;
+}
+
+.dashboard-menu-btn {
+  padding: 8px 12px;
+  font-size: 1.2rem;
+}
+
+.dashboard-mobile-nav-item {
+  cursor: pointer;
+}
+
+/* Enhanced glassmorphic effect for dashboard mobile menu dropdown */
+.dashboard-mobile-menu .dropdown-menu {
+  background: rgba(30, 30, 40, 0.85) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+/* Mobile Responsive - Dashboard Header */
+@media (max-width: 768px) {
+  .dashboard-header {
+    padding: 10px 15px;
+    gap: 8px;
+  }
+  
+  .dashboard-logo {
+    height: 28px;
+  }
+  
+  .dashboard-title {
+    font-size: 1rem;
+  }
+  
+  /* Hide desktop navigation, show mobile menu */
+  .dashboard-nav-header {
+    display: none;
+  }
+  
+  .dashboard-mobile-menu {
+    display: block;
+  }
+  
+  .dashboard-close {
+    transform: scale(1.2);
+  }
+  
+  .dashboard-close:hover {
+    transform: scale(1.3);
+  }
+}
+
 /* Dashboard Pages */
 .dashboard-page {
   width: 100%;

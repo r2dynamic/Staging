@@ -443,11 +443,22 @@
           
           <!-- Dashboard Header (on top of glass overlay) -->
           <div class="dashboard-header">
+            <!-- Mobile Menu Button -->
+            <div class="dropdown dashboard-mobile-menu">
+              <button class="button dashboard-menu-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-bars"></i>
+              </button>
+              <ul class="dropdown-menu glass-dropdown">
+                <li><a class="dropdown-item dashboard-mobile-nav-item" href="#" data-page="quality">Quality Report</a></li>
+                <li><a class="dropdown-item dashboard-mobile-nav-item" href="#" data-page="issues">Image Issues</a></li>
+                <li><a class="dropdown-item dashboard-mobile-nav-item" href="#" data-page="stats">Stats/Counts</a></li>
+              </ul>
+            </div>
             <div class="dashboard-header-content">
               <img src="gifLogo.gif" alt="UDOT Cameras Logo" class="dashboard-logo">
               <h5 class="dashboard-title" id="dashboardLabel">UDOTCameras.com</h5>
             </div>
-            <!-- Dashboard Navigation in Header -->
+            <!-- Dashboard Navigation in Header (Desktop) -->
             <div class="dashboard-nav-header">
               <button id="dashNavQuality" class="button active">Quality Report</button>
               <button id="dashNavIssues" class="button">Image Issues</button>
@@ -598,6 +609,23 @@
         window.updateURLParameters();
       });
     }
+    
+    // Mobile menu navigation handlers
+    document.querySelectorAll('.dashboard-mobile-nav-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        const page = e.target.dataset.page;
+        
+        // Trigger the switchDashboardPage function
+        if (page === 'quality') {
+          document.getElementById('dashNavQuality')?.click();
+        } else if (page === 'issues') {
+          document.getElementById('dashNavIssues')?.click();
+        } else if (page === 'stats') {
+          document.getElementById('dashNavStats')?.click();
+        }
+      });
+    });
   });
   </script>
 
