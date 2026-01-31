@@ -2277,7 +2277,12 @@ html, body {
 #cameraIssuesDashboard .modal-content {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+}
+
+@media (min-width: 769px) {
+  #cameraIssuesDashboard .modal-content {
+    height: 100vh;
+  }
 }
 
 /* Dashboard Header */
@@ -2298,6 +2303,12 @@ html, body {
   padding: clamp(0.625rem, 2vw, 1.5625rem) clamp(0.9375rem, 3vw, 1.5625rem);
 }
 
+@media (min-width: 769px) {
+  .dashboard-header-wrapper {
+    padding: 0.625rem 1rem;
+  }
+}
+
 .dashboard-header-content {
   display: flex;
   align-items: center;
@@ -2312,6 +2323,12 @@ html, body {
   flex-shrink: 0;
 }
 
+@media (min-width: 769px) {
+  .dashboard-logo {
+    height: 2rem;
+  }
+}
+
 .dashboard-title {
   color: white;
   font-size: clamp(1rem, 2vw, 1.35rem);
@@ -2321,12 +2338,28 @@ html, body {
   white-space: nowrap;
 }
 
+@media (min-width: 769px) {
+  .dashboard-title {
+    font-size: 1.1rem;
+  }
+}
+
 .dashboard-close {
   opacity: 0.9;
   transition: all 0.3s ease;
   transform: scale(1.4);
   font-weight: bold;
   flex-shrink: 0;
+}
+
+@media (min-width: 769px) {
+  .dashboard-close {
+    transform: scale(1.2);
+  }
+  
+  .dashboard-close:hover {
+    transform: scale(1.4);
+  }
 }
 
 .dashboard-close:hover {
@@ -2347,6 +2380,13 @@ html, body {
   opacity: 1;
   transition: all 0.3s ease;
   white-space: nowrap;
+}
+
+@media (min-width: 769px) {
+  .dashboard-nav-header .button {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.85rem;
+  }
 }
 
 .dashboard-nav-header .button.active {
@@ -2417,19 +2457,26 @@ html, body {
 /* Dashboard Pages */
 .dashboard-page {
   width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
 }
 
 .dashboard-page .container-fluid {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  width: 100%;
 }
 
 @media (min-width: 769px) {
+  .dashboard-page {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .dashboard-page .container-fluid {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  
   /* Image Issues page: 2-column layout */
   .dashboard-page > .container-fluid > .row {
     flex: 1;
@@ -2449,6 +2496,7 @@ html, body {
     align-content: flex-start;
     min-height: 0;
     max-height: 100%;
+    padding-top: 0.5rem;
   }
 }
 
@@ -2456,18 +2504,20 @@ html, body {
 .dashboard-content {
   position: relative;
   flex: 1;
-  overflow-y: hidden;
+  overflow-y: auto;
   overflow-x: hidden;
   padding: clamp(1.25rem, 4vw, 2.1875rem);
   z-index: 1;
-  display: flex;
-  flex-direction: column;
 }
 
 @media (min-width: 769px) {
   .dashboard-content {
     padding: 1rem;
-    max-height: calc(100vh - 80px);
+    padding-top: 0.5rem;
+    max-height: calc(100vh - 60px);
+    overflow-y: hidden;
+    display: flex;
+    flex-direction: column;
   }
 }
 
@@ -2528,22 +2578,32 @@ html, body {
     max-height: calc((100vh - 220px) / 5);
   }
   
-  /* Make chart cards shrink to fit */
+  /* Make chart cards compact and uniform */
   .dashboard-card-chart {
-    min-height: 150px;
-    max-height: calc((100vh - 200px) / 2.2);
-    flex: 1;
+    min-height: 200px;
+    max-height: 350px;
   }
   
-  /* Stats page charts need to be even smaller */
+  /* Image Issues page: 2 charts stacked */
+  #dashPageIssues .dashboard-card-chart {
+    max-height: 300px;
+  }
+  
+  /* Stats page: 3 charts in a row */
   #dashPageStats .dashboard-card-chart {
-    max-height: calc((100vh - 200px) / 3.5);
+    max-height: 300px;
   }
 }
 
 .dashboard-card:hover {
   transform: translate3d(0, -4px, 0) scale(1.02);
   box-shadow: 0 12px 40px rgba(255, 255, 255, 0.3);
+}
+
+@media (min-width: 769px) {
+  .dashboard-card:hover {
+    transform: translate3d(0, 0, 0) scale(1.01);
+  }
 }
 
 /* Liquid Glass Effect Layer */
@@ -2628,7 +2688,7 @@ html, body {
 
 @media (min-width: 769px) {
   .dashboard-card-chart {
-    padding: 0.75rem;
+    padding: 0.5rem;
   }
 }
 
@@ -2644,7 +2704,7 @@ html, body {
   position: relative !important;
   z-index: 3;
   width: 100% !important;
-  height: 100% !important;
+  height: auto !important;
   max-width: 100%;
   max-height: 100%;
 }
@@ -2685,14 +2745,50 @@ html, body {
 /* Responsive adjustments for dashboard */
 @media (max-width: 768px) {
   /* Enable scrolling on mobile */
+  #cameraIssuesDashboard .modal-dialog {
+    max-height: 100vh;
+    height: auto;
+    margin: 0;
+  }
+  
+  #cameraIssuesDashboard .modal-content {
+    max-height: 100vh;
+    height: auto;
+  }
+  
   .dashboard-content {
     overflow-y: auto;
     max-height: none;
+    padding-top: 1rem;
+    flex: 1;
+  }
+  
+  .dashboard-page {
+    display: block;
   }
   
   .dashboard-page,
   .dashboard-page .container-fluid {
     height: auto;
+    min-height: auto;
+    max-height: none;
+    overflow: visible;
+    display: block;
+    flex: none;
+  }
+  
+  /* Ensure all three pages can scroll on mobile */
+  #dashPageIssues,
+  #dashPageQuality,
+  #dashPageStats {
+    height: auto;
+    min-height: auto;
+    overflow: visible;
+  }
+  
+  #dashPageQuality[style*="display: block"],
+  #dashPageStats[style*="display: block"] {
+    display: block !important;
   }
   
   /* Remove column constraints on mobile - make full width */
@@ -2705,6 +2801,13 @@ html, body {
   #dashboardIssuesContainer > [class*='col-'] {
     flex: 0 0 calc(50% - 0.5rem) !important;
     max-width: calc(50% - 0.5rem) !important;
+  }
+  
+  /* Add top padding to card rows on mobile to prevent clipping */
+  #dashboardIssuesContainer,
+  #dashboardMetricsContainer,
+  #dashboardStatsCardsContainer {
+    padding-top: 0.5rem;
   }
   
   /* Charts stay full width on mobile */
