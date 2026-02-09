@@ -252,11 +252,17 @@
     </div>
   </div>
 
+  <!-- Under Construction overlay for Camera Image Issues filter -->
+  <!-- (moved inside gallery below) -->
+
   <!-- Issue Disclaimer (only shown for Camera Image Issues filter) -->
   <div id="issueDisclaimer" style="display:none; color:#ffffff; text-align:center; padding:2px 4px; font-size:0.55rem; font-weight:500; background:rgba(0,0,0,0.35);"></div>
 
   <!-- Image Gallery -->
-  <div class="container-fluid">
+  <div class="container-fluid" style="position:relative;">
+    <div class="under-construction-overlay" id="issueOverlay" style="display:none;">
+      <img src="UnderConstruction.png" alt="Under Construction">
+    </div>
     <div id="imageGallery" class="container-fluid hidden-on-load"></div>
   </div>
 
@@ -470,7 +476,10 @@
           </div>
 
           <!-- Dashboard Content (scrollable) -->
-          <div class="dashboard-content">
+          <div class="dashboard-content" style="position:relative;">
+            <div class="under-construction-overlay" id="ucOverlayDash" style="display:none;">
+              <img src="UnderConstruction.png" alt="Under Construction">
+            </div>
             
             <!-- Page 1: Image Issues (GeoJSON Classifications) -->
             <div id="dashPageIssues" class="dashboard-page">

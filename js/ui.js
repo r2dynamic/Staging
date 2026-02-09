@@ -21,7 +21,7 @@ function updateIssueDisclaimer() {
   }
 
   if (window.selectedIssueFilter) {
-    el.textContent = 'Experimental feature: Images are run through a machine vision classification pipeline once every 24 hours.';
+    el.textContent = 'Experimental feature: Images are ran through a machine vision classification on 2/8-26.';
     el.style.display = 'block';
   } else {
     el.textContent = '';
@@ -220,6 +220,10 @@ export function resetFilters() {
   window.searchQuery                = '';
   window.customRouteFormData        = [];
 
+  // Hide issue overlay
+  const issueOv = document.getElementById('issueOverlay');
+  if (issueOv) issueOv.style.display = 'none';
+
   const inp = document.getElementById('searchInput');
   if (inp) inp.value = '';
 
@@ -305,6 +309,11 @@ export async function applyFiltersFromURL() {
   if (params.has('city'))        window.selectedCity               = params.get('city');
   if (params.has('route'))       window.selectedRoute              = params.get('route');
   if (params.has('issue'))       window.selectedIssueFilter        = params.get('issue');
+  // Show issue overlay when loaded from URL
+  if (window.selectedIssueFilter && window.UNDER_CONSTRUCTION) {
+    const el = document.getElementById('issueOverlay');
+    if (el) el.style.display = 'flex';
+  }
   if (params.has('search')) {
     window.searchQuery = params.get('search');
     const inp = document.getElementById('searchInput');

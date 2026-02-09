@@ -705,6 +705,11 @@ export function initDashboard() {
   
   if (dashboardModal) {
     dashboardModal.addEventListener('shown.bs.modal', async () => {
+      // Show under-construction overlay if flag is on
+      if (window.UNDER_CONSTRUCTION) {
+        const el = document.getElementById('ucOverlayDash');
+        if (el) el.style.display = 'flex';
+      }
       await updateIssuesPage();
     });
   }

@@ -48,6 +48,9 @@ import {
   applyFiltersFromURL
 } from './ui.js';
 
+// --- Under-Construction Toggle (set to false to remove all overlays) ---
+window.UNDER_CONSTRUCTION = true;
+
 // --- Global State ---
 window.selectedRegion             = '';
 window.selectedCounty             = '';
@@ -88,6 +91,11 @@ window.resetFilters               = resetFilters;
 window.applyFiltersFromURL        = applyFiltersFromURL;
 window.copyURLToClipboard         = copyURLToClipboard;
 
+function showIssueOverlay(show) {
+  const el = document.getElementById('issueOverlay');
+  if (el) el.style.display = (show && window.UNDER_CONSTRUCTION) ? 'flex' : 'none';
+}
+
 function setupIssueFilterDropdown() {
   const dropdownButton = document.getElementById('issueFilterButton');
   const options = document.querySelectorAll('#issueFilterMenu .issue-option');
@@ -100,6 +108,7 @@ function setupIssueFilterDropdown() {
       filterImages();
       updateURLParameters();
       updateSelectedFilters();
+      showIssueOverlay(!!window.selectedIssueFilter);
       bootstrap.Dropdown.getOrCreateInstance(dropdownButton)?.hide();
     });
   });
