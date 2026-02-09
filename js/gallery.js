@@ -385,12 +385,40 @@ async function showNeighbor(entry, direction) {
   setModalFromCamera(entry.cam);
 }
 
+function findAdjacentInGallery(cam) {
+  const visible = (window.visibleCameras || []).filter(item => item.type === 'camera');
+  const idx = visible.findIndex(item => item.camera?.Id === cam?.Id);
+  if (idx === -1) return null; // Camera not in gallery
+
+  const prevCam = idx > 0 ? visible[idx - 1].camera : null;
+  const nextCam = idx < visible.length - 1 ? visible[idx + 1].camera : null;
+  return {
+    prev: buildNeighborFromCam(prevCam),
+    next: buildNeighborFromCam(nextCam)
+  };
+}
+
 function getNeighborEntries(cam) {
   const meta = cam?._geoJsonMetadata?.neighbors || {};
   const negMeta = buildNeighbor(meta.route1NegName, meta.route1NegUrl);
   const posMeta = buildNeighbor(meta.route1PosName, meta.route1PosUrl);
-
   const adj = findAdjacentNeighbors(cam);
+
+  // When gallery is filtered, use gallery order with neighbor fallback at edges
+  if (window.currentGalleryFilterType) {
+    const galleryAdj = findAdjacentInGallery(cam);
+
+    if (galleryAdj) {
+      // Camera is in the filtered gallery — use gallery order
+      // At edges (first/last), fill the empty slot with neighbor metadata
+      const neg = galleryAdj.prev || negMeta || adj.prev || null;
+      const pos = galleryAdj.next || posMeta || adj.next || null;
+      return { neg, pos };
+    }
+    // Camera not in gallery (scrolled past edge into neighbor territory)
+    // Fall through to standard neighbor logic below
+  }
+
   const neg = negMeta || adj.prev || null;
   const pos = posMeta || adj.next || null;
   return { neg, pos };

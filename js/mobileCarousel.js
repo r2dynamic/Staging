@@ -55,6 +55,18 @@ function findAdjacentInList(cam) {
   return { prev: prevCam, next: nextCam };
 }
 
+function getGalleryAdjacentCamera(cam, direction) {
+  const visible = (window.visibleCameras || []).filter(item => item.type === 'camera');
+  const idx = visible.findIndex(item => item.camera?.Id === cam?.Id);
+  if (idx === -1) return null;
+
+  if (direction === 'pos') {
+    return idx < visible.length - 1 ? visible[idx + 1].camera : null;
+  } else {
+    return idx > 0 ? visible[idx - 1].camera : null;
+  }
+}
+
 function getNeighborCamera(cam, direction) {
   if (!cam) {
     console.log('getNeighborCamera: no camera provided');
@@ -62,6 +74,17 @@ function getNeighborCamera(cam, direction) {
   }
   
   console.log(`\n--- getNeighborCamera(${cam.Location}, ${direction}) ---`);
+  
+  // When gallery is filtered, use gallery order (with neighbor fallback at edges)
+  if (window.currentGalleryFilterType) {
+    const result = getGalleryAdjacentCamera(cam, direction);
+    if (result) {
+      console.log(`  ${direction} from gallery:`, result.Location);
+      return result;
+    }
+    // At gallery edge or camera scrolled past gallery — fall through to neighbor metadata
+    console.log(`  Gallery edge or not in gallery, falling back to neighbor metadata`);
+  }
   
   // Try neighbor field first (same as desktop)
   const meta = cam?._geoJsonMetadata?.neighbors;
