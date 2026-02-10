@@ -21,7 +21,7 @@ function updateIssueDisclaimer() {
   }
 
   if (window.selectedIssueFilter) {
-    el.textContent = 'Experimental feature: Images are ran through a machine vision classification on 2/8/26.';
+    el.textContent = 'Experimental feature: Images ran through a machine vision classification on 2/8/26.In the future it will be every 24 hours.';
     el.style.display = 'block';
   } else {
     el.textContent = '';
